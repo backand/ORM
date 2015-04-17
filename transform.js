@@ -1,12 +1,14 @@
 var _ = require('underscore');
-var taffyDB = require('taffydb');
+var TAFFY = require('taffy');
 var knex = require('knex')({
   client: 'mysql'
 });
 
 // var s = knex.schema.createTable('users', function (table) {
 //   table.increments();
-//   table.string('name');
+//   var column = table.string('name');
+//   // console.log(column);
+// //  column.notNullable(); 
 //   table.timestamps();
 // });
 // console.log(s.toString());
@@ -30,156 +32,9 @@ var knex = require('knex')({
   }
 */
 
+// warnings
+
 var columnTypeConflict = "column type conflict";
-
-function transform(oldSchema, newSchema, severity){
-
-
-	// Compare the JSON
-	var modifications = compareSchemes(oldSchema, newSchema, severity);
-
-	// Determine validity 
-	var validity = isValidTransformation(oldSchema, newSchema, modifications);
-
-	if (severity == 0 && validity.isValid != "always"){
-		return validity;
-	}
-	else if (severity == 1 && validity.isValid == "never"){
-		return validity;
-	}
-
-	// Construct an array of the required changes between schemes
-	var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
-	
-	return _.extend(validity, { alter: alterStatementsArray });
-
-}
-
-function compareRelationSets(oldDb, newDb){
-	
-	var oldRelationNames = _.pluck(oldDb, "name");
-	var newRelationNames = _.pluck(newDb, "name");
-	var droppedRelationNames = _.difference(oldRelationNames, newRelationNames);
-	var addedRelationNames = _.difference(newRelationNames, oldRelationNames);
-	var existingRelationNames = _.intersection(oldRelationNames, newRelationNames);
-	return { dropTable: droppedRelationNames, createTable: addedRelationNames, commonTables: existingRelationNames };
-
-}
-
-function compareSchemes(oldSchema, newSchema) {
-	var databaseModifications = compareRelationSets(oldDb, newDb);
-
-	var relationsModifications = [];
-	// for each relation that existed before and after
-	_.each(databaseModifications.commonTables, function(c){
-		var relationModification = compareRelationSchemes(oldDb, newDb, c);
-		if (relationModification){
-			relationsModifications.push(relationModification);
-		}
-	});
-
-	return _.extend(databaseModifications, {  modifiedTables: relationsModifications });
-	
-	
-}
-
-function compareRelationSchemes(oldRelation, newRelation){
-
-	// For the same relation R, in the two schemes, compare the set of column names
-	// Obtain set of column add and column drop changes
-	var oldColumnNames = _.pluck(oldRelation.attributes, "name");
-	var newColumnNames = _.pluck(newRelation.attributes, "name");
-	var droppedColumnNames = _.difference(oldRColumnNames, newColumnNames);
-	var addedColumnNames = _.difference(newColumnNames, oldColumnNames);
-	var existingColumnNames = _.intersection(oldColumnNames, newColumnNames);
-
-	// obtain set of column modifications
-	var modifiedColumns = [];
-	_.each(existingColumnNames, function(column){
-		var typeHasChanged = oldRelation.attributes[column].type != newRelation.attributes[column].type;
-		var requiredHasChanged =  oldRelation.attributes[column].required ? !newRelation.attributes[column].required : newRelation.attributes[column].required;
-		if (typeHasChanged || requiredHasChanged){
-			modifiedColumns.push(column);
-		}
-	});
-
-	return {
-		name: oldRelation.name, dropped: droppedColumnNames, added: addedColumnNames, modified: modifiedColumns
-	};
-
-}
-
-function isValidTransformation(oldSchema, newSchema, modifications){
-
-	
-	// table add is valid
-
-	// table drop is valid if not involved in relationship
-
-	var warnings = [];
-	var invalid = "always";
-
-	// common tables
-	_.each(modifications.modifiedTables, function(modifiedRelation){
-		var relationName = modifiedRelation.name;
-		var modifiedColumns = modifiedRelation.modified;
-
-		_.each(modifiedColumns, function(column){
-			var oldColumnType = oldRelation.attributes[column].type;
-			var newColumnType = newRelation.attributes[column].type;
-			if (oldColumnType !=  newColumnType){
-				var conformityDegree = validTypeTransform(oldColumnType, newColumnType);
-				switch(conformityDegree)
-				{
-					case "never":
-						warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
-						invalid = escalateValidity(invalid, "never");
-					break;
-
-					case "data":
-						warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
-						invalid = escalateValidity(invalid, "data");
-					break;
-
-					default:
-					break;
-				}
-
-
-			}
-		});
-
-		// column drop is valid unless involved in relationship
-		var droppedColumns = modifiedRelation.dropped;
-
-		// column add is always valid
-
-	});
-	
-	return { valid: invalid, warnings: warnings };
-	
-}
-
-var escalationTable = TAFFY([
-	{ current: "always", change: "data", next: "data" },
-	{ current: "always", change: "never", next: "never" },
-	{ current: "always", change: "always", next: "always" },
-	{ current: "data", change: "data", next: "data" },
-	{ current: "data", change: "never", next: "never" },
-	{ current: "data", change: "always", next: "data" },
-	{ current: "never", change: "data", next: "never" },
-	{ current: "never", change: "never", next: "never" },
-	{ current: "never", change: "always", next: "never" },
-]);
-
-
-function escalateValidity(oldValidity, changeValidity){
-	var tuple = escalationTable({ current: oldValidity, change: changeValidity }).first();
-	if (tuple){
-		return tuple.next;
-	}
-	return "never";
-}
 
 // table of types that can allow for alter, e.g. int to float, varchar(x) to varchar(y) if y > x 
 
@@ -278,8 +133,264 @@ var validTransformDegree = TAFFY([
 
 
 
+var escalationTable = TAFFY([
+	{ current: "always", change: "data", next: "data" },
+	{ current: "always", change: "never", next: "never" },
+	{ current: "always", change: "always", next: "always" },
+	{ current: "data", change: "data", next: "data" },
+	{ current: "data", change: "never", next: "never" },
+	{ current: "data", change: "always", next: "data" },
+	{ current: "never", change: "data", next: "never" },
+	{ current: "never", change: "never", next: "never" },
+	{ current: "never", change: "always", next: "never" },
+]);
+
+
+
+// var r = transform(
+// [
+
+// 	{
+
+// 		name: "S",
+
+
+// 		attributes: {
+// 			C: {
+// 				type: "integer"
+// 			},
+
+// 			D: {
+// 				type: "string",
+// 				required: true
+// 			}
+// 		}
+// 	},
+
+// 	{
+
+// 		name: "U",
+
+
+// 		attributes: {
+// 			E: {
+// 				type: "integer"
+// 			},
+
+// 			F: {
+// 				type: "string",
+// 				required: true
+// 			},
+
+// 			H: {
+// 				type: "string"
+// 			}
+// 		}
+// 	},
+
+
+// ], 
+// [
+
+// 	{
+// 		name: "R",
+
+// 		attributes: {
+// 			A: {
+// 				type: "integer"
+// 			},
+
+// 			B: {
+// 				type: "string",
+// 				required: true
+// 			}
+// 		}
+
+// 	},
+
+// 	{
+
+// 		name: "U",
+
+
+// 		attributes: {
+
+// 			F: {
+// 				type: "string",
+// 				required: true
+// 			},
+
+// 			G: {
+// 				type: "float"
+// 			},
+
+// 			H: {
+// 				type: "date"
+// 			}
+// 		}
+// 	},
+
+// ], 1);
+
+// console.log(r);
+
+function transform(oldSchema, newSchema, severity){
+	console.log(oldSchema, newSchema, severity);
+
+	// Compare the JSON
+	var modifications = compareSchemes(oldSchema, newSchema, severity);
+    console.log(JSON.stringify(modifications));
+	// Determine validity 
+	var validity = isValidTransformation(oldSchema, newSchema, modifications);
+	console.log(validity);
+
+
+	if (severity == 0 && validity.valid != "always"){
+		return validity;
+	}
+	else if (severity == 1 && validity.valid == "never"){
+		return validity;
+	}
+	console.log("construct");
+
+	// Construct an array of the required changes between schemes
+	var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
+	
+	return _.extend(validity, { alter: alterStatementsArray });
+
+}
+
+function compareRelationSets(oldDb, newDb){
+	
+	var oldRelationNames = _.pluck(oldDb, "name");
+	var newRelationNames = _.pluck(newDb, "name");
+	var droppedRelationNames = _.difference(oldRelationNames, newRelationNames);
+	var addedRelationNames = _.difference(newRelationNames, oldRelationNames);
+	var existingRelationNames = _.intersection(oldRelationNames, newRelationNames);
+	return { dropTable: droppedRelationNames, createTable: addedRelationNames, commonTables: existingRelationNames };
+
+}
+
+function compareSchemes(oldSchema, newSchema) {
+	var databaseModifications = compareRelationSets(oldSchema, newSchema);
+
+	var relationsModifications = [];
+	// for each relation that existed before and after
+	_.each(databaseModifications.commonTables, function(c){
+		var relationModification = compareRelationSchemes(_.first(_.where(oldSchema, { name: c })), _.first(_.where(newSchema, { name: c })));
+		if (relationModification){
+			relationsModifications.push(relationModification);
+		}
+	});
+
+	return _.extend(databaseModifications, {  modifiedTables: relationsModifications });
+	
+	
+}
+
+function compareRelationSchemes(oldRelation, newRelation){
+	console.log("compareRelationSchemes", oldRelation, newRelation);
+
+	// For the same relation R, in the two schemes, compare the set of column names
+	// Obtain set of column add and column drop changes
+	var oldColumnNames = _.keys(oldRelation.attributes);
+	var newColumnNames = _.keys(newRelation.attributes);
+	console.log("oldColumnNames", JSON.stringify(oldColumnNames), "newColumnNames", JSON.stringify(newColumnNames));
+	var droppedColumnNames = _.difference(oldColumnNames, newColumnNames);
+	console.log("droppedColumnNames", droppedColumnNames);
+	var addedColumnNames = _.difference(newColumnNames, oldColumnNames);
+	console.log("addedColumnNames", addedColumnNames);
+	var existingColumnNames = _.intersection(oldColumnNames, newColumnNames);
+	console.log("existingColumnNames", existingColumnNames);
+
+	// obtain set of column modifications
+	var modifiedColumns = [];
+	_.each(existingColumnNames, function(column){
+		var typeHasChanged = oldRelation.attributes[column].type != newRelation.attributes[column].type;
+		var requiredHasChanged =  oldRelation.attributes[column].required ? !newRelation.attributes[column].required : newRelation.attributes[column].required;
+		if (typeHasChanged || requiredHasChanged){
+			modifiedColumns.push(column);
+		}
+	});
+
+	return {
+		name: oldRelation.name, dropped: droppedColumnNames, added: addedColumnNames, modified: modifiedColumns
+	};
+
+}
+
+function isValidTransformation(oldSchema, newSchema, modifications){
+
+	
+	// table add is valid
+
+	// table drop is valid if not involved in relationship
+
+	var warnings = [];
+	var invalid = "always";
+
+	// common tables
+	_.each(modifications.modifiedTables, function(modifiedRelation){
+		var relationName = modifiedRelation.name;
+		var modifiedColumns = modifiedRelation.modified;
+
+		_.each(modifiedColumns, function(column){
+			var oldRelation = _.first(_.where(oldSchema, { name: relationName }));
+			var newRelation = _.first(_.where(newSchema, { name: relationName }));
+			console.log(oldRelation, newRelation);
+			var oldColumnType = oldRelation.attributes[column].type;
+			var newColumnType = newRelation.attributes[column].type;
+			if (oldColumnType !=  newColumnType){
+				var conformityDegree = validTypeTransform(oldColumnType, newColumnType);
+				switch(conformityDegree)
+				{
+					case "never":
+						warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
+						invalid = escalateValidity(invalid, "never");
+					break;
+
+					case "data":
+						warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
+						invalid = escalateValidity(invalid, "data");
+					break;
+
+					default:
+					break;
+				}
+
+
+			}
+		});
+
+		// column drop is valid unless involved in relationship
+		var droppedColumns = modifiedRelation.dropped;
+
+		// column add is always valid
+
+	});
+	var v = { valid: invalid, warnings: warnings };
+	console.log("isValidTransformation", v);
+	return v;
+	
+}
+
+
+
+
+function escalateValidity(oldValidity, changeValidity){
+	var tuple = escalationTable({ current: oldValidity, change: changeValidity }).first();
+	if (tuple){
+		return tuple.next;
+	}
+	return "never";
+}
+
+
+
 function validTypeTransform(oldColumnType, newColumnType){
+	console.log("validTypeTransform", oldColumnType, newColumnType);
 	var tuple = validTransformDegree({ from: oldColumnType, to: newColumnType }).first();
+	console.log("tuple", tuple);
 	if (tuple){
 		return tuple.degree;
 	}
@@ -291,17 +402,174 @@ function createStatements(oldSchema, newSchema, modifications){
 
 	var statements = [];
 
+
 	// drop tables
 	var droppedTables = modifications.dropTable;
 	_.each(droppedTables, function(t){
 		var statement = knex.schema.dropTable(t);
-		statements.push(statement);
+		statements.push(statement.toString());
 	});
-	console.log(statements);
+	console.log("delete table", statements);
 
 	// add tables
 	var addedTables = modifications.createTable;
+	_.each(addedTables, function(t){
+		var statement = knex.schema.createTable(t, function (table) {
+		  table.increments();
+		  table.timestamps();
+
+		  var newTableSchema = _.findWhere(newSchema, { name: t });
+		  _.each(newTableSchema.attributes, function(description, name){
+		  	switch(description.type){
+		  		case "string":
+		  			var col = table.string(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "text":
+		  			var col = table.text(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "integer":
+		  			var col = table.integer(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "float":
+		  			var col = table.float(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "date":
+		  			table.date(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "time":
+		  			table.time(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "datetime":
+		  			table.dateTime(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "boolean":
+		  			table.boolean(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  		case "binary":
+		  			table.text(name);
+		  			if (description.required){
+		  				col.notNullable();
+		  			}
+		  		break;
+		  	}
+
+		  });
+		    
+		});
+		statements.push(statement.toString());
+	});
+    console.log("add table", statements);
 
 	// modify tables
+	var modifiedTables = modifications.modifiedTables;
+	console.log("modifiedTables", modifiedTables);
+	_.each(modifiedTables, function(m){
+		var tableName = m.name;
+		var tableDescription = _.first(_.where(newSchema, { name: tableName }));
+		var statement = knex.schema.table(tableName,function(table){
+			_.each(m.dropped, function(d){
+				table.dropColumn(d);
+			});
+			_.each(m.added, function(d){
+				var description = tableDescription.attributes[d];
+			  	switch(description.type){
+			  		case "string":
+			  			var col = table.string(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "text":
+			  			var col = table.text(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "integer":
+			  			var col = table.integer(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "float":
+			  			var col = table.float(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "date":
+			  			table.date(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "time":
+			  			table.time(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "datetime":
+			  			table.dateTime(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "boolean":
+			  			table.boolean(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  		case "binary":
+			  			table.text(d);
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  		break;
+			  	}
+			});	
+		});
+		var sArray = statement.toString().replace(";", "").split("\n");
+		
+		_.each(sArray, function(a){
+			statements.push(a);
+		});
+		console.log("add/drop columns", statements);
+		_.each(m.modified, function(d){
+			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).attributes[d];
+			var newAttributeDescription = tableDescription.attributes[d];
+			var typeClause = "alter table " + tableName + " modify " + d + " " + newAttributeDescription.type;
+			var requiredClause = newAttributeDescription.required ? " null " : " not null ";
+			var statement = typeClause + requiredClause;
+			statements.push(statement);
+		});
+	});
+    console.log("modify table", statements);
+    return statements;
 
 }
