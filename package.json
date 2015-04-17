@@ -1,0 +1,11 @@
+{
+  "name": "schema_transformation",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "knex": "latest",
+    "mysql": "latest",
+    "underscore": "latest",
+    "taffydb": "latest"
+  }
+}
