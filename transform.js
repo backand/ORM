@@ -232,7 +232,7 @@ var escalationTable = TAFFY([
 
 // ], 1);
 
-// console.log(r);
+// console.log(JSON.stringify(r));
 
 function transform(oldSchema, newSchema, severity){
 	console.log(oldSchema, newSchema, severity);
@@ -255,8 +255,16 @@ function transform(oldSchema, newSchema, severity){
 
 	// Construct an array of the required changes between schemes
 	var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
+
+	// describe the order of the database
+	var tablesOrder = _.pluck(newSchema, "name");
+	var columnsOrder = _.map(newSchema, function(t){
+		return _.keys(t.attributes);
+	});
+	console.log(columnsOrder);
+	var orderStructure = { tables: tablesOrder, columns: _.object(tablesOrder, columnsOrder) };
 	
-	return _.extend(validity, { alter: alterStatementsArray });
+	return _.extend(validity, { alter: alterStatementsArray, order: orderStructure });
 
 }
 
