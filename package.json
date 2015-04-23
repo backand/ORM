@@ -6,6 +6,8 @@
     "knex": "latest",
     "mysql": "latest",
     "underscore": "latest",
-    "taffy": "latest"
+    "taffy": "latest",
+    "request": "latest",
+    "async": "latest"
   }
 }

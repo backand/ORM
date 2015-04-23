@@ -1,6 +1,6 @@
 var _ = require('underscore');
 
-var validTypes = ["string",	"text", "integer", "float", "date", "time", "datetime", "boolean", "binary"];
+var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ "datetime", "boolean", "binary"];
 
 
 
