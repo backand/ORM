@@ -35,6 +35,7 @@ var knex = require('knex')({
 // warnings
 
 var columnTypeConflict = "column type conflict";
+var relationshipTypeConflict = "conversion between type and relationship";
 
 // table of types that can allow for alter, e.g. int to float, varchar(x) to varchar(y) if y > x 
 
@@ -150,99 +151,177 @@ var escalationTable = TAFFY([
 // var r = transform(
 // [
 
+// 	// {
+
+// 	// 	name: "S",
+
+
+// 	// 	attributes: {
+// 	// 		C: {
+// 	// 			type: "integer"
+// 	// 		},
+
+// 	// 		D: {
+// 	// 			type: "string",
+// 	// 			required: true
+// 	// 		}
+// 	// 	}
+// 	// },
+
+// 	// {
+
+// 	// 	name: "U",
+
+
+// 	// 	attributes: {
+// 	// 		E: {
+// 	// 			type: "integer"
+// 	// 		},
+
+// 	// 		F: {
+// 	// 			type: "string",
+// 	// 			required: true
+// 	// 		},
+
+// 	// 		H: {
+// 	// 			type: "string"
+// 	// 		}
+// 	// 	}
+// 	// },
+
 // 	{
-
-// 		name: "S",
-
-
+// 		name: "user",
 // 		attributes: {
-// 			C: {
-// 				type: "integer"
+// 			name: {
+// 				type: 'string'
 // 			},
-
-// 			D: {
-// 				type: "string",
-// 				required: true
+// 			age: {
+// 				type: 'date'
+// 			},
+// 			dogs:{
+// 				collection: 'pet',
+// 				via: 'owner'
 // 			}
 // 		}
 // 	},
 
-// 	{
+// 	{ 
 
-// 		name: "U",
-
+// 		name: "pet",
 
 // 		attributes: {
-// 			E: {
-// 				type: "integer"
+// 			name: {
+// 				type: 'string'
 // 			},
-
-// 			F: {
-// 				type: "string",
-// 				required: true
+// 			registered: {
+// 				type: 'boolean'
 // 			},
+// 			owner:{
+// 				object: 'user'
+// 			}
+// 		}
+		
+// 	},
 
-// 			H: {
-// 				type: "string"
+// 	{
+// 		name: "walkers",
+// 		attributes: {
+// 			name: {
+// 				type: 'string'
+// 			},
+// 			age: {
+// 				type: 'date'
+// 			},
+// 			dogs:{
+// 				collection: 'animal',
+// 				via: 'owners'
 // 			}
 // 		}
 // 	},
+
+
+// 	{
+// 		name: "animal",
+// 		attributes: {
+// 			name: {
+// 				type: 'string'
+// 			},
+// 			breed: {
+// 				type: 'string'
+// 			},
+// 			owners:{
+// 				collection: 'user',
+// 				via: 'dogs'
+// 			}
+// 		}
+// 	},
+	
 
 
 // ], 
 // [
 
-// 	{
-// 		name: "R",
+// 	// {
+// 	// 	name: "R",
 
-// 		attributes: {
-// 			A: {
-// 				type: "integer"
-// 			},
+// 	// 	attributes: {
+// 	// 		A: {
+// 	// 			type: "integer"
+// 	// 		},
 
-// 			B: {
-// 				type: "string",
-// 				required: true
-// 			}
-// 		}
+// 	// 		B: {
+// 	// 			type: "string",
+// 	// 			required: true
+// 	// 		}
+// 	// 	}
 
-// 	},
+// 	// },
 
-// 	{
+// 	// {
 
-// 		name: "U",
+// 	// 	name: "U",
 
 
-// 		attributes: {
+// 	// 	attributes: {
 
-// 			F: {
-// 				type: "string",
-// 				required: true
-// 			},
+// 	// 		F: {
+// 	// 			type: "string",
+// 	// 			required: true
+// 	// 		},
 
-// 			G: {
-// 				type: "float"
-// 			},
+// 	// 		G: {
+// 	// 			type: "float"
+// 	// 		},
 
-// 			H: {
-// 				type: "date"
-// 			}
-// 		}
-// 	},
+// 	// 		H: {
+// 	// 			type: "date"
+// 	// 		}
+// 	// 	}
+// 	// },
 
-// ], 1);
+
+
+
+
+	
+
+// ], 0);
 
 // console.log(JSON.stringify(r));
+// console.log("statements");
+// _.each(r.alter, function(s){
+// 	console.log(s);
+// });
 
 function transform(oldSchema, newSchema, severity){
-	console.log(oldSchema, newSchema, severity);
+	// console.log(oldSchema, newSchema, severity);
 
 	// Compare the JSON
 	var modifications = compareSchemes(oldSchema, newSchema, severity);
-    console.log(JSON.stringify(modifications));
+    // console.log(JSON.stringify(modifications));
 	// Determine validity 
 	var validity = isValidTransformation(oldSchema, newSchema, modifications);
-	console.log(validity);
+	// console.log(validity);
 
 
 	if (severity == 0 && validity.valid != "always"){
@@ -251,7 +330,7 @@ function transform(oldSchema, newSchema, severity){
 	else if (severity == 1 && validity.valid == "never"){
 		return validity;
 	}
-	console.log("construct");
+
 
 	// Construct an array of the required changes between schemes
 	var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
@@ -261,7 +340,6 @@ function transform(oldSchema, newSchema, severity){
 	var columnsOrder = _.map(newSchema, function(t){
 		return _.keys(t.attributes);
 	});
-	console.log(columnsOrder);
 	var orderStructure = { tables: tablesOrder, columns: _.object(tablesOrder, columnsOrder) };
 	
 	return _.extend(validity, { alter: alterStatementsArray, order: orderStructure });
@@ -275,7 +353,12 @@ function compareRelationSets(oldDb, newDb){
 	var droppedRelationNames = _.difference(oldRelationNames, newRelationNames);
 	var addedRelationNames = _.difference(newRelationNames, oldRelationNames);
 	var existingRelationNames = _.intersection(oldRelationNames, newRelationNames);
-	return { dropTable: droppedRelationNames, createTable: addedRelationNames, commonTables: existingRelationNames };
+	
+	var oldRelationships = getRelationships(oldDb);
+	var newRelationships = getRelationships(newDb);
+
+
+	return { dropTable: droppedRelationNames, createTable: addedRelationNames, commonTables: existingRelationNames, oldRelationships: oldRelationships, newRelationships: newRelationships };
 
 }
 
@@ -297,19 +380,15 @@ function compareSchemes(oldSchema, newSchema) {
 }
 
 function compareRelationSchemes(oldRelation, newRelation){
-	console.log("compareRelationSchemes", oldRelation, newRelation);
+	// console.log("compareRelationSchemes", oldRelation, newRelation);
 
 	// For the same relation R, in the two schemes, compare the set of column names
 	// Obtain set of column add and column drop changes
 	var oldColumnNames = _.keys(oldRelation.attributes);
 	var newColumnNames = _.keys(newRelation.attributes);
-	console.log("oldColumnNames", JSON.stringify(oldColumnNames), "newColumnNames", JSON.stringify(newColumnNames));
 	var droppedColumnNames = _.difference(oldColumnNames, newColumnNames);
-	console.log("droppedColumnNames", droppedColumnNames);
 	var addedColumnNames = _.difference(newColumnNames, oldColumnNames);
-	console.log("addedColumnNames", addedColumnNames);
 	var existingColumnNames = _.intersection(oldColumnNames, newColumnNames);
-	console.log("existingColumnNames", existingColumnNames);
 
 	// obtain set of column modifications
 	var modifiedColumns = [];
@@ -330,9 +409,9 @@ function compareRelationSchemes(oldRelation, newRelation){
 function isValidTransformation(oldSchema, newSchema, modifications){
 
 	
-	// table add is valid
 
 	// table drop is valid if not involved in relationship
+	// already tested via schema validation
 
 	var warnings = [];
 	var invalid = "always";
@@ -345,7 +424,12 @@ function isValidTransformation(oldSchema, newSchema, modifications){
 		_.each(modifiedColumns, function(column){
 			var oldRelation = _.first(_.where(oldSchema, { name: relationName }));
 			var newRelation = _.first(_.where(newSchema, { name: relationName }));
-			console.log(oldRelation, newRelation);
+			if (!_.has(oldRelation.attributes[column], "type") || !_.has(newRelation.attributes[column], "type")){ // modified from/to relationship
+				warnings.push({ kind: relationshipTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
+				invalid = escalateValidity(invalid, "never");
+				return;
+			}
+
 			var oldColumnType = oldRelation.attributes[column].type;
 			var newColumnType = newRelation.attributes[column].type;
 			if (oldColumnType !=  newColumnType){
@@ -371,13 +455,12 @@ function isValidTransformation(oldSchema, newSchema, modifications){
 		});
 
 		// column drop is valid unless involved in relationship
-		var droppedColumns = modifiedRelation.dropped;
+		// already tested via schema validation
 
 		// column add is always valid
 
 	});
 	var v = { valid: invalid, warnings: warnings };
-	console.log("isValidTransformation", v);
 	return v;
 	
 }
@@ -396,28 +479,76 @@ function escalateValidity(oldValidity, changeValidity){
 
 
 function validTypeTransform(oldColumnType, newColumnType){
-	console.log("validTypeTransform", oldColumnType, newColumnType);
 	var tuple = validTransformDegree({ from: oldColumnType, to: newColumnType }).first();
-	console.log("tuple", tuple);
 	if (tuple){
 		return tuple.degree;
 	}
 	return "never";
 }
 
+// match relationships in schema
+function getRelationships(newSchema){
+
+	var newRelationships = [];
+
+	// first match 1:n relationships
+	_.each(newSchema, function(r){
+		_.each(r.attributes, function(valueOne, keyOne){
+			if (valueOne.object){ // 1:n, 1 side, seek n side
+				var nSideRelation = _.findWhere(newSchema, { name: valueOne.object });
+				var nSideAttribute = null;
+				_.each(nSideRelation.attributes, function(value, key){
+					if (keyOne == value.via && value.collection == r.name){
+						newRelationships.push({ type: "1:n", oneRelation: r.name, nRelation: nSideRelation.name, oneAttribute: keyOne, nAttribute: key });
+					}
+				});
+			}
+		});
+	});
+
+	// match n:n relationships
+	_.each(newSchema, function(r){
+		_.each(r.attributes, function(valueN, keyN){
+			if (_.has(valueN, "collection")){ // 1:n or n:n, n side, seek other side
+				var otherSide = _.findWhere(newRelationships, { nRelation: r.name, nAttribute: keyN });
+				if (!otherSide){
+					otherSide = _.findWhere(newRelationships, { mRelation: r.name, mAttribute: keyN });
+				}
+				if (!otherSide){ // other side not created yet. because all 1:n already matched, it is n:n
+					newRelationships.push({ type: "n:n", mRelation: r.name, nRelation: valueN.collection, mAttribute: keyN, nAttribute: valueN.via });
+				}
+			}
+		});
+	});
+	// console.log("getRelationships", newRelationships);
+	return newRelationships;
+}
+
 // Transform the array of required changes into SQL alter statements
 function createStatements(oldSchema, newSchema, modifications){
 
 	var statements = [];
-
+	var oldRelationships = modifications.oldRelationships;
+	var newRelationships = modifications.newRelationships;
 
 	// drop tables
 	var droppedTables = modifications.dropTable;
 	_.each(droppedTables, function(t){
 		var statement = knex.schema.dropTable(t);
 		statements.push(statement.toString());
+
+		// drop associated relationships
+		var relatedRelationships = _.filter(oldRelationships, function(r) { 
+			if (r.type == "n:n" && (r.mRelation == t || r.nRelation == t)){		  
+				statement = knex.schema.dropTableIfExists(r.mRelation + "_" + r.nRelation + "_" + r.mAttribute + "_" + r.nAttribute);
+				statements.push(statement.toString());	
+				statement = knex.schema.dropTableIfExists(r.nRelation + "_" + r.mRelation + "_" + r.nAttribute + "_" + r.mAttribute);
+				statements.push(statement.toString());	
+			}
+		});	
+
 	});
-	console.log("delete table", statements);
+	// console.log("delete table", statements);
 
 	// add tables
 	var addedTables = modifications.createTable;
@@ -428,138 +559,160 @@ function createStatements(oldSchema, newSchema, modifications){
 
 		  var newTableSchema = _.findWhere(newSchema, { name: t });
 		  _.each(newTableSchema.attributes, function(description, name){
-		  	switch(description.type){
-		  		case "string":
-		  			var col = table.string(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "text":
-		  			var col = table.text(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "integer":
-		  			var col = table.integer(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "float":
-		  			var col = table.float(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "date":
-		  			table.date(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "time":
-		  			table.time(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "datetime":
-		  			table.dateTime(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "boolean":
-		  			table.boolean(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  		case "binary":
-		  			table.text(name);
-		  			if (description.required){
-		  				col.notNullable();
-		  			}
-		  		break;
-		  	}
-
-		  });
-		    
-		});
-		statements.push(statement.toString());
-	});
-    console.log("add table", statements);
-
-	// modify tables
-	var modifiedTables = modifications.modifiedTables;
-	console.log("modifiedTables", modifiedTables);
-	_.each(modifiedTables, function(m){
-		var tableName = m.name;
-		var tableDescription = _.first(_.where(newSchema, { name: tableName }));
-		var statement = knex.schema.table(tableName,function(table){
-			_.each(m.dropped, function(d){
-				table.dropColumn(d);
-			});
-			_.each(m.added, function(d){
-				var description = tableDescription.attributes[d];
+		  	if (_.has(description, "type")){
 			  	switch(description.type){
 			  		case "string":
-			  			var col = table.string(d);
+			  			var col = table.string(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "text":
-			  			var col = table.text(d);
+			  			var col = table.text(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "integer":
-			  			var col = table.integer(d);
+			  			var col = table.integer(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "float":
-			  			var col = table.float(d);
+			  			var col = table.float(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "date":
-			  			table.date(d);
+			  			table.date(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "time":
-			  			table.time(d);
+			  			table.time(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "datetime":
-			  			table.dateTime(d);
+			  			table.dateTime(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "boolean":
-			  			table.boolean(d);
+			  			table.boolean(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "binary":
-			  			table.text(d);
+			  			table.text(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  	}
+		  	}
+		  	else if (_.has(description, "object")){ // 1 side of 1:n relationship
+		  		var searchPattern = { oneRelation: t, oneAttribute: name };
+		  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
+		  		var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_" + name);
+		  		col.references("id").inTable(oneManyRelationship.nRelation);
+		  	}
+		  	else if (_.has(description, "collection") && _.has(description, "via")){
+
+		  	}
+		  });
+		    
+		});
+		statements.push(statement.toString());
+	});
+    // console.log("add table", statements);
+
+	// modify tables
+	var modifiedTables = modifications.modifiedTables;
+	// console.log("modifiedTables", modifiedTables);
+	_.each(modifiedTables, function(m){
+		var tableName = m.name;
+		var tableDescription = _.first(_.where(newSchema, { name: tableName }));
+		var statement = knex.schema.table(tableName,function(table){
+
+			// drop columns
+			_.each(m.dropped, function(d){
+				table.dropColumn(d);
+			});
+
+			// add columns
+			_.each(m.added, function(d){
+				var description = tableDescription.attributes[d];
+				if (description.type){
+					switch(description.type){
+				  		case "string":
+				  			var col = table.string(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "text":
+				  			var col = table.text(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "integer":
+				  			var col = table.integer(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "float":
+				  			var col = table.float(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "date":
+				  			table.date(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "time":
+				  			table.time(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "datetime":
+				  			table.dateTime(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "boolean":
+				  			table.boolean(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  		case "binary":
+				  			table.text(d);
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  		break;
+				  	}
+				}
+				else if (_.has(description, "object")){ // 1 side of 1:n relationship
+			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: t.name, oneAttribute: name });
+			  		var col = table.integer("fk_" + t.name + "_" + oneManyRelationship.nRelation + "_" + name);
+			  		col.references("id");
+			  		col.inTable(oneManyRelationship.nRelation);
+			  	}			
 			});	
 		});
 		var sArray = statement.toString().replace(";", "").split("\n");
@@ -567,7 +720,23 @@ function createStatements(oldSchema, newSchema, modifications){
 		_.each(sArray, function(a){
 			statements.push(a);
 		});
-		console.log("add/drop columns", statements);
+		// console.log("add/drop columns", statements);
+
+		// drop relationships table for dropped columns
+		_.each(m.dropped, function(c){
+			var columnDescription = tableDescription.attributes[c];
+			if (_.has(columnDescription, "collection")){
+				var relatedRelationships = _.filter(oldRelationships, function(r) { 
+					if (type == "n:n" && (r.mRelation == t || r.nRelation == t)){		  
+						statement = knex.schema.dropTableIfExists(r.mRelation + "_" + r.nRelation + "_" + r.mAttribute + "_" + r.nAttribute);
+						statements.push(statement.toString());	
+						statement = knex.schema.dropTableIfExists(r.nRelation + "_" + r.mRelation + "_" + r.nAttribute + "_" + r.mAttribute);
+						statements.push(statement.toString());	
+					}
+				});	
+			}
+		});
+
 		_.each(m.modified, function(d){
 			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).attributes[d];
 			var newAttributeDescription = tableDescription.attributes[d];
@@ -577,7 +746,31 @@ function createStatements(oldSchema, newSchema, modifications){
 			statements.push(statement);
 		});
 	});
-    console.log("modify table", statements);
+    // console.log("modify table", statements);
+
+    // add new relationships
+    _.each(newRelationships, function(nr){
+    	if (nr.type == "n:n"){
+    		// is there such an old relationship 
+    		var a = _.where(oldRelationships, { nRelation: nr.nRelation, nAttribute: nr.nAttribute });
+    		if (a.length == 0){
+    			a  = _.where(oldRelationships, { mRelation: nr.nRelation, mAttribute: nr.nAttribute });
+    			if (a.length == 0){ // no such relation so create one
+    				var relationshipName = nr.nRelation + "_" + nr.mRelation + "_" + nr.nAttribute + "_" + nr.mAttribute;
+    				var statement = knex.schema.createTable(relationshipName, function (table) {
+					  table.increments();
+					  table.timestamps();
+					  var colN = table.integer("fk_" + nr.nRelation);
+				  	  colN.references("id").inTable(nr.nRelation);
+				  	  var colM = table.integer("fk_" + nr.mRelation);
+				  	  colM.references("id").inTable(nr.mRelation);
+					});
+					statements.push(statement.toString());
+    			}
+    		}
+    	}
+    });
+
     return statements;
 
 }

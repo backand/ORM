@@ -167,39 +167,29 @@ function validateSchema(str){
 
 		var result = _.reduce(schema, function(memo, value){
 			var currentResult = validRelation(value);
-			console.log(currentResult);
 			memo.warnings.push(currentResult.warnings);
 			
 			var relationshipsCheck = getRelationships(value);
-			console.log("relationshipsCheck", relationshipsCheck);
 			relationships.push(relationshipsCheck.relationships);
 			memo.warnings.push(relationshipsCheck.warnings);
 
 			return { valid: memo.valid && currentResult.valid && relationshipsCheck.valid, warnings: _.flatten(memo.warnings) };
 		}, { valid: true, warnings: [] });
 
-		console.log(result);
 		var relationships = _.flatten(relationships);
-		console.log(relationships);
 		// validate the two sides of a relationship
 		_.each(relationships, 
 			function(r){
-				console.log("r", r);
 				if (r.type == "n"){
 					var fn = _.filter(relationships, function(o){
-						console.log("o", o);
 						return r.collection == o.relation && o.collection == r.relation && o.via == r.attribute && r.via == o.attribute && o.type == "n";
 					});
-					console.log("fn", fn);
 					var otherSideM = fn.length > 0 ? _.first(fn) : null;
-					console.log(otherSideM);
 					if (!otherSideM){
 						var fone = _.filter(relationships, function(o){
 							return o.object == r.relation && r.collection == o.relation && r.via == o.attribute && o.type == "one";
 						})
-						console.log("fone", fone);
 						var otherSide1 = fone.length > 0 ? _.first(fone) : null;
-						console.log(otherSide1);
 						if (!otherSide1){
 							result.warnings.push("multi select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
 							result.valid = false;
@@ -209,10 +199,8 @@ function validateSchema(str){
 				}
 				else if (r.type == "one"){
 					var fone = _.filter(relationships, function(o){
-						console.log("o", o);
 						return r.object == o.relation && o.collection == r.relation && o.via == r.attribute && o.type == "n";
 					});
-					console.log("fone", fone);
 					var otherSide = fone.length > 0 ? _.first(fone) : null;
 					if (!otherSide){
 						result.warnings.push("single select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
@@ -233,7 +221,6 @@ function validateSchema(str){
 
 
 function validRelation(relation){
-	console.log(relation);
 	var warnings = [];
 	var valid = true;
 	if (!(_.isObject(relation) && !_.isArray(relation))){
@@ -314,7 +301,7 @@ function validRelation(relation){
 // { relation: <relation name>, attribute:<name of attribute>, collection: <attribute collection field>, via: <attribute via field>, type: "n" }
 
 function getRelationships(relation){
-	console.log("getRelationships", relation);
+
 	// either structure is invalid, or cannot determine relationships
 	if (!(_.isObject(relation) && !_.isArray(relation) && _.has(relation, "name") && _.has(relation, "attributes") && _.isObject(relation.attributes) && !_.isArray(relation.attributes)))
 		return { valid: true, relationships: null, warnings: [], relationships:[] };
@@ -322,52 +309,16 @@ function getRelationships(relation){
 	var valid = true;
 	var warnings = [];
 
-	// var attributesCollection = [];
-	// _.each(relation.attributes, function(value, key){ 
-	// 	console.log(value, key);
-	// 	console.log(_.has(value,"collection"));
-	// 	if (_.has(value,"collection"))
-	// 		attributesCollection.push(_.extend(value, { attribute: key })); 
-	// });
-	// var attributesVia = [];
-	// _.each(relation.attributes, function(value, key){  
-	// 	console.log(value, key);
-	// 	if (_.has(value,"via"))
-	// 		attributesVia.push(_.extend(value, { attribute: key })); 
-	// });
-	// console.log(attributesCollection, attributesVia);
-
-	// var attributesCollectionNames = _.pluck(attributesCollection, "attribute");
-	// var attributesViaNames = _.pluck(attributesVia, "attribute");
-	// console.log(attributesCollectionNames, attributesViaNames);
-	// console.log(_.difference(attributesCollectionNames, _.attributesViaNames));
-	// console.log(_.difference(attributesViaNames, attributesCollectionNames));
-	// var notFullRelationshipAttributes = _.union(_.difference(attributesCollectionNames, _.attributesViaNames), 
-	// 	_.difference(attributesViaNames, attributesCollectionNames));
-	// console.log(notFullRelationshipAttributes);
-	// if (notFullRelationshipAttributes.length > 0){
-	// 	valid = false;
-	// 	_.each(notFullRelationshipAttributes, function(a){
-	// 		warnings.push("relation " + relation.name + " relation attribute " + a + 
-	// 			" involved in a relationship on the 1 side should include both a 'collection' and a 'via' field");
-	// 	});
-	// }
-	// console.log(notFullRelationshipAttributes);
 	var relationships = [];
 	_.each(relation.attributes, function(value, key){ 
-		console.log(value, key);
 		if (_.has(value, "collection") && _.has(value, "via")){
-			console.log("collection and via");
 			relationships.push(_.extend(value, { relation: relation.name, attribute: key, type: "n" }));
 		}
 		else if (_.has(value, "object")){
-			console.log("object");
 			relationships.push({ relation: relation.name, attribute: key, object: value.object, type: "one" });
 		}
 	});
-	console.log(relationships);
 	
-
 	return { valid: valid, warnings: warnings, relationships: relationships };
 	
 }
