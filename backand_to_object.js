@@ -15,7 +15,9 @@ var backandToJsonType = {
 	"LongText": "text",
 	"Boolean": "boolean",
 	"Binary": "binary",
-	"DateTime": "datetime"
+	"DateTime": "datetime",
+	"SingleSelect": "SingleSelect",
+	"MultiSelect": "MultiSelect"
 };
 
 // get token
@@ -87,6 +89,7 @@ function fetchTables(accessToken, tokenType){
 		    				})
 		    				console.log("database", JSON.stringify(tables));
 		    				// transform tables to create relationships
+		    				
 		    				process.exit(1);
 		    			}
 		    		);
@@ -122,11 +125,16 @@ function fetchColumns(accessToken, tokenType, tableName, callbackColumns){
 		    if(!error && response.statusCode == 200) {
 		    	
 		    	var body = JSON.parse(body);
-		    	console.log(body.fields);
+		    	// console.log(body.fields);
 	    		async.map(body.fields, 
 	    			function(item, callback){
 	    				
-	    				var description = { name: item.name, type: backandToJsonType[item.type] };
+	    				var description = { name: item.name, type: backandToJsonType[item.type]};
+	    				if (_.has(item, "relatedViewName") && item.relatedViewName)
+	    				 	description.relatedViewName = item.relatedViewName;
+	    				if (_.has(item, "relatedParentFieldName") && item.relatedParentFieldName)
+	    				 	description.relatedParentFieldName = item.relatedParentFieldName;
+
 	    				if (item.required)
 	    					description.required = true;
 	    				// if (_.has(item, "minValue"))
