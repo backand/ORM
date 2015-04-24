@@ -89,7 +89,7 @@ function fetchTables(accessToken, tokenType){
 		    				})
 		    				console.log("database", JSON.stringify(tables));
 		    				// transform tables to create relationships
-		    				
+
 		    				process.exit(1);
 		    			}
 		    		);
@@ -143,6 +143,16 @@ function fetchColumns(accessToken, tokenType, tableName, callbackColumns){
 	    				// 	description.maxValue = item.maxValue;
 	    				if (_.has(item, "defaultValue"))
 	    					description.defaultValue = item.defaultValue;
+	    				if (item.type == "SingleSelect"){
+	    					var collection = description.relatedViewName;
+	    					description = _.extend(_.omit(description, "type", "relatedViewName", "relatedParentFieldName"), { "object" : collection }); 
+	    				}
+	    				if (item.type == "MultiSelect"){
+	    					var collection = description.relatedViewName;
+	    					var via = description.relatedParentFieldName;
+	    					description = _.extend(_.omit(description, "type", "relatedViewName", "relatedParentFieldName"), { "collection": collection, "via": via }); 
+	    				}
+
 	    				callback(null, description);
 	    			},
 	    			function(err, results){
