@@ -148,170 +148,166 @@ var escalationTable = TAFFY([
 
 
 
-// var r = transform(
-// [
+var r = transform(
+[
 
-// 	// {
+	{
 
-// 	// 	name: "S",
-
-
-// 	// 	attributes: {
-// 	// 		C: {
-// 	// 			type: "integer"
-// 	// 		},
-
-// 	// 		D: {
-// 	// 			type: "string",
-// 	// 			required: true
-// 	// 		}
-// 	// 	}
-// 	// },
-
-// 	// {
-
-// 	// 	name: "U",
+		name: "S",
 
 
-// 	// 	attributes: {
-// 	// 		E: {
-// 	// 			type: "integer"
-// 	// 		},
+		attributes: {
+			C: {
+				type: "integer"
+			},
 
-// 	// 		F: {
-// 	// 			type: "string",
-// 	// 			required: true
-// 	// 		},
+			D: {
+				type: "string",
+				required: true
+			}
+		}
+	},
 
-// 	// 		H: {
-// 	// 			type: "string"
-// 	// 		}
-// 	// 	}
-// 	// },
+	{
 
-// 	{
-// 		name: "user",
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
-// 			},
-// 			age: {
-// 				type: 'date'
-// 			},
-// 			dogs:{
-// 				collection: 'pet',
-// 				via: 'owner'
-// 			}
-// 		}
-// 	},
+		name: "U",
 
-// 	{ 
 
-// 		name: "pet",
+		attributes: {
+			E: {
+				type: "integer"
+			},
 
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
-// 			},
-// 			registered: {
-// 				type: 'boolean'
-// 			},
-// 			owner:{
-// 				object: 'user'
-// 			}
-// 		}
+			F: {
+				type: "string",
+				required: true
+			},
+
+			H: {
+				type: "string"
+			}
+		}
+	},
+
+	{
+		name: "user",
+		attributes: {
+			name: {
+				type: 'string'
+			},
+			age: {
+				type: 'date'
+			},
+			dogs:{
+				collection: 'pet',
+				via: 'owner'
+			}
+		}
+	},
+
+	{ 
+
+		name: "pet",
+
+		attributes: {
+			name: {
+				type: 'string'
+			},
+			registered: {
+				type: 'boolean'
+			},
+			owner:{
+				object: 'user'
+			}
+		}
 		
-// 	},
+	},
 
-// 	{
-// 		name: "walkers",
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
-// 			},
-// 			age: {
-// 				type: 'date'
-// 			},
-// 			dogs:{
-// 				collection: 'animal',
-// 				via: 'owners'
-// 			}
-// 		}
-// 	},
+	{
+		name: "walkers",
+		attributes: {
+			name: {
+				type: 'string'
+			},
+			age: {
+				type: 'date'
+			},
+			dogs:{
+				collection: 'animal',
+				via: 'owners'
+			}
+		}
+	},
 
 
-// 	{
-// 		name: "animal",
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
-// 			},
-// 			breed: {
-// 				type: 'string'
-// 			},
-// 			owners:{
-// 				collection: 'user',
-// 				via: 'dogs'
-// 			}
-// 		}
-// 	},
+	{
+		name: "animal",
+		attributes: {
+			name: {
+				type: 'string'
+			},
+			breed: {
+				type: 'string'
+			},
+			owners:{
+				collection: 'user',
+				via: 'dogs'
+			}
+		}
+	},
 	
 
 
-// ], 
-// [
+], 
+[
 
-// 	// {
-// 	// 	name: "R",
+	{
+		name: "R",
 
-// 	// 	attributes: {
-// 	// 		A: {
-// 	// 			type: "integer"
-// 	// 		},
+		attributes: {
+			A: {
+				type: "integer",
+				defaultValue: 20
+			},
 
-// 	// 		B: {
-// 	// 			type: "string",
-// 	// 			required: true
-// 	// 		}
-// 	// 	}
+			B: {
+				type: "string",
+				required: true
+			}
+		}
 
-// 	// },
+	},
 
-// 	// {
+	{
 
-// 	// 	name: "U",
-
-
-// 	// 	attributes: {
-
-// 	// 		F: {
-// 	// 			type: "string",
-// 	// 			required: true
-// 	// 		},
-
-// 	// 		G: {
-// 	// 			type: "float"
-// 	// 		},
-
-// 	// 		H: {
-// 	// 			type: "date"
-// 	// 		}
-// 	// 	}
-// 	// },
+		name: "U",
 
 
+		attributes: {
+
+			F: {
+				type: "string",
+				required: true
+			},
+
+			G: {
+				type: "float"
+			},
+
+			H: {
+				type: "string"
+			}
+		}
+	},
 
 
+], 0);
 
-	
-
-// ], 0);
-
-// console.log(JSON.stringify(r));
-// console.log("statements");
-// _.each(r.alter, function(s){
-// 	console.log(s);
-// });
+console.log(JSON.stringify(r));
+console.log("statements");
+_.each(r.alter, function(s){
+	console.log(s);
+});
 
 function transform(oldSchema, newSchema, severity){
 	// console.log(oldSchema, newSchema, severity);
@@ -616,6 +612,9 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			}
 			  		break;
 			  	}
+			  	if (!_.isUndefined(description.defaultValue)){
+			  		col.defaultTo(description.defaultValue); 
+			  	}
 		  	}
 		  	else if (_.has(description, "object")){ // 1 side of 1:n relationship
 		  		var searchPattern = { oneRelation: t, oneAttribute: name };
@@ -706,6 +705,9 @@ function createStatements(oldSchema, newSchema, modifications){
 				  			}
 				  		break;
 				  	}
+				  	if (!_.isUndefined(description.defaultValue)){
+			  			col.defaultTo(description.defaultValue); 
+			  		}
 				}
 				else if (_.has(description, "object")){ // 1 side of 1:n relationship
 			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: t.name, oneAttribute: name });
@@ -741,8 +743,9 @@ function createStatements(oldSchema, newSchema, modifications){
 			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).attributes[d];
 			var newAttributeDescription = tableDescription.attributes[d];
 			var typeClause = "alter table " + tableName + " modify " + d + " " + newAttributeDescription.type;
-			var requiredClause = newAttributeDescription.required ? " null " : " not null ";
-			var statement = typeClause + requiredClause;
+			var requiredClause = !_.isUndefined(newAttributeDescription.required) ? " null " : " not null ";
+			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " set default " + newAttributeDescription.defaultValue : " "; 
+			var statement = typeClause + requiredClause + defaultClause;
 			statements.push(statement);
 		});
 	});

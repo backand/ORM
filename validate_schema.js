@@ -2,9 +2,6 @@ var _ = require('underscore');
 
 var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ "datetime", "boolean", "binary"];
 
-
-
-
 // str - string representing schema in JSON
 
 // return object with fields
@@ -17,7 +14,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		name: "R", 
 // 		attributes: {
 // 			a: {
-// 				type: "integer"
+// 				type: "float"
 // 			},
 // 			b: {
 // 				type: "string"
@@ -32,7 +29,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		name: "S", 
 // 		attributes: {
 // 			h: {
-// 				type: "integer"
+// 				type: "float"
 // 			},
 // 			j: {
 // 				type: "string"
@@ -47,7 +44,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		name: "T", 
 // 		attributes: {
 // 			z: {
-// 				type: "integer"
+// 				type: "float"
 // 			},
 // 			q: {
 // 				type: "string"
@@ -63,7 +60,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		name: "U", 
 // 		attributes: {
 // 			c: {
-// 				type: "integer"
+// 				type: "float"
 // 			},
 // 			d: {
 // 				type: "string"
@@ -77,10 +74,12 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		name: "user",
 // 		attributes: {
 // 			name: {
-// 				type: 'string'
+// 				type: 'string',
+// 				defaultValue: 200
 // 			},
 // 			age: {
-// 				type: 'date'
+// 				type: 'datetime',
+// 				defaultValue: '2015-09-08'
 // 			},
 // 			dogs:{
 // 				collection: 'pet',
@@ -115,7 +114,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 				type: 'string'
 // 			},
 // 			age: {
-// 				type: 'date'
+// 				type: 'datetime'
 // 			},
 // 			dogs:{
 // 				collection: 'animal',
@@ -153,13 +152,14 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 
 
 // ]
-// ));
+// )
+// );
 // console.log(v);
 
 function validateSchema(str){
 	try{
 		var schema = JSON.parse(str);
-		
+
 		if (!Array.isArray(schema)){
 			return { valid: false, warnings: ["should be array of table definitions"]};
 		}
@@ -278,10 +278,45 @@ function validRelation(relation){
 				valid = false;
 				warnings.push("column type is invalid:" + relationName + " " + key);
 			}
-			if (_.has(value, "required") && value.required != true && value.required != false){
+			if (_.has(value, "required") && !_.isBoolean(value.required)){
 				valid = false;
 				warnings.push("column required property should be boolean:" + relationName + " " + key);
 			}
+			if (_.has(value, "defaultValue")){
+				switch(value.type)
+				{
+					case "string":
+					case "text":
+						if (!_.isString(value.defaultValue)){
+							valid = false;
+							warnings.push("column default value should be a string:" + relationName + " " + key);
+						}
+					break;
+					case "float":
+						if (!_.isNumber(value.defaultValue) || _.isNan(value.defaultValue)){
+							valid = false;
+							warnings.push("column default value should be a float:" + relationName + " " + key);
+						}
+					break;
+					case "binary":
+					break;
+					case "datetime":
+						if (!_.isDate(new Date(value.defaultValue))){
+							valid = false;
+							warnings.push("column default value should be a datetime:" + relationName + " " + key);
+						}
+					break;
+					case "boolean":
+						if (!_.isBoolean(value.defaultValue)){
+							valid = false;
+							warnings.push("column default value should be a boolean:" + relationName + " " + key);
+						}
+					break;
+				}
+				
+			}
+
+
 		});
 	}
 
