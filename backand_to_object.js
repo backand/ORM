@@ -4,7 +4,7 @@ var _ = require('underscore');
 
 var email = "kornatzky@me.com";
 var password = "secret";
-var appName = "waterline";
+var appName = "r";
 
 var tokenUrl = "https://api.backand.com:8080/token";
 var tableUrl = "https://api.backand.com:8080/1/table/config/";
@@ -86,6 +86,7 @@ function fetchTables(accessToken, tokenType){
 		    					return r;
 		    				})
 		    				console.log("database", JSON.stringify(tables));
+		    				// transform tables to create relationships
 		    				process.exit(1);
 		    			}
 		    		);
@@ -121,17 +122,17 @@ function fetchColumns(accessToken, tokenType, tableName, callbackColumns){
 		    if(!error && response.statusCode == 200) {
 		    	
 		    	var body = JSON.parse(body);
-		    	
+		    	console.log(body.fields);
 	    		async.map(body.fields, 
 	    			function(item, callback){
 	    				
 	    				var description = { name: item.name, type: backandToJsonType[item.type] };
 	    				if (item.required)
 	    					description.required = true;
-	    				if (_.has(item, "minValue"))
-	    					description.minValue = item.minValue;
-	    				if (_.has(item, "maxValue"))
-	    					description.maxValue = item.maxValue;
+	    				// if (_.has(item, "minValue"))
+	    				// 	description.minValue = item.minValue;
+	    				// if (_.has(item, "maxValue"))
+	    				// 	description.maxValue = item.maxValue;
 	    				if (_.has(item, "defaultValue"))
 	    					description.defaultValue = item.defaultValue;
 	    				callback(null, description);

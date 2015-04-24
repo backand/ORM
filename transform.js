@@ -27,7 +27,7 @@ var knex = require('knex')({
  
  {  
     valid: string - "always" - perfectly valid, "data" - valid with warnings, depends on actual data, "never" - invalid,
-	warning: <array of strings of warnings/errors>
+	warnings: <array of strings of warnings/errors>
     alter: <array of strings of SQL statements to alter schema>
   }
 */
@@ -148,166 +148,166 @@ var escalationTable = TAFFY([
 
 
 
-var r = transform(
-[
+// var r = transform(
+// [
 
-	{
+// 	{
 
-		name: "S",
-
-
-		attributes: {
-			C: {
-				type: "integer"
-			},
-
-			D: {
-				type: "string",
-				required: true
-			}
-		}
-	},
-
-	{
-
-		name: "U",
+// 		name: "S",
 
 
-		attributes: {
-			E: {
-				type: "integer"
-			},
+// 		attributes: {
+// 			C: {
+// 				type: "integer"
+// 			},
 
-			F: {
-				type: "string",
-				required: true
-			},
+// 			D: {
+// 				type: "string",
+// 				required: true
+// 			}
+// 		}
+// 	},
 
-			H: {
-				type: "string"
-			}
-		}
-	},
+// 	{
 
-	{
-		name: "user",
-		attributes: {
-			name: {
-				type: 'string'
-			},
-			age: {
-				type: 'date'
-			},
-			dogs:{
-				collection: 'pet',
-				via: 'owner'
-			}
-		}
-	},
+// 		name: "U",
 
-	{ 
 
-		name: "pet",
+// 		attributes: {
+// 			E: {
+// 				type: "integer"
+// 			},
 
-		attributes: {
-			name: {
-				type: 'string'
-			},
-			registered: {
-				type: 'boolean'
-			},
-			owner:{
-				object: 'user'
-			}
-		}
+// 			F: {
+// 				type: "string",
+// 				required: true
+// 			},
+
+// 			H: {
+// 				type: "string"
+// 			}
+// 		}
+// 	},
+
+// 	{
+// 		name: "user",
+// 		attributes: {
+// 			name: {
+// 				type: 'string'
+// 			},
+// 			age: {
+// 				type: 'date'
+// 			},
+// 			dogs:{
+// 				collection: 'pet',
+// 				via: 'owner'
+// 			}
+// 		}
+// 	},
+
+// 	{ 
+
+// 		name: "pet",
+
+// 		attributes: {
+// 			name: {
+// 				type: 'string'
+// 			},
+// 			registered: {
+// 				type: 'boolean'
+// 			},
+// 			owner:{
+// 				object: 'user'
+// 			}
+// 		}
 		
-	},
+// 	},
 
-	{
-		name: "walkers",
-		attributes: {
-			name: {
-				type: 'string'
-			},
-			age: {
-				type: 'date'
-			},
-			dogs:{
-				collection: 'animal',
-				via: 'owners'
-			}
-		}
-	},
+// 	{
+// 		name: "walkers",
+// 		attributes: {
+// 			name: {
+// 				type: 'string'
+// 			},
+// 			age: {
+// 				type: 'date'
+// 			},
+// 			dogs:{
+// 				collection: 'animal',
+// 				via: 'owners'
+// 			}
+// 		}
+// 	},
 
 
-	{
-		name: "animal",
-		attributes: {
-			name: {
-				type: 'string'
-			},
-			breed: {
-				type: 'string'
-			},
-			owners:{
-				collection: 'user',
-				via: 'dogs'
-			}
-		}
-	},
+// 	{
+// 		name: "animal",
+// 		attributes: {
+// 			name: {
+// 				type: 'string'
+// 			},
+// 			breed: {
+// 				type: 'string'
+// 			},
+// 			owners:{
+// 				collection: 'user',
+// 				via: 'dogs'
+// 			}
+// 		}
+// 	},
 	
 
 
-], 
-[
+// ], 
+// [
 
-	{
-		name: "R",
+// 	{
+// 		name: "R",
 
-		attributes: {
-			A: {
-				type: "integer",
-				defaultValue: 20
-			},
+// 		attributes: {
+// 			A: {
+// 				type: "integer",
+// 				defaultValue: 20
+// 			},
 
-			B: {
-				type: "string",
-				required: true
-			}
-		}
+// 			B: {
+// 				type: "string",
+// 				required: true
+// 			}
+// 		}
 
-	},
+// 	},
 
-	{
+// 	{
 
-		name: "U",
-
-
-		attributes: {
-
-			F: {
-				type: "string",
-				required: true
-			},
-
-			G: {
-				type: "float"
-			},
-
-			H: {
-				type: "string"
-			}
-		}
-	},
+// 		name: "U",
 
 
-], 0);
+// 		attributes: {
 
-console.log(JSON.stringify(r));
-console.log("statements");
-_.each(r.alter, function(s){
-	console.log(s);
-});
+// 			F: {
+// 				type: "string",
+// 				required: true
+// 			},
+
+// 			G: {
+// 				type: "float"
+// 			},
+
+// 			H: {
+// 				type: "string"
+// 			}
+// 		}
+// 	},
+
+
+// ], 0);
+
+// console.log(JSON.stringify(r));
+// console.log("statements");
+// _.each(r.alter, function(s){
+// 	console.log(s);
+// });
 
 function transform(oldSchema, newSchema, severity){
 	// console.log(oldSchema, newSchema, severity);
