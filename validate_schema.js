@@ -10,6 +10,118 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 
 // var v = validateSchema(JSON.stringify(
 // [
+	
+// 	{
+// 		"name": "user",
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
+// 			},
+// 			"age": {
+// 				"type": "datetime"
+// 			},
+// 			"dogs":{
+// 				"collection": "pet",
+// 				"via": "owner"
+// 			}
+// 		}
+// 	},
+
+// 	{ 
+
+// 		"name": "pet",
+
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
+// 			},
+// 			"registered": {
+// 				"type": "boolean"
+// 			},
+// 			"owner":{
+// 				"object": "user"
+// 			}
+// 		}
+		
+// 	},
+
+// 	{
+// 		"name": "walker",
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
+// 			},
+// 			"age": {
+// 				"type": "datetime"
+// 			},
+// 			"dogs":{
+// 				"collection": "animal",
+// 				"via": "owners"
+// 			}
+// 		}
+// 	},
+
+
+// 	{
+// 		"name": "animal",
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
+// 			},
+// 			"breed": {
+// 				"type": "string"
+// 			},
+// 			"owners":{
+// 				"collection": "walker",
+// 				"via": "dogs"
+// 			}
+// 		}
+// 	},
+
+// 	{
+// 		"name": "R",
+
+// 		"attributes": {
+// 			"A": {
+// 				"type": "float",
+// 				"defaultValue": 20
+// 			},
+
+// 			"B": {
+// 				"type": "string",
+// 				"required": true
+// 			}
+// 		}
+
+// 	},
+
+// 	{
+
+// 		"name": "U",
+
+
+// 		"attributes": {
+
+// 			"F": {
+// 				"type": "string",
+// 				"required": true
+// 			},
+
+// 			"G": {
+// 				"type": "float"
+// 			},
+
+// 			"H": {
+// 				"type": "string"
+// 			}
+// 		}
+// 	}
+
+
+// ]));
+
+// var v = validateSchema(JSON.stringify(
+// [
 // 	{ 
 // 		name: "R", 
 // 		attributes: {
@@ -159,7 +271,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 function validateSchema(str){
 	try{
 		var schema = JSON.parse(str);
-
+		
 		if (!Array.isArray(schema)){
 			return { valid: false, warnings: ["should be array of table definitions"]};
 		}
@@ -245,7 +357,7 @@ function validRelation(relation){
 	}
 	else{
 		_.each(relation.attributes, function(value, key){
-			
+
 			if (!_.has(value, "type")){
 
 				if (_.has(value, "collection") && _.has(value, "via")){
@@ -277,7 +389,7 @@ function validRelation(relation){
 			else if (!_.contains(validTypes, value.type)){
 				valid = false;
 				warnings.push("column type is invalid:" + relationName + " " + key);
-			}
+			}			
 			if (_.has(value, "required") && !_.isBoolean(value.required)){
 				valid = false;
 				warnings.push("column required property should be boolean:" + relationName + " " + key);
@@ -293,7 +405,7 @@ function validRelation(relation){
 						}
 					break;
 					case "float":
-						if (!_.isNumber(value.defaultValue) || _.isNan(value.defaultValue)){
+						if (!_.isNumber(value.defaultValue) || _.isNaN(value.defaultValue)){
 							valid = false;
 							warnings.push("column default value should be a float:" + relationName + " " + key);
 						}

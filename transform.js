@@ -151,128 +151,129 @@ var escalationTable = TAFFY([
 // var r = transform(
 // [
 
+// 	// {
+
+// 	// 	name: "S",
+
+
+// 	// 	attributes: {
+// 	// 		C: {
+// 	// 			type: "integer"
+// 	// 		},
+
+// 	// 		D: {
+// 	// 			type: "string",
+// 	// 			required: true
+// 	// 		}
+// 	// 	}
+// 	// },
+
+// 	// {
+
+// 	// 	name: "U",
+
+
+// 	// 	attributes: {
+// 	// 		E: {
+// 	// 			type: "integer"
+// 	// 		},
+
+// 	// 		F: {
+// 	// 			type: "string",
+// 	// 			required: true
+// 	// 		},
+
+// 	// 		H: {
+// 	// 			type: "string"
+// 	// 		}
+// 	// 	}
+// 	// },
+
+	
+
+
+// ], 
+// [
+	
 // 	{
-
-// 		name: "S",
-
-
-// 		attributes: {
-// 			C: {
-// 				type: "integer"
+// 		"name": "user",
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
 // 			},
-
-// 			D: {
-// 				type: "string",
-// 				required: true
-// 			}
-// 		}
-// 	},
-
-// 	{
-
-// 		name: "U",
-
-
-// 		attributes: {
-// 			E: {
-// 				type: "integer"
+// 			"age": {
+// 				"type": "datetime"
 // 			},
-
-// 			F: {
-// 				type: "string",
-// 				required: true
-// 			},
-
-// 			H: {
-// 				type: "string"
-// 			}
-// 		}
-// 	},
-
-// 	{
-// 		name: "user",
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
-// 			},
-// 			age: {
-// 				type: 'date'
-// 			},
-// 			dogs:{
-// 				collection: 'pet',
-// 				via: 'owner'
+// 			"dogs":{
+// 				"collection": "pet",
+// 				"via": "owner"
 // 			}
 // 		}
 // 	},
 
 // 	{ 
 
-// 		name: "pet",
+// 		"name": "pet",
 
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
 // 			},
-// 			registered: {
-// 				type: 'boolean'
+// 			"registered": {
+// 				"type": "boolean"
 // 			},
-// 			owner:{
-// 				object: 'user'
+// 			"owner":{
+// 				"object": "user"
 // 			}
 // 		}
 		
 // 	},
 
 // 	{
-// 		name: "walkers",
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
+// 		"name": "walker",
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
 // 			},
-// 			age: {
-// 				type: 'date'
+// 			"age": {
+// 				"type": "datetime"
 // 			},
-// 			dogs:{
-// 				collection: 'animal',
-// 				via: 'owners'
+// 			"dogs":{
+// 				"collection": "animal",
+// 				"via": "owners"
 // 			}
 // 		}
 // 	},
 
 
 // 	{
-// 		name: "animal",
-// 		attributes: {
-// 			name: {
-// 				type: 'string'
+// 		"name": "animal",
+// 		"attributes": {
+// 			"name": {
+// 				"type": "string"
 // 			},
-// 			breed: {
-// 				type: 'string'
+// 			"breed": {
+// 				"type": "string"
 // 			},
-// 			owners:{
-// 				collection: 'user',
-// 				via: 'dogs'
+// 			"owners":{
+// 				"collection": "walker",
+// 				"via": "dogs"
 // 			}
 // 		}
 // 	},
-	
-
-
-// ], 
-// [
 
 // 	{
-// 		name: "R",
+// 		"name": "R",
 
-// 		attributes: {
-// 			A: {
-// 				type: "integer",
-// 				defaultValue: 20
+// 		"attributes": {
+// 			"A": {
+// 				"type": "float",
+// 				"defaultValue": 20
 // 			},
 
-// 			B: {
-// 				type: "string",
-// 				required: true
+// 			"B": {
+// 				"type": "string",
+// 				"required": true
 // 			}
 // 		}
 
@@ -280,25 +281,25 @@ var escalationTable = TAFFY([
 
 // 	{
 
-// 		name: "U",
+// 		"name": "U",
 
 
-// 		attributes: {
+// 		"attributes": {
 
-// 			F: {
-// 				type: "string",
-// 				required: true
+// 			"F": {
+// 				"type": "string",
+// 				"required": true
 // 			},
 
-// 			G: {
-// 				type: "float"
+// 			"G": {
+// 				"type": "float"
 // 			},
 
-// 			H: {
-// 				type: "string"
+// 			"H": {
+// 				"type": "string"
 // 			}
 // 		}
-// 	},
+// 	}
 
 
 // ], 0);
@@ -620,6 +621,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		  		var searchPattern = { oneRelation: t, oneAttribute: name };
 		  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
 		  		var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_" + name);
+		  		col.unsigned();
 		  		col.references("id").inTable(oneManyRelationship.nRelation);
 		  	}
 		  	else if (_.has(description, "collection") && _.has(description, "via")){
@@ -712,8 +714,8 @@ function createStatements(oldSchema, newSchema, modifications){
 				else if (_.has(description, "object")){ // 1 side of 1:n relationship
 			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: t.name, oneAttribute: name });
 			  		var col = table.integer("fk_" + t.name + "_" + oneManyRelationship.nRelation + "_" + name);
-			  		col.references("id");
-			  		col.inTable(oneManyRelationship.nRelation);
+			  		col.unsigned();
+			  		col.references("id").inTable(oneManyRelationship.nRelation);
 			  	}			
 			});	
 		});
@@ -764,8 +766,10 @@ function createStatements(oldSchema, newSchema, modifications){
 					  table.increments();
 					  table.timestamps();
 					  var colN = table.integer("fk_" + nr.nRelation);
+					  colN.unsigned();
 				  	  colN.references("id").inTable(nr.nRelation);
 				  	  var colM = table.integer("fk_" + nr.mRelation);
+				  	  colM.unsigned();
 				  	  colM.references("id").inTable(nr.mRelation);
 					});
 					statements.push(statement.toString());
