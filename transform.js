@@ -1,3 +1,5 @@
+module.exports.transformer = transform;
+
 var _ = require('underscore');
 var TAFFY = require('taffy');
 var knex = require('knex')({

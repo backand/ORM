@@ -8,6 +8,7 @@
     "underscore": "latest",
     "taffy": "latest",
     "request": "latest",
-    "async": "latest"
+    "async": "latest",
+    "journey": "latest"
   }
 }

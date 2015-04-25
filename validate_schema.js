@@ -1,3 +1,5 @@
+module.exports.validator = validateSchema;
+
 var _ = require('underscore');
 
 var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ "datetime", "boolean", "binary"];
@@ -271,7 +273,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 function validateSchema(str){
 	try{
 		var schema = JSON.parse(str);
-		
+
 		if (!Array.isArray(schema)){
 			return { valid: false, warnings: ["should be array of table definitions"]};
 		}
