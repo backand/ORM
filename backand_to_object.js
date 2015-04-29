@@ -5,10 +5,11 @@ var async = require('async');
 var _ = require('underscore');
 
 
+var api_url = "http://api.backand.info:8099";
+var tokenUrl = api_url + "/token";
+var tableUrl = api_url + "/1/table/config/";
+var columnsUrl = api_url + "/1/table/config/";
 
-var tokenUrl = "https://api.backand.com:8080/token";
-var tableUrl = "https://api.backand.com:8080/1/table/config/";
-var columnsUrl = "https://api.backand.com:8080/1/table/config/";
 var backandToJsonType = {
 	"Numeric": "float",
 	"ShortText": "string",
@@ -20,12 +21,12 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-// testBackandToObject();
+testBackandToObject();
 
 function testBackandToObject(){
-	var email = "kornatzky@me.com";
-	var password = "secret";
-	var appName = "r";
+	var email = "itay@backand.com";
+	var password = "itay1234";
+	var appName = "json2";
 
 	// get token
 	request(
@@ -88,8 +89,9 @@ function fetchTables(accessToken, tokenType){
 
 		    		async.map(body.data, 
 		    			function(item, callback){
-		    				var relationName = item.name;
-		    				fetchColumns(accessToken, tokenType, relationName, callback);
+		    				var relationName = item.name
+								var databaseName = item.databaseName;
+		    				fetchColumns(accessToken, tokenType, relationName,databaseName, callback);
 		    			},
 		    			function(err, results){
 
@@ -114,7 +116,7 @@ function fetchTables(accessToken, tokenType){
 	);
 }
 
-function fetchColumns(accessToken, tokenType, tableName, callbackColumns){
+function fetchColumns(accessToken, tokenType, tableName, dbName, callbackColumns){
 
 	request(
 
@@ -132,10 +134,12 @@ function fetchColumns(accessToken, tokenType, tableName, callbackColumns){
 
 		function(error, response, body){	
 		    if(!error && response.statusCode == 200) {
-		    	
+
+
 		    	var body = JSON.parse(body);
+
 		    	// console.log(body.fields);
-	    		async.map(body.fields, 
+	    		async.map(body.fields,
 	    			function(item, callback){
 	    				
 	    				var description = { name: item.name, type: backandToJsonType[item.type]};
@@ -166,7 +170,7 @@ function fetchColumns(accessToken, tokenType, tableName, callbackColumns){
 	    			},
 	    			function(err, results){
 	    				var attributes = _.object(_.pluck(results, "name"), _.map(results, function(c){ return _.omit(c, "name"); }));
-	    				callbackColumns(null, { name: tableName, attributes: attributes });
+	    				callbackColumns(null, { name: tableName, dbName: dbName, attributes: attributes });
 	    			}
 	    		);
 		    	
