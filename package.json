@@ -9,6 +9,7 @@
     "taffy": "latest",
     "request": "latest",
     "async": "latest",
-    "journey": "latest"
+    "journey": "latest",
+    "mysql": "latest"
   }
 }
