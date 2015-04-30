@@ -35,9 +35,16 @@ router.map(function () {
     });
 
     this.post('/json').bind(function (req, res, data) {
-    	var tokenStructure = request.headers.Authorization.split(" ");
-        result = fetcher(tokenStructure[0], tokenStructure[1]);
-        res.send(200, {}, result);
+        var tokenStructure = null;
+        if (req.headers.Authorization){
+            tokenStructure = req.headers.Authorization.split(" "); 
+            result = fetcher(tokenStructure[0], tokenStructure[1]);
+            res.send(200, {}, result);
+        }   	   
+        else{
+            tokenStructure = null;
+            res.send(401, {}, null);
+        }
     });
 
 });

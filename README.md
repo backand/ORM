@@ -39,6 +39,19 @@ Returns: json wih two fields:
 1. valid: boolean
 2. warnings: <array of strings of warnings/errors>
 
+Schema Server
+=============
+You can test calls using [http-console](https://github.com/cloudhead/http-console)
+
+    http-console --json http://localhost:8080
+
+To make a POST call:
+
+    post transform
+    { "oldSchema": [], "newSchema": [], "severity": 1 }
+
+Fill the oldSchema and newSchema as desired.
+
 
 
 

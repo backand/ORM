@@ -21,7 +21,7 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-testBackandToObject();
+//testBackandToObject();
 
 function testBackandToObject(){
 	var email = "itay@backand.com";
