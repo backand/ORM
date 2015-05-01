@@ -21,7 +21,7 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-//testBackandToObject();
+testBackandToObject();
 
 function testBackandToObject(){
 	var email = "itay@backand.com";
@@ -141,43 +141,48 @@ function fetchColumns(accessToken, tokenType, tableName, dbName, callbackColumns
 		    	// console.log(body.fields);
 	    		async.map(body.fields,
 	    			function(item, callback){
-	    				
-	    				var description = { name: item.name, type: backandToJsonType[item.type]};
-	    				if (_.has(item, "relatedViewName") && item.relatedViewName)
-	    				 	description.relatedViewName = item.relatedViewName;
-	    				if (_.has(item, "relatedParentFieldName") && item.relatedParentFieldName)
-	    				 	description.relatedParentFieldName = item.relatedParentFieldName;
-
-	    				if (item.required)
-	    					description.required = true;
-	    				// if (_.has(item, "minValue"))
-	    				// 	description.minValue = item.minValue;
-	    				// if (_.has(item, "maxValue"))
-	    				// 	description.maxValue = item.maxValue;
-	    				if (_.has(item, "defaultValue"))
-	    					description.defaultValue = item.defaultValue;
-	    				if (item.type == "SingleSelect"){
-	    					var collection = description.relatedViewName;
-	    					description = _.extend(_.omit(description, "type", "relatedViewName", "relatedParentFieldName"), { "object" : collection }); 
+	    				if (item.name == "id" || item.name =="Id"){
+	    					callback(null, null);
 	    				}
-	    				if (item.type == "MultiSelect"){
-	    					var collection = description.relatedViewName;
-	    					var via = description.relatedParentFieldName;
-	    					description = _.extend(_.omit(description, "type", "relatedViewName", "relatedParentFieldName"), { "collection": collection, "via": via }); 
-	    				}
+	    				else{
+	    					var description = { name: item.name, type: backandToJsonType[item.type]};
+		    				if (_.has(item, "relatedViewName") && item.relatedViewName)
+		    				 	description.relatedViewName = item.relatedViewName;
+		    				if (_.has(item, "relatedParentFieldName") && item.relatedParentFieldName)
+		    				 	description.relatedParentFieldName = item.relatedParentFieldName;
 
-	    				callback(null, description);
+		    				if (item.required)
+		    					description.required = true;
+		    				// if (_.has(item, "minValue"))
+		    				// 	description.minValue = item.minValue;
+		    				// if (_.has(item, "maxValue"))
+		    				// 	description.maxValue = item.maxValue;
+		    				if (_.has(item, "defaultValue"))
+		    					description.defaultValue = item.defaultValue;
+		    				if (item.type == "SingleSelect"){
+		    					var collection = description.relatedViewName;
+		    					description = _.extend(_.omit(description, "type", "relatedViewName", "relatedParentFieldName"), { "object" : collection }); 
+		    				}
+		    				if (item.type == "MultiSelect"){
+		    					var collection = description.relatedViewName;
+		    					var via = description.relatedParentFieldName;
+		    					description = _.extend(_.omit(description, "type", "relatedViewName", "relatedParentFieldName"), { "collection": collection, "via": via }); 
+		    				}
+
+		    				callback(null, description);
+	    				}				
 	    			},
 	    			function(err, results){
-	    				var attributes = _.object(_.pluck(results, "name"), _.map(results, function(c){ return _.omit(c, "name"); }));
-	    				callbackColumns(null, { name: tableName, dbName: dbName, attributes: attributes });
+	    				var results = _.filter(results, function(r) { return r; });
+	    				var fields = _.object(_.pluck(results, "name"), _.map(results, function(c){ return _.omit(c, "name"); }));
+	    				callbackColumns(null, { name: tableName, dbName: dbName, fields: fields });
 	    			}
 	    		);
 		    	
 		    }
 		    else{
 		    	console.log("cannot get tables", error, response.statusCode);
-		    	callback(error ? error : response.statusCode, null);
+		    	callbackColumns(error ? error : response.statusCode, null);
 		    }
 		}
 

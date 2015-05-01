@@ -3,6 +3,7 @@ var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
 var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
+var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 
 //
 // Create a Router
@@ -41,7 +42,10 @@ router.map(function () {
         }
         else{
             executer(data.hostname, data.port, data.db, data.username, data.password, data.statementsArray, function(err, result){
-                res.send(200, {}, err);
+                if (!err)
+                    res.send(200, {}, result);
+                else
+                    res.send(500, {}, null);
             });  
         }
     });
@@ -50,9 +54,26 @@ router.map(function () {
         var tokenStructure = null;
         if (req.headers.Authorization){
             tokenStructure = req.headers.Authorization.split(" "); 
-            result = fetcher(tokenStructure[0], tokenStructure[1]);
+            result = fetcher(tokenStructure[1], tokenStructure[0]);
             res.send(200, {}, result);
         }   	   
+        else{
+            tokenStructure = null;
+            res.send(401, {}, null);
+        }
+    });
+
+    this.post('/connectioninfo').bind(function (req, res, data) {
+        var tokenStructure = null;
+        if (req.headers.Authorization){
+            tokenStructure = req.headers.Authorization.split(" "); 
+            getConnectionInfo(tokenStructure[1], tokenStructure[0], data.appName, function(err, result){
+                if (!err)
+                    res.send(200, {}, result);
+                else
+                    res.send(500, {}, null);
+            });  
+        }          
         else{
             tokenStructure = null;
             res.send(401, {}, null);

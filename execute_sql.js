@@ -1,4 +1,4 @@
-module.exports.executeSQL = executer;
+module.exports.executer = executeSQL;
 
 var mysql      = require('mysql');
 var transformer = require('./transform').transformer;
@@ -71,7 +71,7 @@ function testExecuteMySQL(){
 		[
 			{
 				"name": "R",
-				"attributes": {
+				"fields": {
 					"A": {
 						"type": "string",
 						"required": true
@@ -85,7 +85,7 @@ function testExecuteMySQL(){
 
 			{
 				"name": "S",
-				"attributes": {
+				"fields": {
 					"D": {
 						"type": "boolean"
 					},
@@ -98,7 +98,7 @@ function testExecuteMySQL(){
 
 			{
 				"name": "U",
-				"attributes": {
+				"fields": {
 					"F": {
 						"type": "binary"
 					},
@@ -111,9 +111,9 @@ function testExecuteMySQL(){
 		], 
 	0);
 	console.log(r);
-	executeSQL("bk-prod-us1.cd2junihlkms.us-east-1.rds.amazonaws.com", 3306, "backandtestsqlxzhsfvrb", "lmlmez3renpyl4j", "S12nZ1bx5W3MncYAiciy6s", r.alter, function(err, result){
-		console.log(err);
-		console.log(result);
-	});
+	// executeSQL("bk-prod-us1.cd2junihlkms.us-east-1.rds.amazonaws.com", 3306, "backandtestsqlxzhsfvrb", "lmlmez3renpyl4j", "S12nZ1bx5W3MncYAiciy6s", r.alter, function(err, result){
+	// 	console.log(err);
+	// 	console.log(result);
+	// });
 
 }

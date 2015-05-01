@@ -151,14 +151,14 @@ var escalationTable = TAFFY([
 
 
 // var r = transform(
-// [
+// [],
 
 // 	// {
 
 // 	// 	name: "S",
 
 
-// 	// 	attributes: {
+// 	// 	fields: {
 // 	// 		C: {
 // 	// 			type: "integer"
 // 	// 		},
@@ -175,7 +175,7 @@ var escalationTable = TAFFY([
 // 	// 	name: "U",
 
 
-// 	// 	attributes: {
+// 	// 	fields: {
 // 	// 		E: {
 // 	// 			type: "integer"
 // 	// 		},
@@ -199,7 +199,7 @@ var escalationTable = TAFFY([
 	
 // 	{
 // 		"name": "user",
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -217,7 +217,7 @@ var escalationTable = TAFFY([
 
 // 		"name": "pet",
 
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -233,7 +233,7 @@ var escalationTable = TAFFY([
 
 // 	{
 // 		"name": "walker",
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -250,7 +250,7 @@ var escalationTable = TAFFY([
 
 // 	{
 // 		"name": "animal",
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -267,7 +267,7 @@ var escalationTable = TAFFY([
 // 	{
 // 		"name": "R",
 
-// 		"attributes": {
+// 		"fields": {
 // 			"A": {
 // 				"type": "float",
 // 				"defaultValue": 20
@@ -286,7 +286,7 @@ var escalationTable = TAFFY([
 // 		"name": "U",
 
 
-// 		"attributes": {
+// 		"fields": {
 
 // 			"F": {
 // 				"type": "string",
@@ -337,7 +337,7 @@ function transform(oldSchema, newSchema, severity){
 	// describe the order of the database
 	var tablesOrder = _.pluck(newSchema, "name");
 	var columnsOrder = _.map(newSchema, function(t){
-		return _.keys(t.attributes);
+		return _.keys(t.fields);
 	});
 	var orderStructure = { tables: tablesOrder, columns: _.object(tablesOrder, columnsOrder) };
 	
@@ -383,8 +383,8 @@ function compareRelationSchemes(oldRelation, newRelation){
 
 	// For the same relation R, in the two schemes, compare the set of column names
 	// Obtain set of column add and column drop changes
-	var oldColumnNames = _.keys(oldRelation.attributes);
-	var newColumnNames = _.keys(newRelation.attributes);
+	var oldColumnNames = _.keys(oldRelation.fields);
+	var newColumnNames = _.keys(newRelation.fields);
 	var droppedColumnNames = _.difference(oldColumnNames, newColumnNames);
 	var addedColumnNames = _.difference(newColumnNames, oldColumnNames);
 	var existingColumnNames = _.intersection(oldColumnNames, newColumnNames);
@@ -392,8 +392,8 @@ function compareRelationSchemes(oldRelation, newRelation){
 	// obtain set of column modifications
 	var modifiedColumns = [];
 	_.each(existingColumnNames, function(column){
-		var typeHasChanged = oldRelation.attributes[column].type != newRelation.attributes[column].type;
-		var requiredHasChanged =  oldRelation.attributes[column].required ? !newRelation.attributes[column].required : newRelation.attributes[column].required;
+		var typeHasChanged = oldRelation.fields[column].type != newRelation.fields[column].type;
+		var requiredHasChanged =  oldRelation.fields[column].required ? !newRelation.fields[column].required : newRelation.fields[column].required;
 		if (typeHasChanged || requiredHasChanged){
 			modifiedColumns.push(column);
 		}
@@ -423,14 +423,14 @@ function isValidTransformation(oldSchema, newSchema, modifications){
 		_.each(modifiedColumns, function(column){
 			var oldRelation = _.first(_.where(oldSchema, { name: relationName }));
 			var newRelation = _.first(_.where(newSchema, { name: relationName }));
-			if (!_.has(oldRelation.attributes[column], "type") || !_.has(newRelation.attributes[column], "type")){ // modified from/to relationship
+			if (!_.has(oldRelation.fields[column], "type") || !_.has(newRelation.fields[column], "type")){ // modified from/to relationship
 				warnings.push({ kind: relationshipTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
 				invalid = escalateValidity(invalid, "never");
 				return;
 			}
 
-			var oldColumnType = oldRelation.attributes[column].type;
-			var newColumnType = newRelation.attributes[column].type;
+			var oldColumnType = oldRelation.fields[column].type;
+			var newColumnType = newRelation.fields[column].type;
 			if (oldColumnType !=  newColumnType){
 				var conformityDegree = validTypeTransform(oldColumnType, newColumnType);
 				switch(conformityDegree)
@@ -492,11 +492,11 @@ function getRelationships(newSchema){
 
 	// first match 1:n relationships
 	_.each(newSchema, function(r){
-		_.each(r.attributes, function(valueOne, keyOne){
+		_.each(r.fields, function(valueOne, keyOne){
 			if (valueOne.object){ // 1:n, 1 side, seek n side
 				var nSideRelation = _.findWhere(newSchema, { name: valueOne.object });
 				var nSideAttribute = null;
-				_.each(nSideRelation.attributes, function(value, key){
+				_.each(nSideRelation.fields, function(value, key){
 					if (keyOne == value.via && value.collection == r.name){
 						newRelationships.push({ type: "1:n", oneRelation: r.name, nRelation: nSideRelation.name, oneAttribute: keyOne, nAttribute: key });
 					}
@@ -507,7 +507,7 @@ function getRelationships(newSchema){
 
 	// match n:n relationships
 	_.each(newSchema, function(r){
-		_.each(r.attributes, function(valueN, keyN){
+		_.each(r.fields, function(valueN, keyN){
 			if (_.has(valueN, "collection")){ // 1:n or n:n, n side, seek other side
 				var otherSide = _.findWhere(newRelationships, { nRelation: r.name, nAttribute: keyN });
 				if (!otherSide){
@@ -533,7 +533,8 @@ function createStatements(oldSchema, newSchema, modifications){
 	// drop tables
 	var droppedTables = modifications.dropTable;
 	_.each(droppedTables, function(t){
-		var statement = knex.schema.dropTable(t);
+		var oldTableDescription = _.findWhere(oldSchema, { "name" : t });
+		var statement = knex.schema.dropTable(oldTableDescription.dbName ?  oldTableDescription.dbName : t );
 		statements.push(statement.toString());
 
 		// drop associated relationships
@@ -557,7 +558,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		  table.timestamps();
 
 		  var newTableSchema = _.findWhere(newSchema, { name: t });
-		  _.each(newTableSchema.attributes, function(description, name){
+		  _.each(newTableSchema.fields, function(description, name){
 		  	if (_.has(description, "type")){
 			  	switch(description.type){
 			  		case "string":
@@ -603,13 +604,13 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			}
 			  		break;
 			  		case "boolean":
-			  			table.boolean(name);
+			  			table.specificType(name, "Bit(1)"); 
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "binary":
-			  			table.text(name);
+			  			table.binary(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
@@ -622,7 +623,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		  	else if (_.has(description, "object")){ // 1 side of 1:n relationship
 		  		var searchPattern = { oneRelation: t, oneAttribute: name };
 		  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
-		  		var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_" + name);
+		  		var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
 		  		col.unsigned();
 		  		col.references("id").inTable(oneManyRelationship.nRelation);
 		  	}
@@ -641,8 +642,10 @@ function createStatements(oldSchema, newSchema, modifications){
 	// console.log("modifiedTables", modifiedTables);
 	_.each(modifiedTables, function(m){
 		var tableName = m.name;
+		var oldTableDescription = _.findWhere(oldSchema, { "name" : t });
+		
 		var tableDescription = _.first(_.where(newSchema, { name: tableName }));
-		var statement = knex.schema.table(tableName,function(table){
+		var statement = knex.schema.table(oldTableDescription.dbName ? oldTableDescription.dbName : tableName,function(table){
 
 			// drop columns
 			_.each(m.dropped, function(d){
@@ -651,7 +654,7 @@ function createStatements(oldSchema, newSchema, modifications){
 
 			// add columns
 			_.each(m.added, function(d){
-				var description = tableDescription.attributes[d];
+				var description = tableDescription.fields[d];
 				if (description.type){
 					switch(description.type){
 				  		case "string":
@@ -715,7 +718,7 @@ function createStatements(oldSchema, newSchema, modifications){
 				}
 				else if (_.has(description, "object")){ // 1 side of 1:n relationship
 			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: t.name, oneAttribute: name });
-			  		var col = table.integer("fk_" + t.name + "_" + oneManyRelationship.nRelation + "_" + name);
+			  		var col = table.integer("fk_" + t.name + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
 			  		col.unsigned();
 			  		col.references("id").inTable(oneManyRelationship.nRelation);
 			  	}			
@@ -730,7 +733,7 @@ function createStatements(oldSchema, newSchema, modifications){
 
 		// drop relationships table for dropped columns
 		_.each(m.dropped, function(c){
-			var columnDescription = tableDescription.attributes[c];
+			var columnDescription = tableDescription.fields[c];
 			if (_.has(columnDescription, "collection")){
 				var relatedRelationships = _.filter(oldRelationships, function(r) { 
 					if (type == "n:n" && (r.mRelation == t || r.nRelation == t)){		  
@@ -744,9 +747,10 @@ function createStatements(oldSchema, newSchema, modifications){
 		});
 
 		_.each(m.modified, function(d){
-			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).attributes[d];
-			var newAttributeDescription = tableDescription.attributes[d];
-			var typeClause = "alter table " + tableName + " modify " + d + " " + newAttributeDescription.type;
+			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).fields[d];
+			var newAttributeDescription = tableDescription.fields[d];
+			var oldTableDescription = _.findWhere(oldSchema, { "name" : t });
+			var typeClause = "alter table " + oldTableDescription.dbName ? oldTableDescription.dbName : tableName + " modify " + d + " " + newAttributeDescription.type;
 			var requiredClause = !_.isUndefined(newAttributeDescription.required) ? " null " : " not null ";
 			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " set default " + newAttributeDescription.defaultValue : " "; 
 			var statement = typeClause + requiredClause + defaultClause;

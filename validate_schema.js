@@ -15,7 +15,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 	
 // 	{
 // 		"name": "user",
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -33,7 +33,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 
 // 		"name": "pet",
 
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -49,7 +49,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 
 // 	{
 // 		"name": "walker",
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -66,7 +66,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 
 // 	{
 // 		"name": "animal",
-// 		"attributes": {
+// 		"fields": {
 // 			"name": {
 // 				"type": "string"
 // 			},
@@ -83,7 +83,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	{
 // 		"name": "R",
 
-// 		"attributes": {
+// 		"fields": {
 // 			"A": {
 // 				"type": "float",
 // 				"defaultValue": 20
@@ -102,7 +102,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		"name": "U",
 
 
-// 		"attributes": {
+// 		"fields": {
 
 // 			"F": {
 // 				"type": "string",
@@ -126,7 +126,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // [
 // 	{ 
 // 		name: "R", 
-// 		attributes: {
+// 		fields: {
 // 			a: {
 // 				type: "float"
 // 			},
@@ -141,7 +141,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	},
 // 	{ 
 // 		name: "S", 
-// 		attributes: {
+// 		fields: {
 // 			h: {
 // 				type: "float"
 // 			},
@@ -156,7 +156,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	},
 // 	{ 
 // 		name: "T", 
-// 		attributes: {
+// 		fields: {
 // 			z: {
 // 				type: "float"
 // 			},
@@ -172,7 +172,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 
 // 	{ 
 // 		name: "U", 
-// 		attributes: {
+// 		fields: {
 // 			c: {
 // 				type: "float"
 // 			},
@@ -186,7 +186,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	},
 // 	{
 // 		name: "user",
-// 		attributes: {
+// 		fields: {
 // 			name: {
 // 				type: 'string',
 // 				defaultValue: 200
@@ -205,7 +205,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 
 // 		name: "pet",
 
-// 		attributes: {
+// 		fields: {
 // 			name: {
 // 				type: 'string'
 // 			},
@@ -223,7 +223,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	{
 // 		name: "person",
 
-// 		attributes: {
+// 		fields: {
 // 						name: {
 // 				type: 'string'
 // 			},
@@ -246,7 +246,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	{
 // 		name: "animal",
 
-// 		attributes: {
+// 		fields: {
 // 			name: {
 // 				type: 'string'
 // 			},
@@ -349,16 +349,16 @@ function validRelation(relation){
 		relationName = relation.name;
 	}
 
-	if (!_.has(relation, "attributes")){
+	if (!_.has(relation, "fields")){
 		valid = false;
-		warnings.push("relations should have attributes:" + relationName);
+		warnings.push("relations should have fields:" + relationName);
 	}
-	else if (!(_.isObject(relation.attributes) && !_.isArray(relation.attributes))){
+	else if (!(_.isObject(relation.fields) && !_.isArray(relation.fields))){
 		valid = false;
-		warnings.push("relation attributes is an object:" + relationName);
+		warnings.push("relation fields is an object:" + relationName);
 	}
 	else{
-		_.each(relation.attributes, function(value, key){
+		_.each(relation.fields, function(value, key){
 
 			if (!_.has(value, "type")){
 
@@ -439,10 +439,10 @@ function validRelation(relation){
 }
 
 // fetch relationships on a relation
-// determine validity of attributes involved in relationship
+// determine validity of fields involved in relationship
 // compute warnings for relationship validity
 // returns object :
-// { valid: <boolean>, warnings: <array of string>, relationships: <array of describing relationship attributes> }
+// { valid: <boolean>, warnings: <array of string>, relationships: <array of describing relationship fields> }
 // relationship attribute: 
 // for one side 
 // { relation: <relation name>, attribute:<name of attribute>, object: <attribute object field>, type: "one" }
@@ -452,14 +452,14 @@ function validRelation(relation){
 function getRelationships(relation){
 
 	// either structure is invalid, or cannot determine relationships
-	if (!(_.isObject(relation) && !_.isArray(relation) && _.has(relation, "name") && _.has(relation, "attributes") && _.isObject(relation.attributes) && !_.isArray(relation.attributes)))
+	if (!(_.isObject(relation) && !_.isArray(relation) && _.has(relation, "name") && _.has(relation, "fields") && _.isObject(relation.fields) && !_.isArray(relation.fields)))
 		return { valid: true, relationships: null, warnings: [], relationships:[] };
 
 	var valid = true;
 	var warnings = [];
 
 	var relationships = [];
-	_.each(relation.attributes, function(value, key){ 
+	_.each(relation.fields, function(value, key){ 
 		if (_.has(value, "collection") && _.has(value, "via")){
 			relationships.push(_.extend(value, { relation: relation.name, attribute: key, type: "n" }));
 		}
