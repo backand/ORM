@@ -1,12 +1,16 @@
-var mysql      = require('mysql');
+module.exports.executeSQL = executer;
 
-function executeSQL(hostname, db, username, password, statementsArray, callback){
+var mysql      = require('mysql');
+var transformer = require('./transform').transformer;
+
+function executeSQL(hostname, port, db, username, password, statementsArray, callback){
 
 	var connection = mysql.createConnection({
 	  host     : hostname,
 	  database: db,
 	  user     : username,
 	  password : password,
+	  port: port,
 	  multipleStatements: true
 	});
 
@@ -16,7 +20,7 @@ function executeSQL(hostname, db, username, password, statementsArray, callback)
 		
 		if (err) {
 		    console.error('error connecting: ' + err.stack);
-		    terminate(err, null, callback);
+		    terminate(connection, err, null, callback);
 		}
 	 
 	    console.log('connected as id ' + connection.threadId);
@@ -25,18 +29,18 @@ function executeSQL(hostname, db, username, password, statementsArray, callback)
 		  	connection.query(statements, function(err, result) {
 			    if (err) { 
 			      connection.rollback(function() {
-			        terminate(err, null, callback);
+			        terminate(connection, err, null, callback);
 			      });
 			    }
 			    else{
 			    	connection.commit(function(err) {
 				        if (err) { 
 				          connection.rollback(function() {
-				            terminate(err);
+				            terminate(connection, err);
 				          });
 				        }
 				        console.log('success!');
-				        terminate(null, result, callback);
+				        terminate(connection, null, result, callback);
 				    });
 			    }
 			});
@@ -50,7 +54,7 @@ function executeSQL(hostname, db, username, password, statementsArray, callback)
 	});
 }
 
-function terminate(err, result, callback){
+function terminate(connection, err, result, callback){
 	connection.end(function(err) {
 	  // The connection is terminated now 
 	  if (err){
@@ -60,3 +64,56 @@ function terminate(err, result, callback){
 	});
 }
  
+// testExecuteMySQL();
+
+function testExecuteMySQL(){
+	var r = transformer([], 
+		[
+			{
+				"name": "R",
+				"attributes": {
+					"A": {
+						"type": "string",
+						"required": true
+					},
+
+					"B": {
+						"type": "float"
+					}
+				}
+			},
+
+			{
+				"name": "S",
+				"attributes": {
+					"D": {
+						"type": "boolean"
+					},
+
+					"E": {
+						"type": "float"
+					}
+				}
+			},
+
+			{
+				"name": "U",
+				"attributes": {
+					"F": {
+						"type": "binary"
+					},
+
+					"D": {
+						"type": "text"
+					}
+				}
+			},
+		], 
+	0);
+	console.log(r);
+	executeSQL("bk-prod-us1.cd2junihlkms.us-east-1.rds.amazonaws.com", 3306, "backandtestsqlxzhsfvrb", "lmlmez3renpyl4j", "S12nZ1bx5W3MncYAiciy6s", r.alter, function(err, result){
+		console.log(err);
+		console.log(result);
+	});
+
+}

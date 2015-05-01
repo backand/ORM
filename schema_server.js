@@ -2,6 +2,7 @@ var journey = require('journey');
 var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
 var fetcher = require('./backand_to_object').fetchTables;
+var executer = require('./execute_sql').executer;
 
 //
 // Create a Router
@@ -32,6 +33,17 @@ router.map(function () {
     this.post('/transform').bind(function (req, res, data) {
         result = transform(data.oldSchema, data.newSchema, data.severity)
         res.send(200, {}, result);
+    });
+
+    this.post('/execute').bind(function (req, res, data) {
+        if (!data.hostname || !data.port || !data.db || !data.username || !data.password){
+           res.send(400, {}, null); 
+        }
+        else{
+            executer(data.hostname, data.port, data.db, data.username, data.password, data.statementsArray, function(err, result){
+                res.send(200, {}, err);
+            });  
+        }
     });
 
     this.post('/json').bind(function (req, res, data) {
