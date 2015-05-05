@@ -1,1 +1,5 @@
 node_modules/
+Edge/UseNodejsInDotNet/UseNodejsInDotNet/bin/
+Edge/UseNodejsInDotNet/UseNodejsInDotNet/obj/
+Edge/UseNodejsInDotNet/UseNodejsInDotNet/edge/
+Edge/UseNodejsInDotNet/packages/
