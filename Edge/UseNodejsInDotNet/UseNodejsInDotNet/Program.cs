@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using EdgeJs;
 using System.IO;
 using System.Net;
+using System.Web.Script.Serialization;
 
 namespace UseNodejsInDotNet
 {
     class Program
     {
-
-        public static async void Start()
+        private static async Task firstAsync()
         {
             var func = Edge.Func(@"
                 return function (data, callback) {
@@ -20,83 +20,233 @@ namespace UseNodejsInDotNet
                 }
             ");
 
-            var schema = new
-            {
-                anInteger = 1,
-                aNumber = 3.1415,
-                aString = "foo",
-                aBoolean = true,
+            Object result = await func("kuku");
+            Console.WriteLine(result.ToString());
+        }
 
-                anArray = new object[] { 1, "foo" },
-                anObject = new { a = "foo", b = 12 },
-            };
+        private static async Task appendAsync()
+        {
+            var func = Edge.Func(File.ReadAllText(".\\..\\..\\append.js"));
+            Object result = await func("kuku");
+            Console.WriteLine(result.ToString());
+        }
 
-            String s = @"{ 	""table"" : ""Employees"",	""q"" : {		""$or"" : [			{				""Budget"" : {					""$gt"" : 3000				}		},{				""Location"" : ""Tel Aviv""			}		]}}";
-            
-            var func1 = Edge.Func(File.ReadAllText(".\\..\\..\\myfunc.js"));
 
-            Console.WriteLine(await func1("kuku"));
-
+        private static async Task keepStateAsync()
+        {
             var increment = Edge.Func(@"
                 var current = 0;
 
                 return function (data, callback) {
                     current += data;
                     callback(null, current);
-                }
+                } 
             ");
+
             Console.WriteLine(await increment(4)); // outputs 4
             Console.WriteLine(await increment(7)); // outputs 11
 
-            var func2 = Edge.Func(File.ReadAllText(".\\..\\..\\myobj.js"));
+        }
 
-            var fObj = Edge.Func(@"
 
-                var u = require('underscore');
-                console.log(u);
-                return function (data, callback) {
-                    console.log(u);
-                    console.log('f'+ data + 'f');
-                    // var k = _.keys(data);
-                   // console.log(k);
-                 //   callback(null, _.keys(data));
-                    callback(null, data);
-                }    
+        private static async Task stateAsync()
+        {
+            var increment = Edge.Func(File.ReadAllText(".\\..\\..\\state.js"));
 
+            Console.WriteLine(await increment(4)); // outputs 4
+            Console.WriteLine(await increment(7)); // outputs 11
+
+        }
+
+
+        private static async Task useBuiltinAsync()
+        {
+            var createHttpServer = Edge.Func(@"
+                var http = require('http');
+
+                return function (port, cb) {
+                    var server = http.createServer(function (req, res) {
+                        res.end('Hello, world! ' + new Date());
+                    }).listen(port, cb);
+                };
             ");
 
-            var o1 = await fObj("xxx");
-            Console.WriteLine(o1.ToString());
+            await createHttpServer(8080);
+            Console.WriteLine(await new WebClient().DownloadStringTaskAsync("http://localhost:8080"));
 
-           // var o = await func2(schema);
-            Console.WriteLine("ooooooo");
-        //    Console.WriteLine(o.ToString());
-          //  await Task.Delay(86400);
-        //    Console.WriteLine(o.ToString());
+        }
 
-//            var createHttpServer = Edge.Func(@"
-//                var http = require('http');
-//                console.log('require');
-//                return function (port, cb) {
-//                    console.log('function');
-//                    var server = http.createServer(function (req, res) {
-//                        console.log('req');
-//                        res.end('Hello, world! ' + new Date());
-//                    }).listen(port, cb);
-//                };
-//            ");
 
-//            await createHttpServer(9000);
-//            try
-//            {
-//                String s = await new WebClient().DownloadStringTaskAsync("http://localhost:9000");
-//                Console.WriteLine(s);
-//            }
-//            catch (Exception e)
-//            {
 
-//                Console.WriteLine(e.ToString());
-//            }
+        private static async Task useUnderscoreAsync()
+        {
+            var func = Edge.Func(@"
+                var _ = require('underscore');
+                return function (data, callback) {
+                    
+                    var o = JSON.parse(data);
+                    console.log(o);
+                    var result = _.pluck(o, 'name');
+                    console.log(result);
+                    var s = JSON.stringify(result);
+                    console.log('s', s);
+                    callback(null,s);
+                }
+            ");
+
+            //Object result = await func(@"{ 	""c"" : 4, ""d"": 5 }");
+            //Console.WriteLine(result.ToString());
+            Object result1 = await func(@" [{
+ 		""name"": ""user"",
+ 		""fields"": {
+ 			""name"": {
+ 				""type"": ""string""
+ 			},
+ 			""age"": {
+ 				""type"": ""datetime""
+ 			},
+ 			""dogs"":{
+ 				""collection"": ""pet"",
+ 				""via"": ""owner""
+ 			}
+ 		}
+ 	},
+
+ 	{ 
+
+ 		""name"": ""pet"",
+
+ 		""fields"": {
+ 			""name"": {
+ 				""type"": ""string""
+ 			},
+ 			""registered"": {
+ 				""type"": ""boolean""
+ 			},
+ 			""owner"":{
+ 				""object"": ""user""
+ 			}
+ 		}
+		
+ 	}]");
+            
+            Console.WriteLine(result1);
+            //JavaScriptSerializer jsonParser = new JavaScriptSerializer();
+            //String resultString = jsonParser.Serialize(result1);
+
+            //Console.WriteLine(resultString);
+
+        }
+
+
+        private static async Task underscoreAsync()
+        {
+            var func = Edge.Func(File.ReadAllText(".\\..\\..\\genericArrays.js"));
+
+            Object result = await func(@" 
+                [
+                    {
+ 		                ""name"": ""user"",
+ 		                ""fields"": {
+ 			                ""name"": {
+ 				                ""type"": ""string""
+ 			                },
+ 			                ""age"": {
+ 				                ""type"": ""datetime""
+ 			                },
+ 			                ""dogs"":{
+ 				                ""collection"": ""pet"",
+ 				                ""via"": ""owner""
+ 			                }
+ 		                }
+ 	                },
+
+ 	                { 
+
+ 		                ""name"": ""pet"",
+
+ 		                ""fields"": {
+ 			                ""name"": {
+ 				                ""type"": ""string""
+ 			                },
+ 			                ""registered"": {
+ 				                ""type"": ""boolean""
+ 			                },
+ 			                ""owner"":{
+ 				                ""object"": ""user""
+ 			                }
+ 		                }
+		
+ 	                }
+                ]
+            ");
+
+            Console.WriteLine(result);
+        }
+
+        private static async Task transformAsync()
+        {
+            var transform = Edge.Func(File.ReadAllText(".\\..\\..\\transform.js"));
+
+            Object result = await transform(@"{ 
+                ""oldSchema"" : [], 
+                ""newSchema"" : [
+                   {
+ 		                ""name"": ""user"",
+ 		                ""fields"": {
+ 			                ""name"": {
+ 				                ""type"": ""string""
+ 			                },
+ 			                ""age"": {
+ 				                ""type"": ""datetime""
+ 			                },
+ 			                ""dogs"":{
+ 				                ""collection"": ""pet"",
+ 				                ""via"": ""owner""
+ 			                }
+ 		                }
+ 	                },
+
+ 	                { 
+
+ 		                ""name"": ""pet"",
+
+ 		                ""fields"": {
+ 			                ""name"": {
+ 				                ""type"": ""string""
+ 			                },
+ 			                ""registered"": {
+ 				                ""type"": ""boolean""
+ 			                },
+ 			                ""owner"":{
+ 				                ""object"": ""user""
+ 			                }
+ 		                }
+	                } 
+
+                ], 
+
+                ""severity"": 0
+
+            }");
+            Console.WriteLine(result.ToString());
+
+        }
+    
+
+        public static async void Start()
+        {
+            // inline js code
+            // await firstAsync();
+            // await keepStateAsync();
+            // await useBuiltinAsync();
+            // await useUnderscoreAsync();
+
+            // js code in files
+            //await appendAsync();
+            // await stateAsync();
+            //await underscoreAsync();
+            await transformAsync();
             
         }
 
