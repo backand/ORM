@@ -36,6 +36,24 @@ router.map(function () {
         res.send(200, {}, result);
     });
 
+    this.post('/transformAuthorized').bind(function (req, res, data) {
+        var tokenStructure = getToken(req.headers);
+        if (tokenStructure){
+            fetcher(tokenStructure[1], tokenStructure[0], function(err, oldSchema){
+                if (err){
+                    res.send(400, {}, null);
+                }
+                else{
+                    result = transform(oldSchema, data.newSchema, data.severity)
+                    res.send(200, {}, result);
+                }
+            });
+        } 
+        else{
+            res.send(401, {}, null);
+        }   
+    });
+
     this.post('/execute').bind(function (req, res, data) {
         if (!data.hostname || !data.port || !data.db || !data.username || !data.password){
            res.send(400, {}, null); 
@@ -51,22 +69,28 @@ router.map(function () {
     });
 
     this.post('/json').bind(function (req, res, data) {
-        var tokenStructure = null;
-        if (req.headers.Authorization){
-            tokenStructure = req.headers.Authorization.split(" "); 
-            result = fetcher(tokenStructure[1], tokenStructure[0]);
-            res.send(200, {}, result);
+        var tokenStructure = getToken(req.headers);
+        if (tokenStructure)
+            fetcher(tokenStructure[1], tokenStructure[0], function(err, result){
+
+                if (err){
+                    res.send(400, {}, null);
+                }
+                else{
+                    res.send(200, {}, result);
+                }
+                
+            });
+            
         }   	   
         else{
-            tokenStructure = null;
             res.send(401, {}, null);
         }
     });
 
     this.post('/connectioninfo').bind(function (req, res, data) {
-        var tokenStructure = null;
-        if (req.headers.Authorization){
-            tokenStructure = req.headers.Authorization.split(" "); 
+        var tokenStructure = getToken(req.headers);
+        if (tokenStructure){          
             getConnectionInfo(tokenStructure[1], tokenStructure[0], data.appName, function(err, result){
                 if (!err)
                     res.send(200, {}, result);
@@ -75,7 +99,6 @@ router.map(function () {
             });  
         }          
         else{
-            tokenStructure = null;
             res.send(401, {}, null);
         }
     });
@@ -96,3 +119,17 @@ require('http').createServer(function (request, response) {
         });
     });
 }).listen(8080);
+
+function getToken(headers){
+    if (headers.Authorization || headers.authorization){
+        var authInfo = headers.Authorization;
+        if (!authInfo){
+            authInfo = headers.authorization;
+        }
+        tokenStructure = authInfo.split(" "); 
+        return tokenStructure;
+    } 
+    else{
+        return null;
+    } 
+}

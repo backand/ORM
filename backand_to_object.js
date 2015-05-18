@@ -21,7 +21,7 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-testBackandToObject();
+// testBackandToObject();
 
 function testBackandToObject(){
 	var email = "itay@backand.com";
@@ -61,7 +61,7 @@ function testBackandToObject(){
 
 }
 
-function fetchTables(accessToken, tokenType){
+function fetchTables(accessToken, tokenType, callback){
 	
 	request(
 
@@ -101,7 +101,7 @@ function fetchTables(accessToken, tokenType){
 		    				console.log("database", JSON.stringify(tables));
 		    				// transform tables to create relationships
 
-		    				process.exit(1);
+		    				callback(null, tables);
 		    			}
 		    		);
 		    	}
@@ -109,7 +109,7 @@ function fetchTables(accessToken, tokenType){
 		    }
 		    else{
 		    	console.log("cannot get tables", error, response.statusCode);
-		    	process.exit(1);
+		    	callback(true, null);
 		    }
 		}
 
