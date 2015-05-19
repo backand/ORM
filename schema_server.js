@@ -32,7 +32,7 @@ router.map(function () {
     });
 
     this.post('/transform').bind(function (req, res, data) {
-        result = transform(data.oldSchema, data.newSchema, data.severity)
+        result = transformer(data.oldSchema, data.newSchema, data.severity)
         res.send(200, {}, result);
     });
 
@@ -44,7 +44,7 @@ router.map(function () {
                     res.send(400, {}, null);
                 }
                 else{
-                    result = transform(oldSchema, data.newSchema, data.severity)
+                    result = transformer(oldSchema, data.newSchema, data.severity)
                     res.send(200, {}, result);
                 }
             });
@@ -70,7 +70,7 @@ router.map(function () {
 
     this.post('/json').bind(function (req, res, data) {
         var tokenStructure = getToken(req.headers);
-        if (tokenStructure)
+        if (tokenStructure){
             fetcher(tokenStructure[1], tokenStructure[0], function(err, result){
 
                 if (err){
@@ -82,7 +82,7 @@ router.map(function () {
                 
             });
             
-        }   	   
+        }
         else{
             res.send(401, {}, null);
         }
@@ -118,7 +118,7 @@ require('http').createServer(function (request, response) {
             response.end(result.body);
         });
     });
-}).listen(8080);
+}).listen(9000);
 
 function getToken(headers){
     if (headers.Authorization || headers.authorization){
@@ -126,7 +126,7 @@ function getToken(headers){
         if (!authInfo){
             authInfo = headers.authorization;
         }
-        tokenStructure = authInfo.split(" "); 
+        var tokenStructure = authInfo.split(" ");
         return tokenStructure;
     } 
     else{

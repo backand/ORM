@@ -623,8 +623,9 @@ function createStatements(oldSchema, newSchema, modifications){
 		  	else if (_.has(description, "object")){ // 1 side of 1:n relationship
 		  		var searchPattern = { oneRelation: t, oneAttribute: name };
 		  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
-		  		var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
-		  		col.unsigned();
+		  		//var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
+				var col = table.integer(name);
+				col.unsigned();
 		  		col.references("id").inTable(oneManyRelationship.nRelation);
 		  	}
 		  	else if (_.has(description, "collection") && _.has(description, "via")){
@@ -642,7 +643,7 @@ function createStatements(oldSchema, newSchema, modifications){
 	// console.log("modifiedTables", modifiedTables);
 	_.each(modifiedTables, function(m){
 		var tableName = m.name;
-		var oldTableDescription = _.findWhere(oldSchema, { "name" : t });
+		var oldTableDescription = _.findWhere(oldSchema, { "name" : m.name });
 		
 		var tableDescription = _.first(_.where(newSchema, { name: tableName }));
 		var statement = knex.schema.table(oldTableDescription.dbName ? oldTableDescription.dbName : tableName,function(table){
@@ -655,6 +656,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			// add columns
 			_.each(m.added, function(d){
 				var description = tableDescription.fields[d];
+				var name = d;
 				if (description.type){
 					switch(description.type){
 				  		case "string":
@@ -717,9 +719,10 @@ function createStatements(oldSchema, newSchema, modifications){
 			  		}
 				}
 				else if (_.has(description, "object")){ // 1 side of 1:n relationship
-			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: t.name, oneAttribute: name });
-			  		var col = table.integer("fk_" + t.name + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
-			  		col.unsigned();
+			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: m.name, oneAttribute: name });
+			  		//var col = table.integer("fk_" + m.name + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
+					var col = table.integer(name);
+					col.unsigned();
 			  		col.references("id").inTable(oneManyRelationship.nRelation);
 			  	}			
 			});	
