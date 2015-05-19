@@ -49,7 +49,10 @@ function testBackandToObject(){
 		    	var b = JSON.parse(body)
 		    	var accessToken = b["access_token"];
 		    	var tokenType = b["token_type"];
-		    	fetchTables(accessToken, tokenType);
+		    	fetchTables(accessToken, tokenType, function(err, result){
+		    		console.log(err);
+		    		console.log(result);
+		    	});
 		    }
 		    else{
 		    	console.log("cannot get token", error, response.statusCode);
@@ -104,6 +107,9 @@ function fetchTables(accessToken, tokenType, callback){
 		    				callback(null, tables);
 		    			}
 		    		);
+		    	}
+		    	else{
+		    		callback(null, []);
 		    	}
 		    	
 		    }
