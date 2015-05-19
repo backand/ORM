@@ -213,23 +213,23 @@ var escalationTable = TAFFY([
 // 		}
 // 	},
 
-// 	{ 
+	// { 
 
-// 		"name": "pet",
+	// 	"name": "pet",
 
-// 		"fields": {
-// 			"name": {
-// 				"type": "string"
-// 			},
-// 			"registered": {
-// 				"type": "boolean"
-// 			},
-// 			"owner":{
-// 				"object": "user"
-// 			}
-// 		}
+	// 	"fields": {
+	// 		"name": {
+	// 			"type": "string"
+	// 		},
+	// 		"registered": {
+	// 			"type": "boolean"
+	// 		},
+	// 		"owner":{
+	// 			"object": "user"
+	// 		}
+	// 	}
 		
-// 	},
+	// },
 
 // 	{
 // 		"name": "walker",
@@ -553,6 +553,7 @@ function createStatements(oldSchema, newSchema, modifications){
 	// add tables
 	var addedTables = modifications.createTable;
 	_.each(addedTables, function(t){
+		var relationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
 		  table.increments();
 		  table.timestamps();
@@ -623,10 +624,12 @@ function createStatements(oldSchema, newSchema, modifications){
 		  	else if (_.has(description, "object")){ // 1 side of 1:n relationship
 		  		var searchPattern = { oneRelation: t, oneAttribute: name };
 		  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
+		  		relationships.push(oneManyRelationship);
 		  		//var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
-				var col = table.integer(name);
-				col.unsigned();
-		  		col.references("id").inTable(oneManyRelationship.nRelation);
+				// var col = table.integer(name);
+				// col.unsigned();
+		  		// col.references("id").inTable(oneManyRelationship.nRelation);
+		  		table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);
 		  	}
 		  	else if (_.has(description, "collection") && _.has(description, "via")){
 
@@ -634,7 +637,12 @@ function createStatements(oldSchema, newSchema, modifications){
 		  });
 		    
 		});
-		statements.push(statement.toString());
+		var statementString = statement.toString();
+		_.each(relationships, function(r){
+			statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint bkname_" + r.nAttribute);
+		});
+		statements.push(statementString);
+
 	});
     // console.log("add table", statements);
 
@@ -730,7 +738,11 @@ function createStatements(oldSchema, newSchema, modifications){
 		var sArray = statement.toString().replace(";", "").split("\n");
 		
 		_.each(sArray, function(a){
-			statements.push(a);
+			var statementString = a.toString();
+			_.each(relationships, function(r){
+				statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint bkname_" + r.nAttribute);
+			});
+			statements.push(statementString);
 		});
 		// console.log("add/drop columns", statements);
 
