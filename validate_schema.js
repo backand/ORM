@@ -289,12 +289,12 @@ function validateSchema(str){
 
 			return { valid: memo.valid && currentResult.valid && relationshipsCheck.valid, warnings: _.flatten(memo.warnings) };
 		}, { valid: true, warnings: [] });
-
 		var relationships = _.flatten(relationships);
+
 		// validate the two sides of a relationship
 		_.each(relationships, 
 			function(r){
-				if (r.type == "n"){
+				if (r.type == "n"){				
 					var fn = _.filter(relationships, function(o){
 						return r.collection == o.relation && o.collection == r.relation && o.via == r.attribute && r.via == o.attribute && o.type == "n";
 					});
@@ -305,10 +305,15 @@ function validateSchema(str){
 						})
 						var otherSide1 = fone.length > 0 ? _.first(fone) : null;
 						if (!otherSide1){
-							result.warnings.push("multi select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
+							// result.warnings.push("multi select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
+							result.warnings.push("multi select relationship are not allowed: relation " + r.relation + " attribute " + r.attribute);
 							result.valid = false;
 						}
 							
+					}
+					else{
+						result.valid = false;
+						result.warnings.push("multi select relationship are not allowed: relation " + r.relation + " attribute " + r.attribute + " and relation " + otherSideM.relation + " attribute " + otherSideM.attribute);
 					}
 				}
 				else if (r.type == "one"){
@@ -324,7 +329,6 @@ function validateSchema(str){
 			}
 		);
 
-		
 		return result;
 	}
 	catch(e){
@@ -365,13 +369,13 @@ function validRelation(relation){
 				if (_.has(value, "collection") && _.has(value, "via")){
 					if (_.has(value, "object")){
 						valid = false;
-						warnings.push("column cannot be both 1 and many side of relatinship:" + relationName + " " + key);
+						warnings.push("column cannot be both 1 and many side of relationship:" + relationName + " " + key);
 					}			
 				}
 				else if (_.has(value, "object")){
 					if (_.has(value, "collection") || _.has(value, "via")){
 						valid = false;
-						warnings.push("column cannot be both 1 and many side of relatinship:" + relationName + " " + key);
+						warnings.push("column cannot be both 1 and many side of relationship:" + relationName + " " + key);
 					}	
 				}
 				else if (_.has(value, "collection") && !_.has(value, "via")){
