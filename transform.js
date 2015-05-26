@@ -639,7 +639,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		});
 		var statementString = statement.toString();
 		_.each(relationships, function(r){
-			statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint bkname_" + r.nAttribute);
+			statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
 		});
 		statements.push(statementString);
 
@@ -740,7 +740,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		_.each(sArray, function(a){
 			var statementString = a.toString();
 			_.each(relationships, function(r){
-				statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint bkname_" + r.nAttribute);
+				statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
 			});
 			statements.push(statementString);
 		});
