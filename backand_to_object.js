@@ -5,7 +5,7 @@ var async = require('async');
 var _ = require('underscore');
 
 
-var api_url = "http://localhost:4109/backapi";
+var api_url = "http://ec2-52-5-45-182.compute-1.amazonaws.com:8099";
 var tokenUrl = api_url + "/token";
 var tableUrl = api_url + "/1/table/config/";
 var columnsUrl = api_url + "/1/table/config/";
