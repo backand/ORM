@@ -64,7 +64,7 @@ function testBackandToObject(){
 
 }
 
-function fetchTables(accessToken, tokenType, callback){
+function fetchTables(accessToken, tokenType, appName, callback){
 	
 	request(
 
@@ -74,7 +74,8 @@ function fetchTables(accessToken, tokenType, callback){
 		    headers: {
 		    	'Accept': 'application/json', 
 		        'Content-Type': 'application/json',
-		        'Authorization': tokenType + " " + accessToken
+		        'Authorization': tokenType + " " + accessToken,
+			'AppName': appName
 		    },
 		    
 		    method: 'GET',
@@ -94,7 +95,7 @@ function fetchTables(accessToken, tokenType, callback){
 		    			function(item, callback){
 		    				var relationName = item.name
 								var databaseName = item.databaseName;
-		    				fetchColumns(accessToken, tokenType, relationName,databaseName, callback);
+		    				fetchColumns(accessToken, tokenType, appName, relationName, databaseName, callback);
 		    			},
 		    			function(err, results){
 
@@ -122,7 +123,7 @@ function fetchTables(accessToken, tokenType, callback){
 	);
 }
 
-function fetchColumns(accessToken, tokenType, tableName, dbName, callbackColumns){
+function fetchColumns(accessToken, tokenType, appName, tableName, dbName, callbackColumns){
 
 	request(
 
@@ -132,7 +133,8 @@ function fetchColumns(accessToken, tokenType, tableName, dbName, callbackColumns
 		    headers: {
 		    	'Accept': 'application/json', 
 		        'Content-Type': 'application/json',
-		        'Authorization': tokenType + " " + accessToken
+		        'Authorization': tokenType + " " + accessToken,
+			'AppName': appName
 		    },
 		    
 		    method: 'GET'

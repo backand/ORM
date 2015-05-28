@@ -71,7 +71,7 @@ router.map(function () {
     this.post('/json').bind(function (req, res, data) {
         var tokenStructure = getToken(req.headers);
         if (tokenStructure){
-            fetcher(tokenStructure[1], tokenStructure[0], function(err, result){
+            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, function(err, result){
 
                 if (err){
                     res.send(400, {}, null);
