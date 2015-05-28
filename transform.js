@@ -552,8 +552,8 @@ function createStatements(oldSchema, newSchema, modifications){
 
 	// add tables
 	var addedTables = modifications.createTable;
+	var relationships = [];
 	_.each(addedTables, function(t){
-		var relationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
 		  table.increments();
 		  table.timestamps();
@@ -738,11 +738,13 @@ function createStatements(oldSchema, newSchema, modifications){
 		var sArray = statement.toString().replace(";", "").split("\n");
 		
 		_.each(sArray, function(a){
-			var statementString = a.toString();
-			_.each(relationships, function(r){
+			if(a != ""){
+			    var statementString = a.toString();
+			    _.each(relationships, function(r){
 				statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
 			});
-			statements.push(statementString);
+			    statements.push(statementString);
+			}
 		});
 		// console.log("add/drop columns", statements);
 
