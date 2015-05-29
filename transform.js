@@ -152,7 +152,7 @@ var escalationTable = TAFFY([
 
 // var r = transform(
 // [],
-
+// [
 // 	// {
 
 // 	// 	name: "S",
@@ -197,21 +197,21 @@ var escalationTable = TAFFY([
 // ], 
 // [
 	
-// 	{
-// 		"name": "user",
-// 		"fields": {
-// 			"name": {
-// 				"type": "string"
-// 			},
-// 			"age": {
-// 				"type": "datetime"
-// 			},
-// 			"dogs":{
-// 				"collection": "pet",
-// 				"via": "owner"
-// 			}
-// 		}
-// 	},
+	// {
+	// 	"name": "user",
+	// 	"fields": {
+	// 		"name": {
+	// 			"type": "string"
+	// 		},
+	// 		"age": {
+	// 			"type": "datetime"
+	// 		},
+	// 		"dogs":{
+	// 			"collection": "pet",
+	// 			"via": "owner"
+	// 		}
+	// 	}
+	// },
 
 	// { 
 
@@ -641,7 +641,10 @@ function createStatements(oldSchema, newSchema, modifications){
 		_.each(relationships, function(r){
 			statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
 		});
-		statements.push(statementString);
+		var createStatementsArray = statementString.replace("\n", "").split(";");
+		_.each(createStatementsArray, function(s){
+			statements.push(s);
+		});	
 
 	});
     // console.log("add table", statements);
@@ -801,6 +804,13 @@ function createStatements(oldSchema, newSchema, modifications){
     	}
     });
 
+	var statementClasses = _.partition(statements, function(s){
+		return s.indexOf("constraint") == -1;
+	});
+	var statements = statementClasses[0];
+	_.each(statementClasses[1], function(s){
+		statements.push(s);
+	});
     return statements;
 
 }

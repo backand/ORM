@@ -27,6 +27,7 @@ function testBackandToObject(){
 	var email = "itay@backand.com";
 	var password = "itay1234";
 	var appName = "json2";
+	var withDbName = true;
 
 	// get token
 	request(
@@ -49,7 +50,7 @@ function testBackandToObject(){
 		    	var b = JSON.parse(body)
 		    	var accessToken = b["access_token"];
 		    	var tokenType = b["token_type"];
-		    	fetchTables(accessToken, tokenType, function(err, result){
+		    	fetchTables(accessToken, tokenType, withDbName, function(err, result){
 		    		console.log(err);
 		    		console.log(result);
 		    	});
@@ -64,7 +65,7 @@ function testBackandToObject(){
 
 }
 
-function fetchTables(accessToken, tokenType, appName, callback){
+function fetchTables(accessToken, tokenType, appName, withDbName, callback){
 	
 	request(
 
@@ -94,8 +95,8 @@ function fetchTables(accessToken, tokenType, appName, callback){
 		    		async.map(body.data, 
 		    			function(item, callback){
 		    				var relationName = item.name
-								var databaseName = item.databaseName;
-		    				fetchColumns(accessToken, tokenType, appName, relationName, databaseName, callback);
+							var databaseName = item.databaseName;
+		    				fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, callback);
 		    			},
 		    			function(err, results){
 
@@ -123,7 +124,7 @@ function fetchTables(accessToken, tokenType, appName, callback){
 	);
 }
 
-function fetchColumns(accessToken, tokenType, appName, tableName, dbName, callbackColumns){
+function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDbName, callbackColumns){
 
 	request(
 
@@ -149,7 +150,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, callba
 		    	// console.log(body.fields);
 	    		async.map(body.fields,
 	    			function(item, callback){
-	    				if (item.name == "id" || item.name =="Id"){
+	    				if (item.name == "id" || item.name =="Id" || item.name = "createAt" || item.name == "updatedAt"){
 	    					callback(null, null);
 	    				}
 	    				else{
@@ -183,7 +184,11 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, callba
 	    			function(err, results){
 	    				var results = _.filter(results, function(r) { return r; });
 	    				var fields = _.object(_.pluck(results, "name"), _.map(results, function(c){ return _.omit(c, "name"); }));
-	    				callbackColumns(null, { name: tableName, dbName: dbName, fields: fields });
+	    				var columnsDescription = { name: tableName, fields: fields };
+	    				if (withDbName){
+	    					columnsDescription[dbName] = dbName;
+	    				}
+	    				callbackColumns(null, columnsDescription);
 	    			}
 	    		);
 		    	
