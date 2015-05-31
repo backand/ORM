@@ -50,7 +50,7 @@ function testBackandToObject(){
 		    	var b = JSON.parse(body)
 		    	var accessToken = b["access_token"];
 		    	var tokenType = b["token_type"];
-		    	fetchTables(accessToken, tokenType, withDbName, function(err, result){
+		    	fetchTables(accessToken, tokenType, appName, withDbName, function(err, result){
 		    		console.log(err);
 		    		console.log(result);
 		    	});
@@ -93,10 +93,10 @@ function fetchTables(accessToken, tokenType, appName, withDbName, callback){
 		    	if (body.totalRows > 0){
 
 		    		async.map(body.data, 
-		    			function(item, callback){
+		    			function(item, callbackColumns){
 		    				var relationName = item.name
 							var databaseName = item.databaseName;
-		    				fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, callback);
+		    				fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, callbackColumns);
 		    			},
 		    			function(err, results){
 
@@ -194,7 +194,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    	
 		    }
 		    else{
-		    	console.log("cannot get tables", error, response.statusCode);
+		    	console.log("fetchColumns cannot get tables", error, response.statusCode);
 		    	callbackColumns(error ? error : response.statusCode, null);
 		    }
 		}
