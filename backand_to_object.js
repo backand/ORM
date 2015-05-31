@@ -5,7 +5,7 @@ var async = require('async');
 var _ = require('underscore');
 
 
-var api_url = "http://ec2-52-5-45-182.compute-1.amazonaws.com:8099";
+var api_url = require('./config').api_url;
 var tokenUrl = api_url + "/token";
 var tableUrl = api_url + "/1/table/config/";
 var columnsUrl = api_url + "/1/table/config/";
@@ -21,7 +21,7 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-// testBackandToObject();
+testBackandToObject();
 
 function testBackandToObject(){
 	var email = "itay@backand.com";
