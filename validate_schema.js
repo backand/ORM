@@ -268,7 +268,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // ]
 // )
 // );
-console.log(v);
+//console.log(v);
 
 function validateSchema(str){
 	try{

@@ -5,7 +5,7 @@ var async = require('async');
 var _ = require('underscore');
 
 
-var api_url = "http://ec2-52-5-45-182.compute-1.amazonaws.com:8099";
+var api_url = "http://api.backand.info:8099";
 var tokenUrl = api_url + "/token";
 var tableUrl = api_url + "/1/table/config/";
 var columnsUrl = api_url + "/1/table/config/";
@@ -150,7 +150,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    	// console.log(body.fields);
 	    		async.map(body.fields,
 	    			function(item, callback){
-	    				if (item.name == "id" || item.name =="Id" || item.name = "createAt" || item.name == "updatedAt"){
+	    				if (item.name == "id" || item.name == "Id" || item.name == "createAt" || item.name == "updatedAt"){
 	    					callback(null, null);
 	    				}
 	    				else{
