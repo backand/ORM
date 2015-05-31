@@ -29,23 +29,23 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		}
 // 	},
 
-// 	{ 
+	// { 
 
-// 		"name": "pet",
+	// 	"name": "pet",
 
-// 		"fields": {
-// 			"name": {
-// 				"type": "string"
-// 			},
-// 			"registered": {
-// 				"type": "boolean"
-// 			},
-// 			"owner":{
-// 				"object": "user"
-// 			}
-// 		}
+	// 	"fields": {
+	// 		"name": {
+	// 			"type": "string"
+	// 		},
+	// 		"registered": {
+	// 			"type": "boolean"
+	// 		},
+	// 		"owner":{
+	// 			"object": "user"
+	// 		}
+	// 	}
 		
-// 	},
+	// },
 
 // 	{
 // 		"name": "walker",
@@ -268,7 +268,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // ]
 // )
 // );
-// console.log(v);
+console.log(v);
 
 function validateSchema(str){
 	try{
@@ -306,7 +306,7 @@ function validateSchema(str){
 						var otherSide1 = fone.length > 0 ? _.first(fone) : null;
 						if (!otherSide1){
 							// result.warnings.push("multi select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
-							result.warnings.push("multi select relationship are not allowed: relation " + r.relation + " attribute " + r.attribute);
+							result.warnings.push("missing one side of one-to-many relationship: relation " + r.relation + " attribute " + r.attribute);
 							result.valid = false;
 						}
 							
