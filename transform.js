@@ -153,22 +153,22 @@ var escalationTable = TAFFY([
 // var r = transform(
 // [],
 // [
-// 	// {
+// 	{
 
-// 	// 	name: "S",
+// 		name: "S",
 
 
-// 	// 	fields: {
-// 	// 		C: {
-// 	// 			type: "integer"
-// 	// 		},
+// 		fields: {
+// 			C: {
+// 				type: "integer"
+// 			},
 
-// 	// 		D: {
-// 	// 			type: "string",
-// 	// 			required: true
-// 	// 		}
-// 	// 	}
-// 	// },
+// 			D: {
+// 				type: "string",
+// 				required: true
+// 			}
+// 		}
+// 	},
 
 // 	// {
 
@@ -333,6 +333,11 @@ function transform(oldSchema, newSchema, severity){
 
 	// Construct an array of the required changes between schemes
 	var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
+
+	// remove created at and updated at columns
+	alterStatementsArray = _.map(alterStatementsArray, function(s){
+		return s.replace(/, `created_at` datetime/g,"").replace(/, `updated_at` datetime/g,"");
+	})
 
 	// describe the order of the database
 	var tablesOrder = _.pluck(newSchema, "name");
