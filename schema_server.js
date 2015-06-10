@@ -44,8 +44,22 @@ router.map(function () {
                     res.send(400, {}, null);
                 }
                 else{
-                    result = transformer(oldSchema, data.newSchema, data.severity)
-                    res.send(200, {}, result);
+                    if (data.withoutValidation){
+                        result = transformer(oldSchema, data.newSchema, data.severity)
+                        res.send(200, {}, result);
+                    }
+                    else{
+                        // test if new schema is valid
+                        var isValidNewSchema = validator(data.newSchema);
+                        if (isValidNewSchema.valid){
+                            result = transformer(oldSchema, data.newSchema, data.severity)
+                            res.send(200, {}, result);
+                        }
+                        else{
+                            isValidNewSchema.valid = "never";
+                            res.send(200, {}, result);
+                        }
+                    }
                 }
             });
         } 
