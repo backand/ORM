@@ -32,8 +32,17 @@ router.map(function () {
     });
 
     this.post('/transform').bind(function (req, res, data) {
-        result = transformer(data.oldSchema, data.newSchema, data.severity)
-        res.send(200, {}, result);
+        //result = transformer(data.oldSchema, data.newSchema, data.severity)
+        //res.send(200, {}, result);
+        var isValidNewSchema = validator(data.newSchema);
+        if (isValidNewSchema.valid){
+            result = transformer(data.oldSchema, data.newSchema, data.severity)
+            res.send(200, {}, result);
+        }
+        else{
+            isValidNewSchema.valid = "never";
+            res.send(200, {}, isValidNewSchema);
+        }
     });
 
     this.post('/transformAuthorized').bind(function (req, res, data) {
@@ -56,8 +65,10 @@ router.map(function () {
                             res.send(200, {}, result);
                         }
                         else{
+                            //isValidNewSchema.valid = "never";
+                            //res.send(200, {}, result);
                             isValidNewSchema.valid = "never";
-                            res.send(200, {}, result);
+                            res.send(200, {}, isValidNewSchema);
                         }
                     }
                 }
