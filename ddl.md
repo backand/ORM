@@ -1,23 +1,21 @@
-Schema Definition with JSON
+Model Definition with JSON
 ===========================
 
-A database schema is defined as a JSON array of one or more table definitions:
+The model represent a database schema that is defined as a JSON array of one or more objects (Table) definitions:
 
-    <schema> = [  <table>, <table>, ... ]
+    <model> = [  <object>, <object>, ... ]
 
-A table definition is a JSON object with a name and a fields definition:
+An object definition is a JSON object with a name and a fields definition:
 
-    <table> = { 'name':  <string>, 'fields' : <fields> }
+    <object> = { 'name':  <string>, 'fields' : <fields> }
 
 The fields definition is a JSON object, with an attribute for each field:
 
     <fields> =  { 'field1' : <field>, 'field2': <field>, ... }
 
-In addition to the fields supplied by the user, Backand defines three standard attributes:
+In addition to the fields supplied by the user, Backand defines one more standard attribute:
 
 1. 'id' - integer - primary key
-2. 'createdAt' - datetime
-3. 'updatedAt' - datetime
 
 A field is defined by its type and a set of optional properties. The field definition is a JSON object:
 
@@ -25,8 +23,8 @@ A field is defined by its type and a set of optional properties. The field defin
 
 The type of a field is one of the following:
 
-* string
-* text
+* string - string column up to 255 characters
+* text - text column optional length of 255
 * float
 * datetime
 * boolean
