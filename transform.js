@@ -592,38 +592,45 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			}
 			  		break;
 			  		case "date":
-			  			table.date(name);
+			  			var col = table.date(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "time":
-			  			table.time(name);
+			  			var col = table.time(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "datetime":
-			  			table.dateTime(name);
+			  			var col = table.dateTime(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "boolean":
-			  			table.specificType(name, "Bit(1)"); 
+			  			var col = table.specificType(name, "Bit(1)"); 
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  		case "binary":
-			  			table.binary(name);
+			  			var col = table.binary(name);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
 			  		break;
 			  	}
 			  	if (!_.isUndefined(description.defaultValue)){
-			  		col.defaultTo(description.defaultValue); 
+			  		console.log(description);
+			  		if (description.type != "boolean"){
+			  			col.defaultTo(description.defaultValue); 
+			  		}
+			  		else{
+			  			col.defaultTo(description.defaultValue ? 1 : 0); 
+			  		}
+			  		
 			  	}
 		  	}
 		  	else if (_.has(description, "object")){ // 1 side of 1:n relationship
@@ -643,6 +650,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		    
 		});
 		var statementString = statement.toString();
+		statementString = statementString.replace(/\'/g, "");
 		_.each(relationships, function(r){
 			statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
 		});
