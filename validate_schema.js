@@ -460,7 +460,7 @@ function getRelationships(relation){
 	var relationships = [];
 	_.each(relation.fields, function(value, key){ 
 		if (_.has(value, "collection") && _.has(value, "via")){
-			relationships.push(_.extend(value, { relation: relation.name, attribute: key, type: "n" }));
+			relationships.push(_.extend(_.clone(value),  { relation: relation.name, attribute: key, type: "n" }));
 		}
 		else if (_.has(value, "object")){
 			relationships.push({ relation: relation.name, attribute: key, object: value.object, type: "one" });
