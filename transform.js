@@ -330,6 +330,20 @@ function transform(oldSchema, newSchema, severity){
 		return validity;
 	}
 
+	// generate notifications on dropping tables and columns
+    validity.notifications = {};
+    if (modifications.dropTable.length > 0){
+            validity.notifications["droppedTables"] = modifications.dropTable;
+    }
+    if (modifications.modifiedTables.length > 0){
+            validity.notifications["droppedColumns"] = [];
+            _.each(modifications.modifiedTables, function(m){
+                    _.each(m.dropped, function(d){
+                            validity.notifications["droppedColumns"].push({ table: m.name, column: d });
+                    });
+            });
+    }
+
 
 	// Construct an array of the required changes between schemes
 	var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
