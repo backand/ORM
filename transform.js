@@ -796,9 +796,9 @@ function createStatements(oldSchema, newSchema, modifications){
 		_.each(m.modified, function(d){
 			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).fields[d];
 			var newAttributeDescription = tableDescription.fields[d];
-			var oldTableDescription = _.findWhere(oldSchema, { "name" : t });
-			var typeClause = "alter table " + oldTableDescription.dbName ? oldTableDescription.dbName : tableName + " modify " + d + " " + newAttributeDescription.type;
-			var requiredClause = !_.isUndefined(newAttributeDescription.required) ? " null " : " not null ";
+			var oldTableDescription = _.findWhere(oldSchema, { "name" : tableName });
+			var typeClause = "alter table " + tableName + " modify " + d + " " + newAttributeDescription.type;
+			var requiredClause = newAttributeDescription.required ? " not null " : " null ";
 			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " set default " + newAttributeDescription.defaultValue : " "; 
 			var statement = typeClause + requiredClause + defaultClause;
 			statements.push(statement);

@@ -160,7 +160,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    				if (_.has(item, "relatedParentFieldName") && item.relatedParentFieldName)
 		    				 	description.relatedParentFieldName = item.relatedParentFieldName;
 
-		    				if (item.required)
+		    				if (item.advancedLayout.required)
 		    					description.required = true;
 		    				// if (_.has(item, "minValue"))
 		    				// 	description.minValue = item.minValue;
