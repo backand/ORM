@@ -161,10 +161,11 @@ var mapToKnexTypes =
 
 
 // var r = transform(
+
 // [],
 // [
 // 	{
-	
+
 // 		name: "S",
 
 
@@ -554,7 +555,6 @@ function getRelationships(newSchema){
 
 // Transform the array of required changes into SQL alter statements
 function createStatements(oldSchema, newSchema, modifications){
-
 	var statements = [];
 	var oldRelationships = modifications.oldRelationships;
 	var newRelationships = modifications.newRelationships;
@@ -574,6 +574,9 @@ function createStatements(oldSchema, newSchema, modifications){
 				statement = knex.schema.dropTableIfExists(r.nRelation + "_" + r.mRelation + "_" + r.nAttribute + "_" + r.mAttribute);
 				statements.push(statement.toString());	
 			}
+			else if (r.type = "1:n" && r.nRelation == t){
+				statements.push("alter table " +  r.oneRelation + " drop constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_" + "bkname_" + r.nAttribute);
+			}
 		});	
 
 	});
@@ -583,6 +586,7 @@ function createStatements(oldSchema, newSchema, modifications){
 	var addedTables = modifications.createTable;
 	var relationships = [];
 	_.each(addedTables, function(t){
+		var statementsRelationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
 		  table.increments();
 		  table.timestamps();
@@ -667,8 +671,22 @@ function createStatements(oldSchema, newSchema, modifications){
 		  		// col.references("id").inTable(oneManyRelationship.nRelation);
 		  		table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);
 		  	}
-		  	else if (_.has(description, "collection") && _.has(description, "via")){
+		  	else if (_.has(description, "collection") && _.has(description, "via")){ // n side of 1:n relationship
+		  		var wSpec = { oneRelation: description.collection, nRelation: t, nAttribute: name, oneAttribute: description.via };
+		  		var w = _.findWhere(oldRelationships, wSpec);
+		  		if (!w){
+		  			var statementRelationship = knex.schema.table(description.collection,function(table){
+		  				var col = table.integer(description.via);
+						col.unsigned();
+				  		col.references("id").inTable(t);
+		  			});
+		  			var relationshipString = statementRelationship.toString();
+		  			var pattern = 'constraint ' + description.collection + '_' + description.via + '_foreign';
+		  			var replacement = "constraint " + t + "_" + description.collection + "_" + description.via + "_bkname_" + name;
+		  			relationshipString = relationshipString.replace(pattern, replacement);
+		  			statementsRelationships.push(relationshipString);
 
+		  		}
 		  	}
 		  });
 		    
@@ -682,6 +700,14 @@ function createStatements(oldSchema, newSchema, modifications){
 		_.each(createStatementsArray, function(s){
 			statements.push(s);
 		});	
+
+		_.each(statementsRelationships, function(sR){
+			var sRArray = sR.replace("\n", "").split(";");
+			_.each(sRArray, function(s){
+				statements.push(s);
+			})
+			
+		});
 
 	});
     // console.log("add table", statements);
@@ -698,7 +724,9 @@ function createStatements(oldSchema, newSchema, modifications){
 
 			// drop columns
 			_.each(m.dropped, function(d){
-				table.dropColumn(d);
+				// nothing to drop if this is a relationship column
+				if (tableDescription.fields[d])
+					table.dropColumn(d);
 			});
 
 			// add columns
@@ -776,7 +804,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			});	
 		});
 		var sArray = statement.toString().replace(";", "").split("\n");
-		
+			
 		_.each(sArray, function(a){
 			if(a != ""){
 			    var statementString = a.toString();
@@ -851,9 +879,3 @@ function createStatements(oldSchema, newSchema, modifications){
     return statements;
 
 }
-
-var mapToKnexTypes = 
-{
-
-};
-
