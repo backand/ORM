@@ -1,3 +1,12 @@
+Installaiton
+=============
+1. npm i
+2. npm install -g node-windows : For the windows service registration
+3. npm link node-windows
+4. open cmd as Administartor
+5. node runSchemaServerAsAService.js - Make sure the path in the file match the location
+
+
 Transform
 =========
 Create SQL script to transform one schema to another.
