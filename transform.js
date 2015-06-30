@@ -148,13 +148,23 @@ var escalationTable = TAFFY([
 	{ current: "never", change: "always", next: "never" },
 ]);
 
+var mapToKnexTypes = 
+{
+	"float": "float(8, 2)",
+	"string": "varchar(255)",
+	"boolean": "bit(1)",
+	"text": "text",
+	"binary": "blob",
+	"datetime": "datetime",
+	"date": "date"
+};
 
 
 // var r = transform(
 // [],
 // [
 // 	{
-
+	
 // 		name: "S",
 
 
@@ -797,7 +807,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).fields[d];
 			var newAttributeDescription = tableDescription.fields[d];
 			var oldTableDescription = _.findWhere(oldSchema, { "name" : tableName });
-			var typeClause = "alter table " + tableName + " modify " + d + " " + newAttributeDescription.type;
+			var typeClause = "alter table " + tableName + " modify " + d + " " + mapToKnexTypes[newAttributeDescription.type];
 			var requiredClause = newAttributeDescription.required ? " not null " : " null ";
 			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " set default " + newAttributeDescription.defaultValue : " "; 
 			var statement = typeClause + requiredClause + defaultClause;
@@ -841,3 +851,9 @@ function createStatements(oldSchema, newSchema, modifications){
     return statements;
 
 }
+
+var mapToKnexTypes = 
+{
+
+};
+
