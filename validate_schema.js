@@ -10,9 +10,9 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // valid - boolean
 // warnings - array of strings
 
-// var v = validateSchema(JSON.stringify(
+// var v = validateSchema(
 // [
-	
+ 	
 // 	{
 // 		"name": "user",
 // 		"fields": {
@@ -29,23 +29,23 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 		}
 // 	},
 
-	// { 
+// { 
 
-	// 	"name": "pet",
+// 	"name": "pet",
 
-	// 	"fields": {
-	// 		"name": {
-	// 			"type": "string"
-	// 		},
-	// 		"registered": {
-	// 			"type": "boolean"
-	// 		},
-	// 		"owner":{
-	// 			"object": "user"
-	// 		}
-	// 	}
+// 	"fields": {
+// 		"name": {
+// 			"type": "string"
+// 		},
+// 		"registered": {
+// 			"type": "boolean"
+// 		},
+// 		"owner":{
+// 			"object": "user"
+// 		}
+// 	}
 		
-	// },
+// },
 
 // 	{
 // 		"name": "walker",
@@ -268,7 +268,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // ]
 // )
 // );
-//console.log(v);
+// console.log(v);
 
 function validateSchema(schema){
 	
@@ -344,9 +344,18 @@ function validRelation(relation){
 		valid = false;
 		warnings.push("relations should have name");
 	}
+	else if (!_.isString(relation.name) ){
+		valid = false;
+		warnings.push("relation name should be a string");
+	}
 	else{
 		relationName = relation.name;
+		if (relationName.length > 32){
+			valid = false;
+			warnings.push(relationName + " : relation name should be no longer than 32 characters");
+		}
 	}
+
 
 	if (!_.has(relation, "fields")){
 		valid = false;
@@ -358,6 +367,11 @@ function validRelation(relation){
 	}
 	else{
 		_.each(relation.fields, function(value, key){
+
+			if (key.length > 24){
+				valid = false;
+				warnings.push("relation: " + relationName + " column:" + key + " - column name should be no longer than 24 characters");
+			}
 
 			if (!_.has(value, "type")){
 
