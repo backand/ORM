@@ -162,6 +162,78 @@ var mapToKnexTypes =
 
 // var r = transform(
 
+// [
+// 	{ 
+// 		name: "R", 
+// 		fields: {
+// 			a: {
+// 				type: "float"
+// 			},
+// 			b: {
+// 				type: "string"
+// 			},
+// 			dogs: {
+// 				collection: "U",
+// 				via: "owner"
+// 			}
+// 		}
+// 	},
+
+// 		{ 
+// 		name: "U", 
+// 		fields: {
+// 			c: {
+// 				type: "float"
+// 			},
+// 			d: {
+// 				type: "string"
+// 			},
+// 			owner: {
+// 				object: 'R'
+// 			}
+// 		}
+// 	}
+// ],
+
+// [
+// 	{ 
+// 		name: "R", 
+// 		fields: {
+// 			a: {
+// 				type: "float"
+// 			},
+// 			b: {
+// 				type: "string"
+// 			},
+// 			dogs1: {
+// 				collection: "U1",
+// 				via: "owner"
+// 			}
+// 		}
+// 	},
+
+// 		{ 
+// 		name: "U1", 
+// 		fields: {
+// 			c: {
+// 				type: "float"
+// 			},
+// 			d: {
+// 				type: "string"
+// 			},
+// 			owner: {
+// 				object: 'R'
+// 			}
+// 		}
+// 	}
+// ],
+
+// 	0
+
+// );
+
+// var r = transform(
+
 // [],
 // [
 // 	{
@@ -575,7 +647,7 @@ function createStatements(oldSchema, newSchema, modifications){
 				statements.push(statement.toString());	
 			}
 			else if (r.type = "1:n" && r.nRelation == t){
-				statements.push("alter table " +  r.oneRelation + " drop constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_" + "bkname_" + r.nAttribute);
+				statements.push("alter table " +  r.oneRelation + " drop constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute + "_" + "bkname_" + r.nAttribute);
 			}
 		});	
 
@@ -586,6 +658,7 @@ function createStatements(oldSchema, newSchema, modifications){
 	var addedTables = modifications.createTable;
 	var relationships = [];
 	_.each(addedTables, function(t){
+		console.log("new table:", t);
 		var statementsRelationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
 		  table.increments();
@@ -674,15 +747,20 @@ function createStatements(oldSchema, newSchema, modifications){
 		  	else if (_.has(description, "collection") && _.has(description, "via")){ // n side of 1:n relationship
 		  		var wSpec = { oneRelation: description.collection, nRelation: t, nAttribute: name, oneAttribute: description.via };
 		  		var w = _.findWhere(oldRelationships, wSpec);
-		  		if (!w){
+		  		console.log(w);
+		  		console.log(addedTables);
+		  		console.log(description.collection);
+
+		  		if (!w && !_.detect(addedTables, function(a){ return a == description.collection; })){
+		  			console.log("with w");
 		  			var statementRelationship = knex.schema.table(description.collection,function(table){
 		  				var col = table.integer(description.via);
 						col.unsigned();
 				  		col.references("id").inTable(t);
 		  			});
 		  			var relationshipString = statementRelationship.toString();
-		  			var pattern = 'constraint ' + description.collection + '_' + description.via + '_foreign';
-		  			var replacement = "constraint " + t + "_" + description.collection + "_" + description.via + "_bkname_" + name;
+		  			var pattern = 'constraint ' + description.collection.toLowerCase() + '_' + description.via + '_foreign';
+		  			var replacement = "constraint " + t + "_"  + description.via + "_bkname_" + name;
 		  			relationshipString = relationshipString.replace(pattern, replacement);
 		  			statementsRelationships.push(relationshipString);
 
@@ -692,15 +770,22 @@ function createStatements(oldSchema, newSchema, modifications){
 		    
 		});
 		var statementString = statement.toString();
+		
 		statementString = statementString.replace(/\'/g, "");
+		console.log("sS", statementString);
 		_.each(relationships, function(r){
-			statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
+			var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute + '_foreign';
+			var replacement = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute + "_bkname_" + r.nAttribute;
+			console.log(r);
+			console.log(pattern);
+			console.log(replacement);
+			statementString = statementString.replace(pattern, replacement);
 		});
 		var createStatementsArray = statementString.replace("\n", "").split(";");
 		_.each(createStatementsArray, function(s){
 			statements.push(s);
 		});	
-
+		console.log("srels", statementsRelationships);
 		_.each(statementsRelationships, function(sR){
 			var sRArray = sR.replace("\n", "").split(";");
 			_.each(sRArray, function(s){
@@ -708,7 +793,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			})
 			
 		});
-
+		console.log(statements);
 	});
     // console.log("add table", statements);
 
@@ -809,7 +894,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			if(a != ""){
 			    var statementString = a.toString();
 			    _.each(relationships, function(r){
-				statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
+				statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
 			});
 			    statements.push(statementString);
 			}
