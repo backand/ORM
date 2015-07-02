@@ -658,7 +658,6 @@ function createStatements(oldSchema, newSchema, modifications){
 	var addedTables = modifications.createTable;
 	var relationships = [];
 	_.each(addedTables, function(t){
-		console.log("new table:", t);
 		var statementsRelationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
 		  table.increments();
@@ -724,7 +723,6 @@ function createStatements(oldSchema, newSchema, modifications){
 			  		break;
 			  	}
 			  	if (!_.isUndefined(description.defaultValue)){
-			  		console.log(description);
 			  		if (description.type != "boolean"){
 			  			col.defaultTo(description.defaultValue); 
 			  		}
@@ -747,12 +745,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		  	else if (_.has(description, "collection") && _.has(description, "via")){ // n side of 1:n relationship
 		  		var wSpec = { oneRelation: description.collection, nRelation: t, nAttribute: name, oneAttribute: description.via };
 		  		var w = _.findWhere(oldRelationships, wSpec);
-		  		console.log(w);
-		  		console.log(addedTables);
-		  		console.log(description.collection);
-
 		  		if (!w && !_.detect(addedTables, function(a){ return a == description.collection; })){
-		  			console.log("with w");
 		  			var statementRelationship = knex.schema.table(description.collection,function(table){
 		  				var col = table.integer(description.via);
 						col.unsigned();
@@ -772,20 +765,15 @@ function createStatements(oldSchema, newSchema, modifications){
 		var statementString = statement.toString();
 		
 		statementString = statementString.replace(/\'/g, "");
-		console.log("sS", statementString);
 		_.each(relationships, function(r){
 			var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute + '_foreign';
 			var replacement = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute + "_bkname_" + r.nAttribute;
-			console.log(r);
-			console.log(pattern);
-			console.log(replacement);
 			statementString = statementString.replace(pattern, replacement);
 		});
 		var createStatementsArray = statementString.replace("\n", "").split(";");
 		_.each(createStatementsArray, function(s){
 			statements.push(s);
 		});	
-		console.log("srels", statementsRelationships);
 		_.each(statementsRelationships, function(sR){
 			var sRArray = sR.replace("\n", "").split(";");
 			_.each(sRArray, function(s){
@@ -793,7 +781,6 @@ function createStatements(oldSchema, newSchema, modifications){
 			})
 			
 		});
-		console.log(statements);
 	});
     // console.log("add table", statements);
 
