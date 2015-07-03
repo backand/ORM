@@ -642,12 +642,12 @@ function createStatements(oldSchema, newSchema, modifications){
 		var relatedRelationships = _.filter(oldRelationships, function(r) { 
 			if (r.type == "n:n" && (r.mRelation == t || r.nRelation == t)){		  
 				statement = knex.schema.dropTableIfExists(r.mRelation + "_" + r.nRelation + "_" + r.mAttribute + "_" + r.nAttribute);
-				statements.push(statement.toString());	
+				statements.unshift(statement.toString());	
 				statement = knex.schema.dropTableIfExists(r.nRelation + "_" + r.mRelation + "_" + r.nAttribute + "_" + r.mAttribute);
 				statements.push(statement.toString());	
 			}
 			else if (r.type = "1:n" && r.nRelation == t){
-				statements.push("alter table " +  r.oneRelation + " drop constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute + "_" + "bkname_" + r.nAttribute);
+				statements.unshift("alter table " +  r.oneRelation + " drop foreign key " + r.nRelation.toLowerCase() + "_" + r.oneAttribute + "_" + "bkname_" + r.nAttribute);
 			}
 		});	
 
@@ -942,7 +942,7 @@ function createStatements(oldSchema, newSchema, modifications){
     });
 
 	var statementClasses = _.partition(statements, function(s){
-		return s.indexOf("constraint") == -1;
+		return s.indexOf("constraint") == -1 || s.indexOf("drop foreign key") != -1;
 	});
 	var statements = statementClasses[0];
 	_.each(statementClasses[1], function(s){
