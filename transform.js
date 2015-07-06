@@ -496,7 +496,8 @@ function compareRelationSchemes(oldRelation, newRelation){
 	_.each(existingColumnNames, function(column){
 		var typeHasChanged = oldRelation.fields[column].type != newRelation.fields[column].type;
 		var requiredHasChanged =  oldRelation.fields[column].required ? !newRelation.fields[column].required : newRelation.fields[column].required;
-		if (typeHasChanged || requiredHasChanged){
+		var defaultHasChanged = oldRelation.fields[column].defaultValue != newRelation.fields[column].defaultValue;
+		if (typeHasChanged || requiredHasChanged || defaultHasChanged){
 			modifiedColumns.push(column);
 		}
 	});
@@ -585,6 +586,42 @@ function validTypeTransform(oldColumnType, newColumnType){
 		return tuple.degree;
 	}
 	return "never";
+}
+
+function getDefaultValueSql(description){
+	var sql = description.defaultValue;
+
+	if (_.has(description, "type")){
+		switch(description.type){
+			case "string":
+				sql = "'" + sql + "'";
+				break;
+			case "text":
+				sql = "'" + sql + "'";
+				break;
+			case "integer":
+				break;
+			case "float":
+				break;
+			case "date":
+				break;
+			case "time":
+				break;
+			case "datetime":
+				break;
+			case "boolean":
+				if (sql == true || sql == "true"){
+					sql = "true";
+				}
+				else{
+					sql = "false";
+				}
+				break;
+			case "binary":
+				break;
+		}
+	}
+	return sql;
 }
 
 // match relationships in schema
@@ -909,7 +946,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			var oldTableDescription = _.findWhere(oldSchema, { "name" : tableName });
 			var typeClause = "alter table " + tableName + " modify " + d + " " + mapToKnexTypes[newAttributeDescription.type];
 			var requiredClause = newAttributeDescription.required ? " not null " : " null ";
-			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + newAttributeDescription.defaultValue : " ";
+			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + getDefaultValueSql(newAttributeDescription) : " ";
 			var statement = typeClause + requiredClause + defaultClause;
 			statements.push(statement);
 		});
