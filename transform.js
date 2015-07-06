@@ -909,7 +909,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			var oldTableDescription = _.findWhere(oldSchema, { "name" : tableName });
 			var typeClause = "alter table " + tableName + " modify " + d + " " + mapToKnexTypes[newAttributeDescription.type];
 			var requiredClause = newAttributeDescription.required ? " not null " : " null ";
-			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " set default " + newAttributeDescription.defaultValue : " "; 
+			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + newAttributeDescription.defaultValue : " ";
 			var statement = typeClause + requiredClause + defaultClause;
 			statements.push(statement);
 		});
