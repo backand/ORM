@@ -848,56 +848,83 @@ function createStatements(oldSchema, newSchema, modifications){
 				  			var col = table.string(d);
 				  			if (description.required){
 				  				col.notNullable();
-				  			}
-				  		break;
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "text":
 				  			var col = table.text(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "integer":
 				  			var col = table.integer(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "float":
 				  			var col = table.float(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "date":
-				  			table.date(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							var col = table.date(d);
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "time":
-				  			table.time(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							var col = table.time(d);
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "datetime":
-				  			table.dateTime(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							var col = table.dateTime(d);
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "boolean":
-				  			table.boolean(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							var col = table.boolean(d);
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  		case "binary":
-				  			table.text(d);
-				  			if (description.required){
-				  				col.notNullable();
-				  			}
-				  		break;
+							var col = table.text(d);
+							if (description.required){
+								col.notNullable();
+							}
+							else {
+								col.nullable();
+							}
+							break;
 				  	}
 				  	if (!_.isUndefined(description.defaultValue)){
 			  			col.defaultTo(description.defaultValue); 
