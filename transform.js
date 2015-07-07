@@ -166,33 +166,33 @@ var mapToKnexTypes =
 // 	{ 
 // 		name: "R", 
 // 		fields: {
-// 			a: {
-// 				type: "float"
-// 			},
-// 			b: {
-// 				type: "string"
-// 			},
-// 			dogs: {
-// 				collection: "U",
-// 				via: "owner"
-// 			}
-// 		}
-// 	},
+	// 		a: {
+	// 			type: "float"
+	// 		},
+	// 		b: {
+	// 			type: "string"
+	// 		},
+	// 		dogs: {
+	// 			collection: "U",
+	// 			via: "owner"
+	// 		}
+	// 	}
+	// },
 
-// 		{ 
-// 		name: "U", 
-// 		fields: {
-// 			c: {
-// 				type: "float"
-// 			},
-// 			d: {
-// 				type: "string"
-// 			},
-// 			owner: {
-// 				object: 'R'
-// 			}
-// 		}
-// 	}
+	// 	{ 
+	// 	name: "U", 
+	// 	fields: {
+	// 		c: {
+	// 			type: "float"
+	// 		},
+	// 		d: {
+	// 			type: "string"
+	// 		},
+	// 		owner: {
+	// 			object: 'R'
+	// 		}
+	// 	}
+	// }
 // ],
 
 // [
@@ -202,28 +202,28 @@ var mapToKnexTypes =
 // 			a: {
 // 				type: "float"
 // 			},
-// 			b: {
-// 				type: "string"
-// 			},
-// 			dogs1: {
-// 				collection: "U1",
-// 				via: "owner"
-// 			}
-// 		}
-// 	},
+			// b: {
+			// 	type: "string"
+			// },
+			// dogs1: {
+			// 	collection: "U1",
+			// 	via: "owner"
+			// }
+	// 	}
+	// },
 
-// 		{ 
-// 		name: "U1", 
-// 		fields: {
-// 			c: {
-// 				type: "float"
-// 			},
-// 			d: {
-// 				type: "string"
-// 			},
-// 			owner: {
-// 				object: 'R'
-// 			}
+	// 	{ 
+	// 	name: "U", 
+	// 	fields: {
+	// 		c: {
+	// 			type: "float"
+	// 		},
+	// 		d: {
+	// 			type: "string"
+	// 		},
+			// owner: {
+			// 	object: 'R'
+			// }
 // 		}
 // 	}
 // ],
@@ -823,18 +823,18 @@ function createStatements(oldSchema, newSchema, modifications){
 
 	// modify tables
 	var modifiedTables = modifications.modifiedTables;
-	// console.log("modifiedTables", modifiedTables);
+	console.log("modifiedTables", modifiedTables);
 	_.each(modifiedTables, function(m){
 		var tableName = m.name;
 		var oldTableDescription = _.findWhere(oldSchema, { "name" : m.name });
 		
 		var tableDescription = _.first(_.where(newSchema, { name: tableName }));
 		var statement = knex.schema.table(oldTableDescription.dbName ? oldTableDescription.dbName : tableName,function(table){
-
+            
 			// drop columns
 			_.each(m.dropped, function(d){
 				// nothing to drop if this is a relationship column
-				if (tableDescription.fields[d])
+				if (oldTableDescription.fields[d] && !_.has(oldTableDescription.fields[d], "collection"))
 					table.dropColumn(d);
 			});
 
