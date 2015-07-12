@@ -20,11 +20,12 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 				"type": "string"
 // 			},
 // 			"age": {
-// 				"type": "datetime"
+// 				"type": "datetime",
 // 			},
 // 			"dogs":{
 // 				"collection": "pet",
-// 				"via": "owner"
+// 				"via": "owner",
+// 				"required": true
 // 			}
 // 		}
 // 	},
@@ -41,7 +42,8 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 			"type": "boolean"
 // 		},
 // 		"owner":{
-// 			"object": "user"
+// 			"object": "user",
+// 			"required": true
 // 		}
 // 	}
 		
@@ -120,7 +122,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	}
 
 
-// ]));
+// ]);
 
 // var v = validateSchema(JSON.stringify(
 // [
@@ -399,6 +401,18 @@ function validRelation(relation){
 					valid = false;
 					warnings.push("column should include a type:" + relationName + " " + key);
 				}
+
+				if (_.has(value, "collection") || _.has(value, "via") || _.has(value, "object")){
+					if (_.has(value, "required")){
+						valid = false;
+						warnings.push("a relationship column can be required to be set:" + relationName + " " + key);
+					} 
+					if (_.has(value, "defaultValue")){
+						valid = false;
+						warnings.push("a relationship column cannot have a default value:" + relationName + " " + key);
+					}
+					
+				}
 				
 			}
 			else if (!_.contains(validTypes, value.type)){
@@ -438,6 +452,8 @@ function validRelation(relation){
 							valid = false;
 							warnings.push("column default value should be a boolean:" + relationName + " " + key);
 						}
+					break;
+					default:
 					break;
 				}
 				
