@@ -611,10 +611,10 @@ function getDefaultValueSql(description){
 				break;
 			case "boolean":
 				if (sql == true || sql == "true"){
-					sql = "true";
+					sql = "1";
 				}
 				else{
-					sql = "false";
+					sql = "0";
 				}
 				break;
 			case "binary":
