@@ -1,8 +1,16 @@
+// set apiKey to your Mailgun secret API key
+
 var Mailgun = require('mailgun').Mailgun;
 
 var apiKey = "key-7ige0080ltlgm8o20cg94fy5uczxpwj9";
 var mg = new Mailgun(apiKey);
 
+// sendEmail via Mailgun
+// sender - sender email
+// receiver - recipient email
+// subject - of message
+// body - of message
+// callback - function with single parameter err, called with the error from Mailgun
 function sendEmail(sender, receiver, subject, body, callback)
 {
 	
@@ -13,6 +21,6 @@ function sendEmail(sender, receiver, subject, body, callback)
 	);
 }
 
-// sendEmail("kornatzky@backand.com", "kornatzky@gmail.com", "Hello", "World", function(err){
+// sendEmail("johndoe@example.com", "janesmith@acme.com", "Hello", "World", function(err){
 // 	console.log(err);
 // });
