@@ -16,13 +16,13 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	{
 // 		"name": "user",
 // 		"fields": {
-// 			"name": {
+// 			"na-me": {
 // 				"type": "string"
 // 			},
 // 			"age": {
 // 				"type": "datetime",
 // 			},
-// 			"dogs":{
+// 			"dogs-":{
 // 				"collection": "pet",
 // 				"via": "owner",
 // 				"required": true
@@ -48,7 +48,7 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // 	}
 		
 // },
-
+// 
 // 	{
 // 		"name": "walker",
 // 		"fields": {
@@ -374,6 +374,10 @@ function validRelation(relation){
 				valid = false;
 				warnings.push("relation: " + relationName + " column:" + key + " - column name should be no longer than 24 characters");
 			}
+			if (key.indexOf("-") > -1){
+				valid = false;
+				warnings.push("relation: " + relationName + " column:" + key + " - column name should not contain dash");				
+			}
 
 			if (!_.has(value, "type")){
 
@@ -405,7 +409,7 @@ function validRelation(relation){
 				if (_.has(value, "collection") || _.has(value, "via") || _.has(value, "object")){
 					if (_.has(value, "required")){
 						valid = false;
-						warnings.push("a relationship column can be required to be set:" + relationName + " " + key);
+						warnings.push("a relationship column cannot be required to be set or not set:" + relationName + " " + key);
 					} 
 					if (_.has(value, "defaultValue")){
 						valid = false;
