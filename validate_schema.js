@@ -376,7 +376,7 @@ function validRelation(relation){
 			}
 			if (key.indexOf("-") > -1){
 				valid = false;
-				warnings.push("relation: " + relationName + " column:" + key + " - column name should not contain dash");				
+				warnings.push("relation: " + relationName + " column:" + key + " - column name should not contain dash, use undescore instead");				
 			}
 
 			if (!_.has(value, "type")){
