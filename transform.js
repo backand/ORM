@@ -160,77 +160,6 @@ var mapToKnexTypes =
 };
 
 
-// var r = transform(
-
-// [
-// 	{ 
-// 		name: "R", 
-// 		fields: {
-	// 		a: {
-	// 			type: "float"
-	// 		},
-	// 		b: {
-	// 			type: "string"
-	// 		},
-	// 		dogs: {
-	// 			collection: "U",
-	// 			via: "owner"
-	// 		}
-	// 	}
-	// },
-
-	// 	{ 
-	// 	name: "U", 
-	// 	fields: {
-	// 		c: {
-	// 			type: "float"
-	// 		},
-	// 		d: {
-	// 			type: "string"
-	// 		},
-	// 		owner: {
-	// 			object: 'R'
-	// 		}
-	// 	}
-	// }
-// ],
-
-// [
-// 	{ 
-// 		name: "R", 
-// 		fields: {
-// 			a: {
-// 				type: "float"
-// 			},
-			// b: {
-			// 	type: "string"
-			// },
-			// dogs1: {
-			// 	collection: "U1",
-			// 	via: "owner"
-			// }
-	// 	}
-	// },
-
-	// 	{ 
-	// 	name: "U", 
-	// 	fields: {
-	// 		c: {
-	// 			type: "float"
-	// 		},
-	// 		d: {
-	// 			type: "string"
-	// 		},
-			// owner: {
-			// 	object: 'R'
-			// }
-// 		}
-// 	}
-// ],
-
-// 	0
-
-// );
 
 // var r = transform(
 
@@ -823,7 +752,7 @@ function createStatements(oldSchema, newSchema, modifications){
 
 	// modify tables
 	var modifiedTables = modifications.modifiedTables;
-	console.log("modifiedTables", modifiedTables);
+	// console.log("modifiedTables", modifiedTables);
 	_.each(modifiedTables, function(m){
 		var tableName = m.name;
 		var oldTableDescription = _.findWhere(oldSchema, { "name" : m.name });

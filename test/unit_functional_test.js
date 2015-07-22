@@ -1,5 +1,6 @@
 var expect = require("chai").expect;
 var validator = require("../validate_schema.js").validator;
+var transformer = require("../transform.js").transformer;
  
 describe("validate", function(){
 	it("disallow columns with dashes", function(done){
@@ -351,6 +352,495 @@ describe("validate", function(){
 				valid: true,
   			    warnings: [] 
   			}
+  		);
+		done();
+	});
+});
+
+describe("transform", function(){
+	it("create schema with no relationships", function(done){
+		var r = transformer(
+			[],
+			[
+					{
+
+						name: "S",
+
+
+						fields: {
+							C: {
+								type: "integer"
+							},
+
+							D: {
+								type: "string",
+								required: true
+							}
+						}
+					},
+
+					{
+
+						name: "U",
+
+
+						fields: {
+							E: {
+								type: "integer"
+							},
+
+							F: {
+								type: "string",
+								required: true
+							},
+
+							H: {
+								type: "string"
+							}
+						}
+					}
+			],	
+			0
+		);
+		expect(r).to.deep.equal(
+			{ 
+				"alter": [
+      				"create table `S` (`id` int unsigned not null auto_increment primary key, `C` int, `D` varchar(255) not null)",
+      			    "create table `U` (`id` int unsigned not null auto_increment primary key, `E` int, `F` varchar(255) not null, `H` varchar(255))"	  
+      			],
+
+				"notifications": {},
+		        "order": {
+		          "columns": {
+		            "S": [
+		              "C",
+		              "D"
+		            ],
+		            "U": [
+		              "E",
+		              "F",
+		              "H"
+		            ]
+		          },
+		          "tables": [
+		            "S",
+		            "U"
+		          ]
+		        },
+		        "valid": "always",
+		        "warnings": []	
+			}
+  		);
+		done();
+	});
+
+	it("create schema with required columns", function(done){
+		var r = transformer(
+			[],
+			[
+				{
+
+					name: "S",
+
+
+					fields: {
+						C: {
+							type: "integer"
+						},
+
+						D: {
+							type: "string",
+							required: true
+						}
+					}
+				},
+
+				{
+
+					name: "U",
+
+
+					fields: {
+						E: {
+							type: "integer"
+						},
+
+						F: {
+							type: "string",
+							required: true
+						},
+
+						H: {
+							type: "string"
+						}
+					}
+				}
+			],	
+			0
+		);
+		expect(r).to.deep.equal(
+			{ 
+				"alter": [
+      				"create table `S` (`id` int unsigned not null auto_increment primary key, `C` int, `D` varchar(255) not null)",
+      			    "create table `U` (`id` int unsigned not null auto_increment primary key, `E` int, `F` varchar(255) not null, `H` varchar(255))"	  
+      			],
+
+				"notifications": {},
+		        "order": {
+		          "columns": {
+		            "S": [
+		              "C",
+		              "D"
+		            ],
+		            "U": [
+		              "E",
+		              "F",
+		              "H"
+		            ]
+		          },
+		          "tables": [
+		            "S",
+		            "U"
+		          ]
+		        },
+		        "valid": "always",
+		        "warnings": []	
+			}
+  		);
+		done();
+	});
+
+	it("create schema with default values for columns", function(done){
+		var r = transformer(
+			[],
+			[
+			 	{
+					"name": "R",
+
+					"fields": {
+						"A": {
+							"type": "float",
+							"defaultValue": 20
+						},
+
+						"B": {
+							"type": "string",
+							"required": true
+						}
+					}
+
+				}
+			],	
+			0
+		);
+		expect(r).to.deep.equal(
+			{ 
+				"alter": ["create table `R` (`id` int unsigned not null auto_increment primary key, `A` float(8, 2) default 20, `B` varchar(255) not null)"],
+
+				"notifications": {},
+		        "order": {
+		          "columns": {
+		            "R": [
+		              "A",
+		              "B"
+		            ]
+		          },
+		          "tables": [
+		            "R"
+		          ]
+		        },
+		        "valid": "always",
+		        "warnings": []	
+			}
+  		);
+		done();
+	});
+
+	it("create schema with 1:n relationships", function(done){
+		var r = transformer(
+			[],
+			[
+				{ 
+					name: "R", 
+					fields: {
+						a: {
+							type: "float"
+						},
+						b: {
+							type: "string"
+						},
+						dogs: {
+							collection: "U",
+							via: "owner"
+						}
+					}
+				},
+
+				{ 
+					name: "U", 
+					fields: {
+						c: {
+							type: "float"
+						},
+						d: {
+							type: "string"
+						},
+						owner: {
+							object: 'R'
+						}
+					}
+				}
+			],	
+			0
+		);
+		expect(r).to.deep.equal(
+			{ 
+				"alter": [
+      					    "create table `R` (`id` int unsigned not null auto_increment primary key, `a` float(8, 2), `b` varchar(255))",
+      						"create table `U` (`id` int unsigned not null auto_increment primary key, `c` float(8, 2), `d` varchar(255), `owner` int unsigned)",
+      						 "alter table `U` add constraint r_owner_bkname_dogs foreign key (`owner`) references `R` (`id`)"
+				],
+
+				"notifications": {},
+		        "order": {
+		          "columns": {
+		            "R": [
+		              "a",
+		              "b",
+		              "dogs"
+		            ],
+		            "U": [
+		              "c",
+		              "d",
+		              "owner"
+		            ]
+		          },
+		          "tables": [
+		            "R",
+		            "U"
+		          ]
+		        },
+		        "valid": "always",
+		        "warnings": []	
+			}
+  		);
+		done();
+	});
+
+	it("drop columns", function(done){
+		var r = transformer(
+			[
+				{ 
+					name: "R", 
+					fields: {
+						a: {
+							type: "float"
+						},
+						b: {
+							type: "string"
+						},
+						dogs: {
+							collection: "U",
+							via: "owner"
+						}
+					}
+				},
+
+				{ 
+					name: "U", 
+					fields: {
+						c: {
+							type: "float"
+						},
+						d: {
+							type: "string"
+						},
+						owner: {
+							object: 'R'
+						}
+					}
+				}
+			],
+			[
+				{ 
+					name: "R", 
+					fields: {
+						b: {
+							type: "string"
+						}
+					}
+				},
+
+				{ 
+					name: "U", 
+					fields: {
+						c: {
+							type: "float"
+						},
+						d: {
+							type: "string"
+						}
+					}
+				}
+			],	
+			0
+		);
+		expect(r).to.deep.equal(
+			{ 
+				"alter": [
+      				"alter table `R` drop `a`",
+      			    "alter table `U` drop `owner`"		   
+				],
+
+				"notifications": {
+		          "droppedColumns": [
+		            {
+		              "column": "a",
+		              "table": "R"
+		            },
+		            {
+		              "column": "dogs",
+		              "table": "R"
+		            },
+		            {
+		              "column": "owner",
+		              "table": "U"
+		            }
+		          ]
+		        },
+		        "order": {
+		          "columns": {
+		            "R": [
+		              "b"
+		            ],
+		            "U": [
+		              "c",
+		              "d"
+		            ]
+		          },
+		          "tables": [
+		            "R",
+		            "U"
+		          ]
+		        },
+		        "valid": "always",
+		        "warnings": []	
+			}
+  		);
+		done();
+	});
+
+	it("drop table involved in 1:n relationships", function(done){
+		var r = transformer(
+
+			[
+				{ 
+					name: "R", 
+					fields: {
+						a: {
+							type: "float"
+						},
+						b: {
+							type: "string"
+						},
+						dogs: {
+							collection: "U",
+							via: "owner"
+						}
+					}
+				},
+
+				{ 
+					name: "U", 
+					fields: {
+						c: {
+							type: "float"
+						},
+						d: {
+							type: "string"
+						},
+						owner: {
+							object: 'R'
+						}
+					}
+				}
+			],
+
+			[
+				{ 
+					name: "R", 
+					fields: {
+						a: {
+							type: "float"
+						},
+						b: {
+							type: "string"
+						},
+						dogs1: {
+							collection: "U1",
+							via: "owner"
+						}
+					}
+				},
+
+				{ 
+					name: "U1", 
+					fields: {
+						c: {
+							type: "float"
+						},
+						d: {
+							type: "string"
+						},
+						owner: {
+							object: 'R'
+						}
+					}
+				}
+			],
+
+			0
+		);
+		expect(r).to.deep.equal(
+			{ 
+				"alter": [
+      			 	"drop table `U`",
+      			   "create table `U1` (`id` int unsigned not null auto_increment primary key, `c` float(8, 2), `d` varchar(255), `owner` int unsigned)",
+      			    "alter table `U1` add constraint r_owner_bkname_dogs1 foreign key (`owner`) references `R` (`id`)"
+				],
+
+				"notifications": {
+		            "droppedColumns": [
+			          	{
+			             	"column": "dogs",
+	               			"table": "R"
+	               		}
+		          	],
+		    	  	"droppedTables": [
+      		    	 	 "U"
+      		      	]
+		        },
+		        "order": {
+		          "columns": {
+		            "R": [
+		            	"a",
+		              	"b",
+		              	"dogs1"
+		            ],
+		            "U1": [
+		              "c",
+		              "d",
+		              "owner"
+		            ]
+		          },
+		          "tables": [
+		            "R",
+		            "U1"
+		          ]
+		        },
+		        "valid": "always",
+		        "warnings": []	
+			}
   		);
 		done();
 	});
