@@ -1,7 +1,13 @@
 var expect = require("chai").expect;
+var request = require('request');
+
 var validator = require("../validate_schema.js").validator;
 var transformer = require("../transform.js").transformer;
- 
+var connectionInfo = require("../get_connection_info"); 
+
+var api_url = require('../config').api_url;
+var tokenUrl = api_url + "/token";
+
 describe("validate", function(){
 	it("disallow columns with dashes", function(done){
 		var v = validator(
@@ -843,5 +849,95 @@ describe("transform", function(){
 			}
   		);
 		done();
+	});
+});
+
+describe("get connection info", function(){
+	it("get connection info with correct credentials", function(done){
+		var email = "kornatzky@me.com";
+		var password = "secret";
+		var appName = "testsql";
+	
+		request(
+
+			{
+			    url: tokenUrl,
+			    
+			    method: 'POST',
+			   
+			    form: {
+			        username: email,
+			        password: password,
+			        appname: appName,
+			        grant_type: "password"
+			    }
+			}, 
+
+			function(error, response, body){
+	
+			    if(!error && response.statusCode == 200) {
+			    	var b = JSON.parse(body)
+			    	var accessToken = b["access_token"];
+			    	var tokenType = b["token_type"];
+			    	connectionInfo.getConnectionInfo(accessToken, tokenType, appName, function(err, result){
+			    		expect(result).to.deep.equal(
+			    			{ 
+				    			hostname: 'bk-prod-us1.cd2junihlkms.us-east-1.rds.amazonaws.com',
+								port: '3306',
+								db: 'backandtestsqlxzhsfvrb',
+								username: 'lmlmez3renpyl4j',
+								password: 'S12nZ1bx5W3MncYAiciy6s' 
+							}
+			    		);
+			    		done();
+			    	});
+			    }
+			    else{
+			    	expect(error).to.equal(null);
+			    	expect(response).to.not.equal(null);
+			    	if (response){
+			    		expect(response.statusCode).to.equal(200);
+			    	}
+			    	done();
+
+			    }
+			}
+
+		);
+	});
+
+	it("do not authorize getting connection info with wrong credentials", function(done){
+		var email = "kornatzky@me.com";
+		var password = "secret";
+		var appName = "xxx";
+	
+		request(
+
+			{
+			    url: tokenUrl,
+			    
+			    method: 'POST',
+			   
+			    form: {
+			        username: email,
+			        password: password,
+			        appname: appName,
+			        grant_type: "password"
+			    }
+			}, 
+
+			function(error, response, body){	
+
+		    	expect(error).to.equal(null);
+		    	expect(response).to.not.equal(null);
+		    	if (response){
+		    		expect(response.statusCode).to.equal(400);
+		    	}
+		    	done();
+
+
+			}
+
+		);
 	});
 });

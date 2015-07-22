@@ -21,9 +21,11 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-// testBackandToObject();
+testBackandToObject();
 
 function testBackandToObject(){
+	console.log(tokenUrl);
+	process.exit();
 	var email = "itay@backand.com";
 	var password = "itay1234";
 	var appName = "json2";
