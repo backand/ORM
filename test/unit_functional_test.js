@@ -1,9 +1,11 @@
 var expect = require("chai").expect;
 var request = require('request');
+var _ = require('underscore');
 
 var validator = require("../validate_schema.js").validator;
 var transformer = require("../transform.js").transformer;
 var connectionInfo = require("../get_connection_info"); 
+var fetchTables = require("../backand_to_object").fetchTables; 
 
 var api_url = require('../config').api_url;
 var tokenUrl = api_url + "/token";
@@ -854,6 +856,8 @@ describe("transform", function(){
 
 describe("get connection info", function(){
 	it("get connection info with correct credentials", function(done){
+		this.timeout(4000);
+
 		var email = "kornatzky@me.com";
 		var password = "secret";
 		var appName = "testsql";
@@ -907,6 +911,8 @@ describe("get connection info", function(){
 	});
 
 	it("do not authorize getting connection info with wrong credentials", function(done){
+		this.timeout(4000);
+
 		var email = "kornatzky@me.com";
 		var password = "secret";
 		var appName = "xxx";
@@ -940,4 +946,69 @@ describe("get connection info", function(){
 
 		);
 	});
+});
+
+describe("backand to object", function(){
+	it("fetch tables and columns", function(done){
+		this.timeout(4000);
+
+		var email = "kornatzky@me.com";
+		var password = "secret";
+		var appName = "testsql";
+		var withDbName = true;
+
+		// get token
+		request(
+
+			{
+			    url: tokenUrl,
+			    
+			    method: 'POST',
+			   
+			    form: {
+			        username: email,
+			        password: password,
+			        appname: appName,
+			        grant_type: "password"
+			    }
+			}, 
+
+			function(error, response, body){
+				expect(error).to.equal(null);
+				expect(response).to.not.equal(null);
+			    if(!error && response.statusCode == 200) {
+			    	expect(response.statusCode).to.equal(200);
+			    	var b = JSON.parse(body)
+			    	var accessToken = b["access_token"];
+			    	var tokenType = b["token_type"];
+			    	fetchTables(accessToken, tokenType, appName, withDbName, function(err, result){
+			    		expect(err).to.equal(null);
+			    		expect(result).to.deep.equal(
+			    			[
+				    			{ 
+				    				name: 'items',
+	    							fields: 
+	    						{ name: { type: 'string' }, description: { type: 'string' } },
+	   								items: 'items' 
+	   							}
+   							]
+   						);
+			    		
+			    		done();
+			    	});
+			    }
+			    else{
+			    	expect(error).to.equal(null);
+			    	expect(response).to.not.equal(null);
+			    	if (response){
+			    		expect(response.statusCode).to.equal(400);
+			    	}
+			    	done();
+			    }
+			}
+
+		);
+
+	});
+
 });

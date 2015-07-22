@@ -21,54 +21,8 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-testBackandToObject();
-
-function testBackandToObject(){
-	console.log(tokenUrl);
-	process.exit();
-	var email = "itay@backand.com";
-	var password = "itay1234";
-	var appName = "json2";
-	var withDbName = true;
-
-	// get token
-	request(
-
-		{
-		    url: tokenUrl,
-		    
-		    method: 'POST',
-		   
-		    form: {
-		        username: email,
-		        password: password,
-		        appname: appName,
-		        grant_type: "password"
-		    }
-		}, 
-
-		function(error, response, body){	
-		    if(!error && response.statusCode == 200) {
-		    	var b = JSON.parse(body)
-		    	var accessToken = b["access_token"];
-		    	var tokenType = b["token_type"];
-		    	fetchTables(accessToken, tokenType, appName, withDbName, function(err, result){
-		    		console.log(err);
-		    		console.log(result);
-		    	});
-		    }
-		    else{
-		    	console.log("cannot get token", error, response.statusCode);
-		    	process.exit(1);
-		    }
-		}
-
-	);
-
-}
-
 function fetchTables(accessToken, tokenType, appName, withDbName, callback){
-	
+
 	request(
 
 		{
@@ -93,21 +47,16 @@ function fetchTables(accessToken, tokenType, appName, withDbName, callback){
 		    if(!error && response.statusCode == 200) {
 		    	var body = JSON.parse(body);
 		    	if (body.totalRows > 0){
-
 		    		async.map(body.data, 
 		    			function(item, callbackColumns){
 		    				var relationName = item.name
 							var databaseName = item.databaseName;
 		    				fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, callbackColumns);
 		    			},
-		    			function(err, results){
-
+		    			function(err, results){		    				
 		    				var tables = _.filter(results, function(r){
 		    					return r;
-		    				})
-		    				console.log("database", JSON.stringify(tables));
-		    				// transform tables to create relationships
-
+		    				});
 		    				callback(null, tables);
 		    			}
 		    		);
@@ -118,7 +67,6 @@ function fetchTables(accessToken, tokenType, appName, withDbName, callback){
 		    	
 		    }
 		    else{
-		    	console.log("cannot get tables", error, response.statusCode);
 		    	callback(true, null);
 		    }
 		}
@@ -145,18 +93,14 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 
 		function(error, response, body){	
 		    if(!error && response.statusCode == 200) {
-
-
 		    	var body = JSON.parse(body);
-
-		    	// console.log(body.fields);
 	    		async.map(body.fields,
 	    			function(item, callback){
 	    				if (item.name == "id" || item.name == "Id" || item.name == "createAt" || item.name == "updatedAt"){
 	    					callback(null, null);
 	    				}
 	    				else{
-	    					var description = { name: item.name, type: backandToJsonType[item.type]};
+	    					var description = { "name": item.name, "type": backandToJsonType[item.type]};
 		    				if (_.has(item, "relatedViewName") && item.relatedViewName)
 		    				 	description.relatedViewName = item.relatedViewName;
 		    				if (_.has(item, "relatedParentFieldName") && item.relatedParentFieldName)
@@ -179,14 +123,13 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    					var via = description.relatedParentFieldName;
 		    					description = _.extend(_.omit(description, "type", "relatedViewName", "relatedParentFieldName"), { "collection": collection, "via": via }); 
 		    				}
-
 		    				callback(null, description);
 	    				}				
 	    			},
 	    			function(err, results){
 	    				var results = _.filter(results, function(r) { return r; });
 	    				var fields = _.object(_.pluck(results, "name"), _.map(results, function(c){ return _.omit(c, "name"); }));
-	    				var columnsDescription = { name: tableName, fields: fields };
+	    				var columnsDescription = { "name": tableName, "fields": fields };
 	    				if (withDbName){
 	    					columnsDescription[dbName] = dbName;
 	    				}
@@ -196,7 +139,6 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    	
 		    }
 		    else{
-		    	console.log("fetchColumns cannot get tables", error, response.statusCode);
 		    	callbackColumns(error ? error : response.statusCode, null);
 		    }
 		}
