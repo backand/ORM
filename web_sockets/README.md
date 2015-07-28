@@ -87,6 +87,32 @@ Backand Action
 
 Use the url to your action server, 
 
+/* globals
+  $http - service for AJAX calls - $http({method:"GET",url:CONSTS.apiUrl + "/1/objects/yourObject" , headers: {"Authorization":userProfile.token}});
+  CONSTS - CONSTS.apiUrl for Backands API URL
+*/
+'use strict';
+function backandCallback(userInput, dbRow, parameters, userProfile) {
+    // write your code here
+
+    var response = $http(
+        {
+            method:"POST",
+            url: "http://653ea4e3.ngrok.io/action", 
+            headers: {
+                "Content-Type" : "application/json",
+            },
+            data: {
+                username: "joe", 
+                content: { "a" : 1, "b" : 2 }
+            }
+
+        }
+    );
+    console.log(response);
+    return {};
+}
+
 To Test on Your Desktop
 =======================
 Use [ngrok](https://ngrok.com) to be able to access your servers from Backand. 
@@ -97,5 +123,5 @@ At the command line do:
 
     ./ngrok http 9000
 
-To be able to access our action server from Backand.
+To be able to access our action server from Backand, copy the url and use it in the Backand action. Each time you use ngrok, a different url is created.
 
