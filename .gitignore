@@ -4,3 +4,7 @@ Edge/UseNodejsInDotNet/UseNodejsInDotNet/obj/
 Edge/UseNodejsInDotNet/packages/
 Mailgin/node_modules/
 test/node_modules/
+web_sockets/angular-socket-app/app/bower_components
+web_sockets/angular-socket-app/node_modules
+web_sockets/node_modules
+
