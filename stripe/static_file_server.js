@@ -1,6 +1,5 @@
 var path = require('path'),
     fs = require('fs');
-var chargeStripe = require('./stripe_charging').chargeStripe;
     
 require('http').createServer(function(req, res) {
   var file = path.normalize('.' + req.url);
