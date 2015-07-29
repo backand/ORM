@@ -125,3 +125,10 @@ At the command line do:
 
 To be able to access our action server from Backand, copy the url and use it in the Backand action. Each time you use ngrok, a different url is created.
 
+To Install Node.js on Linux
+===========================
+    ./install_gcc.sh
+    ./install_node_npm.sh
+
+
+
