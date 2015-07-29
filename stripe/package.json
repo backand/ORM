@@ -1,0 +1,12 @@
+{
+  "name": "web_sockets",
+  "version": "0.0.0",
+  "private": true,
+  "devDependencies": {
+    
+  },
+  "dependencies": {  
+    "stripe": "latest",
+    "journey": "latest"
+  }
+}
