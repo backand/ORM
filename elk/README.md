@@ -38,6 +38,35 @@ Search all documents in all indexes
 
 curl http://localhost:9200/_search -d '{ "query" : { "match_all": {}  }   }'
 
+Logstash
+========
+`stdin` input and `stdout` output are for debugging only
+
+TCP Input to Logstash
+---------------------
+
+Listens on port 10520 for TCP from any IP address (can be restricted)
+
+UDP Input to Logstash
+---------------------
+
+Listens on port 10521 for UDP from any IP address (can be restricted)
+
+Test
+----
+
+*TCP input*
+
+    node reconnecting_client.js
+
+type something and click ENTER, it will be transmitted to Logstash
+
+*UDP input*
+
+    node command_line_udp_client.js
+
+type something and click ENTER, it will be transmitted to Logstash
+
 Lynx
 ====
 Command-line browser. To open URL do:
