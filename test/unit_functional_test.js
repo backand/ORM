@@ -606,7 +606,7 @@ describe("transform", function(){
 				"alter": [
       					    "create table `R` (`id` int unsigned not null auto_increment primary key, `a` float(8, 2), `b` varchar(255))",
       						"create table `U` (`id` int unsigned not null auto_increment primary key, `c` float(8, 2), `d` varchar(255), `owner` int unsigned)",
-      						 "alter table `U` add constraint r_owner_bkname_dogs foreign key (`owner`) references `R` (`id`)"
+      						"alter table `U` add constraint r_owner_bkname_dogs foreign key (`owner`) references `R` (`id`) on update cascade on delete cascade"
 				],
 
 				"notifications": {},
@@ -812,9 +812,9 @@ describe("transform", function(){
 		expect(r).to.deep.equal(
 			{ 
 				"alter": [
-      			 	"drop table `U`",
+      			   "drop table `U`",
       			   "create table `U1` (`id` int unsigned not null auto_increment primary key, `c` float(8, 2), `d` varchar(255), `owner` int unsigned)",
-      			    "alter table `U1` add constraint r_owner_bkname_dogs1 foreign key (`owner`) references `R` (`id`)"
+      			   "alter table `U1` add constraint r_owner_bkname_dogs1 foreign key (`owner`) references `R` (`id`) on update cascade on delete cascade"
 				],
 
 				"notifications": {

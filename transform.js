@@ -11,7 +11,10 @@ var knex = require('knex')({
 //   var column = table.string('name');
 //   // console.log(column);
 // //  column.notNullable(); 
-//   table.timestamps();
+//   // table.timestamps();
+//   column.references("nom").inTable("students");
+//   column.onDelete("cascade");
+//   column.onUpdate("cascade");
 // });
 // console.log(s.toString());
 
@@ -547,7 +550,7 @@ function createStatements(oldSchema, newSchema, modifications){
 				// var col = table.integer(name);
 				// col.unsigned();
 		  		// col.references("id").inTable(oneManyRelationship.nRelation);
-		  		table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);
+		  		table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation).onDelete("cascade").onUpdate("cascade");
 		  	}
 		  	else if (_.has(description, "collection") && _.has(description, "via")){ // n side of 1:n relationship
 		  		var wSpec = { oneRelation: description.collection, nRelation: t, nAttribute: name, oneAttribute: description.via };
@@ -705,7 +708,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			  		//var col = table.integer("fk_" + m.name + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
 					var col = table.integer(name);
 					col.unsigned();
-			  		col.references("id").inTable(oneManyRelationship.nRelation);
+			  		col.references("id").inTable(oneManyRelationship.nRelation).onDelete("cascade").onUpdate("cascade");
 			  	}			
 			});	
 		});
@@ -764,10 +767,10 @@ function createStatements(oldSchema, newSchema, modifications){
 					  table.timestamps();
 					  var colN = table.integer("fk_" + nr.nRelation);
 					  colN.unsigned();
-				  	  colN.references("id").inTable(nr.nRelation);
+				  	  colN.references("id").inTable(nr.nRelation).onDelete("cascade").onUpdate("cascade");
 				  	  var colM = table.integer("fk_" + nr.mRelation);
 				  	  colM.unsigned();
-				  	  colM.references("id").inTable(nr.mRelation);
+				  	  colM.references("id").inTable(nr.mRelation).onDelete("cascade").onUpdate("cascade");
 					});
 					statements.push(statement.toString());
     			}
