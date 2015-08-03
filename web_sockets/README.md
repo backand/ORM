@@ -89,14 +89,13 @@ Backand Action
 
 Use the url to your action server, 
 
-/* globals
-  $http - service for AJAX calls - $http({method:"GET",url:CONSTS.apiUrl + "/1/objects/yourObject" , headers: {"Authorization":userProfile.token}});
-  CONSTS - CONSTS.apiUrl for Backands API URL
-*/
-'use strict';
-function backandCallback(userInput, dbRow, parameters, userProfile) {
+    /* globals
+      $http - service for AJAX calls - $http({method:"GET",url:CONSTS.apiUrl + "/1/objects/yourObject" , headers: {"Authorization":userProfile.token}});
+      CONSTS - CONSTS.apiUrl for Backands API URL
+    */
+    'use strict';
+    function backandCallback(userInput, dbRow, parameters, userProfile) {
     // write your code here
-
     var response = $http(
         {
             method:"POST",
