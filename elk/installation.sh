@@ -44,3 +44,19 @@ sudo ./kibana.sh start
 # install lynx command-line browser
 sudo yum -y install lynx
 
+# add repo for nginx
+sudo yum -y install epel-release
+
+# install nginx
+sudo yum -y install nginx httpd-tools
+
+# set nginx configuration
+sudo cp nginx.conf /etc/nginx
+sudo cp kibana.conf /etc/nginx/conf.d
+
+# create kibana password
+sudo htpasswd -bc /etc/nginx/htpasswd.users backkibadm TWzxXmEfN2
+
+# start nginx
+sudo service nginx start
+

@@ -5,7 +5,10 @@ Installation
 Open Ports
 ==========
 9200 - Elastic Search
-5601 - Kibana
+5601 - Kibana - may not be needed
+80 - nginx - redirection to Kibana
+10520 - TCP
+10521 - UDP
 
 Operation
 =========
