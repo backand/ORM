@@ -14,6 +14,8 @@ Install AngularJS app:
     cd angular-socket-app
     bower install
 
+Install Redis and Redis client.
+
 Architecture
 ============
 
