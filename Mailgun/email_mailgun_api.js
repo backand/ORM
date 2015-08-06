@@ -19,7 +19,7 @@ function backandCallback(userInput, dbRow, parameters, userProfile) {
 	        method:"POST",
 	        url: mailgunAPIUrl, 
 	        headers: {
-	            "Authrization": "Basic " + encodedUser,
+	            "Authorization": "Basic " + encodedUser,
 	            "Content-Type" : "multipart/form-data; charset=utf-8",
 	        },
 	        data: {
