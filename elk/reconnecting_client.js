@@ -1,4 +1,5 @@
 var net  = require('net');
+var host = process.argv[2];
 var port = 10520;
 var quitting = false;
 var conn;
@@ -29,7 +30,7 @@ process.stdin.on('data', function(data) {
      setTimeout(connect, retryTimeout);
    }
 
-   conn = net.createConnection(port);
+   conn = net.createConnection(port, host);
 
    conn.on('connect', function() {
      retriedTimes = 0;

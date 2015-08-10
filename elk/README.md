@@ -35,11 +35,15 @@ Elastic Search Local Queries
 
 Count all documents in all indexes
 
-curl http://localhost:9200/_count -d '{ "query" : { "match_all": {}  }   }'
+    curl http://localhost:9200/_count -d '{ "query" : { "match_all": {}  }   }'
 
 Search all documents in all indexes
 
-curl http://localhost:9200/_search -d '{ "query" : { "match_all": {}  }   }'
+    curl http://localhost:9200/_search -d '{ "query" : { "match_all": {}  }   }'
+
+For pretty-printing do:
+
+curl http://localhost:9200/_search?pretty -d '{ "query" : { "match_all": {}  }   }'
 
 Logstash
 ========
@@ -60,13 +64,13 @@ Test
 
 *TCP input*
 
-    node reconnecting_client.js
+    node reconnecting_client.js <host>
 
 type something and click ENTER, it will be transmitted to Logstash
 
 *UDP input*
 
-    node command_line_udp_client.js
+    node command_line_udp_client.js <host> <port>
 
 type something and click ENTER, it will be transmitted to Logstash
 
@@ -81,6 +85,15 @@ Kibana
 Open your browser at:
 
     http://localhost:5601
+
+For remote access open your browser at:
+
+    http://<host name>
+
+Access Restricted popup will appear. The credentials are:
+
+* username: backkibadm 
+* password: TWzxXmEfN2
 
 Limitations
 ===========
