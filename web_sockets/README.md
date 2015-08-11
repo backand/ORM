@@ -126,6 +126,51 @@ At the command line do:
 
 To be able to access our action server from Backand, copy the url and use it in the Backand action. Each time you use ngrok, a different url is created.
 
+Split Web Server from SocketIO Server
+=====================================
+Architecture
+------------
+1. web server - `static_file_server.js`
+2. socketio server - `socketio_server_only.js`
+
+Web page obtains `socket.io.js` from socketio server.
+
+Operation
+---------
+
+Use the web server in the cloud
+
+    node static_file_server.js
+
+Use the SocketIO server
+
+    node socketio_server_only.js
+
+Use the chat page 
+
+    split_socketio_client.html
+
+Open your browser at:
+
+    http://localhost:5000/split_socketio_client.html
+
+Running Web Server in the Cloud
+-------------------------------
+
+In the chat page, modify the lines refering to the SocketIO server
+
+    <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+
+    var socket = io.connect('http://localhost:4000');
+
+So that they refer to the FQDN of the SocketIO server.
+
+Test Web Server
+---------------
+Open your browser at:
+
+    http://localhost:5000/a.txt
+
 To Install Node.js on Linux
 ===========================
     ./install_gcc.sh
