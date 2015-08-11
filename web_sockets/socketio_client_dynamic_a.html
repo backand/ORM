@@ -24,7 +24,7 @@
 
     <div id="messages"></div>
 
-    <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+    <script src="http://f353f9db.ngrok.io/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       var messagesElement = document.getElementById('messages');
       var lastMessageElement = null;
@@ -39,7 +39,8 @@
         lastMessageElement = newMessageElement;
       }
 
-      var socket = io.connect('http://localhost:4000');
+      var socket = io.connect('http://f353f9db.ngrok.io/socket.io/myname');
+      console.log("socket", socket);
       socket.on('serverMessage', function(content) {
         addMessage(JSON.stringify(content));
       });
