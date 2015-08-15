@@ -11,9 +11,9 @@ config(['$routeProvider', function($routeProvider) {
   $routeProvider.otherwise({redirectTo: '/view1'});
 }])
 .factory('socket', function ($rootScope) {
-  var socket = io.connect();
-  var username = "joe";
-  socket.emit("login", username);
+  var socket = io.connect('http://localhost:4000');
+  var appName = "a";
+  socket.emit("login", appName);
   return {
     on: function (eventName, callback) {
       socket.on(eventName, function () {  

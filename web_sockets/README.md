@@ -87,7 +87,7 @@ Operation
 Backand Action
 ==============
 
-Use the url to your action server, 
+Use the url to your action server, send as the data the required action and the content.
 
     /* globals
       $http - service for AJAX calls - $http({method:"GET",url:CONSTS.apiUrl + "/1/objects/yourObject" , headers: {"Authorization":userProfile.token}});
@@ -99,12 +99,12 @@ Use the url to your action server,
     var response = $http(
         {
             method:"POST",
-            url: "http://653ea4e3.ngrok.io/action", 
+            url: "http://<action server>/action", 
             headers: {
                 "Content-Type" : "application/json",
             },
             data: {
-                username: "joe", 
+                action: "doYourThing",
                 content: { "a" : 1, "b" : 2 }
             }
 

@@ -11,8 +11,8 @@ angular.module('myApp.view2', ['ngRoute'])
 
 .controller('View2Ctrl', ['socket', '$scope', function(socket, $scope) {
 	$scope.messages = [];
-	socket.on('action', function (data) {
-	    this.content = data.content;
+	socket.on('action2', function (data) {
+	    this.content = data;
 	    $scope.messages.push(data);
 	});
 }]);
