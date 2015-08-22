@@ -119,7 +119,6 @@ Command-line browser. To open URL do:
 # Limitations
 
 1. Need to set ELK stack to start automatically on boot up.
-2. Kibana secure access by password does not work yet
 
 ## .NET Logger
 
