@@ -1,0 +1,13 @@
+{
+  "name": "elk-test",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Test programs for ELK stack of Backand",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC",
+  "devDependencies": {
+  }
+}
