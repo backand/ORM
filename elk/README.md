@@ -1,17 +1,17 @@
-Installation
-============
+# Installation
+
 ./installation.sh
 
-Open Ports
-==========
+# Open Ports
+
 9200 - Elastic Search
 5601 - Kibana - may not be needed
 80 - nginx - redirection to Kibana
 10520 - TCP
 10521 - UDP
 
-Operation
-=========
+# Operation
+
 **start**
 
 sudo service elasticsearch start
@@ -30,37 +30,37 @@ sudo service elasticsearch status
 sudo service logstash status
 sudo ./kibana.sh status
 
-Elastic Search Local Queries
-============================
+# Logstash
 
-Count all documents in all indexes
-
-    curl http://localhost:9200/_count -d '{ "query" : { "match_all": {}  }   }'
-
-Search all documents in all indexes
-
-    curl http://localhost:9200/_search -d '{ "query" : { "match_all": {}  }   }'
-
-For pretty-printing do:
-
-curl http://localhost:9200/_search?pretty -d '{ "query" : { "match_all": {}  }   }'
-
-Logstash
-========
 `stdin` input and `stdout` output are for debugging only
 
-TCP Input to Logstash
----------------------
+## input
+
+### TCP Input to Logstash
+
 
 Listens on port 10520 for TCP from any IP address (can be restricted)
 
-UDP Input to Logstash
----------------------
+### UDP Input to Logstash
+
 
 Listens on port 10521 for UDP from any IP address (can be restricted)
 
-Test
-----
+## filter
+
+### json
+
+parse message field into json
+
+## output 
+
+### elasticsearch
+
+index `logstash-logstash-%{+YYYY.MM.dd}` set by date
+
+
+#Test
+
 
 *TCP input*
 
@@ -74,14 +74,29 @@ type something and click ENTER, it will be transmitted to Logstash
 
 type something and click ENTER, it will be transmitted to Logstash
 
-Lynx
-====
-Command-line browser. To open URL do:
+*sending json*
 
-    lynx url
+To send JSON write as a string on command line:
 
-Kibana
-======
+    { "a" : "bbb", "c" : "v12"}
+
+# Elastic Search Local Queries
+
+
+Count all documents in all indexes
+
+    curl http://localhost:9200/_count -d '{ "query" : { "match_all": {}  }   }'
+
+Search all documents in all indexes
+
+    curl http://localhost:9200/_search -d '{ "query" : { "match_all": {}  }   }'
+
+For pretty-printing do:
+
+curl http://localhost:9200/_search?pretty -d '{ "query" : { "match_all": {}  }   }'
+
+# Kibana
+
 Open your browser at:
 
     http://localhost:5601
@@ -95,6 +110,20 @@ Access Restricted popup will appear. The credentials are:
 * username: backkibadm 
 * password: TWzxXmEfN2
 
-Limitations
-===========
-Need to set ELK stack to start automatically on boot up.
+# Lynx
+
+Command-line browser. To open URL do:
+
+    lynx url
+
+# Limitations
+
+1. Need to set ELK stack to start automatically on boot up.
+2. Kibana secure access by password does not work yet
+
+## .NET Logger
+
+Sends message to Logstash via TCP, with object encoded as JSON string.
+
+Call `SendMessage` with all parameters as String. For missing values, pass `null`
+
