@@ -1,4 +1,5 @@
 module.exports.fetchTables = fetchTables;
+module.exports.getUserDetails = getUserDetails;
 
 var request = require('request');
 var async = require('async');
@@ -9,6 +10,7 @@ var api_url = require('./config').api_url;
 var tokenUrl = api_url + "/token";
 var tableUrl = api_url + "/1/table/config/";
 var columnsUrl = api_url + "/1/table/config/";
+var getUserUrl = api_url + "/api/account/profile";
 
 var backandToJsonType = {
 	"Numeric": "float",
@@ -21,48 +23,39 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-function fetchTables(accessToken, tokenType, appName, withDbName, callback){
+function getUserDetails(accessToken, appName, callback){
 
 	request(
 
 		{
-		    url: tableUrl,
+		    url: getUserUrl,
 
 		    headers: {
 		    	'Accept': 'application/json', 
 		        'Content-Type': 'application/json',
-		        'Authorization': tokenType + " " + accessToken,
-			'AppName': appName
+		        'Authorization': accessToken,
+						'AppName': appName
 		    },
 		    
-		    method: 'GET',
-
-		    qs: {
-		        filter: '[{fieldName:"SystemView", operator:"equals", value: false}]',
-		        sort: '[{fieldName:"order", order:"asc"}]'
-		    }
+		    method: 'GET'
 		},
 
 		function(error, response, body){	
 		    if(!error && response.statusCode == 200) {
 		    	var body = JSON.parse(body);
-		    	if (body.totalRows > 0){
-		    		async.map(body.data, 
-		    			function(item, callbackColumns){
-		    				var relationName = item.name
-							var databaseName = item.databaseName;
-		    				fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, callbackColumns);
-		    			},
-		    			function(err, results){		    				
-		    				var tables = _.filter(results, function(r){
-		    					return r;
-		    				});
-		    				callback(null, tables);
-		    			}
-		    		);
+		    	if (body.username != ''){
+						callback(false, body);
+		    		//async.map(body,
+		    		//	function(item, callback){
+							//	callback(false, item);
+		    		//	},
+		    		//	function(err, results){
+		    		//		callback(true, err);
+		    		//	}
+		    		//);
 		    	}
 		    	else{
-		    		callback(null, []);
+		    		callback(true, null);
 		    	}
 		    	
 		    }
@@ -145,4 +138,57 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 
 	);
 
+}
+
+function fetchTables(accessToken, tokenType, appName, withDbName, callback){
+
+	request(
+
+			{
+				url: tableUrl,
+
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+					'Authorization': tokenType + " " + accessToken,
+					'AppName': appName
+				},
+
+				method: 'GET',
+
+				qs: {
+					filter: '[{fieldName:"SystemView", operator:"equals", value: false}]',
+					sort: '[{fieldName:"order", order:"asc"}]'
+				}
+			},
+
+			function(error, response, body){
+				if(!error && response.statusCode == 200) {
+					var body = JSON.parse(body);
+					if (body.totalRows > 0){
+						async.map(body.data,
+								function(item, callbackColumns){
+									var relationName = item.name
+									var databaseName = item.databaseName;
+									fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, callbackColumns);
+								},
+								function(err, results){
+									var tables = _.filter(results, function(r){
+										return r;
+									});
+									callback(null, tables);
+								}
+						);
+					}
+					else{
+						callback(null, []);
+					}
+
+				}
+				else{
+					callback(true, null);
+				}
+			}
+
+	);
 }

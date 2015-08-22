@@ -4,6 +4,8 @@ var transformer = require('./transform').transformer;
 var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
+var socket = require('socket.io-client')('http://localhost:4000');
+
 
 //
 // Create a Router
@@ -126,6 +128,14 @@ router.map(function () {
         else{
             res.send(401, {}, null);
         }
+    });
+
+    //use for the socket.io
+
+    this.post('/action').bind(function (req, res, data) {
+        console.log("action server:" + data.action);
+        socket.emit("internal", { "content" : data.content, "appName": req.headers.app, "action": data.action });
+        res.send(200, {}, {});
     });
 
 });

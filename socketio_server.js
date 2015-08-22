@@ -2,6 +2,8 @@ var httpd = require('http').createServer(handler);
 var io = require('socket.io').listen(httpd);
 var fs = require('fs');
 var _ = require('underscore');
+var getUserDetails = require('./backand_to_object').getUserDetails;
+
 
 var redisPort = 6379;
 var redisHostname = 'localhost';
@@ -44,32 +46,25 @@ function handler(req, res) {
   
 }
 
-function authorize(token){
-  //read from backand api to get user profile includes the app name
-
-  if(true)
-    return "bkndnoterious"; //app name
-  else
-    return ""; //fail to access
-}
-
 io.sockets.on('connection', function (socket) {
   console.log("received connection");
 
-  socket.on('login', function(token) {
+  socket.on('login', function(token, appName) {
     console.log("login", token);
 
-    var appName = authorize(token);
-    if (appName != ''){ // enter into room for
-      socket.join(appName);
-      socket.room = appName;
-      socket.emit("authorized");
-      console.log("authorized");
-    }
-    else{
-      socket.emit("notAuthorized");
-      console.log("notAuthorized");
-    }
+    getUserDetails(token,appName,function(err, details){
+      if(!err){
+        socket.join(appName);
+        socket.room = appName;
+        socket.emit("authorized");
+        console.log("authorized");
+      }
+      else{
+        socket.emit("notAuthorized");
+        console.log("notAuthorized");
+      }
+    })
+
   });
 
   socket.on('internal', function(data) {

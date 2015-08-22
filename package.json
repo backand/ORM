@@ -10,6 +10,10 @@
     "request": "latest",
     "async": "latest",
     "journey": "latest",
-    "mysql": "latest"
+    "mysql": "latest",
+    "socket.io": "latest",
+    "socket.io-client": "latest",
+    "redis": "latest",
+    "socket.io-redis": "latest"
   }
 }
