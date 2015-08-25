@@ -23,7 +23,7 @@ var backandToJsonType = {
 	"MultiSelect": "MultiSelect"
 };
 
-function getUserDetails(accessToken, appName, callback){
+function getUserDetails(accessToken, anonymousToken, appName, callback){
 
 	request(
 
@@ -34,6 +34,7 @@ function getUserDetails(accessToken, appName, callback){
 		    	'Accept': 'application/json', 
 		        'Content-Type': 'application/json',
 		        'Authorization': accessToken,
+            'AnonymousToken': anonymousToken,
 						'AppName': appName
 		    },
 		    
@@ -45,14 +46,6 @@ function getUserDetails(accessToken, appName, callback){
 		    	var body = JSON.parse(body);
 		    	if (body.username != ''){
 						callback(false, body);
-		    		//async.map(body,
-		    		//	function(item, callback){
-							//	callback(false, item);
-		    		//	},
-		    		//	function(err, results){
-		    		//		callback(true, err);
-		    		//	}
-		    		//);
 		    	}
 		    	else{
 		    		callback(true, null);

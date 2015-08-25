@@ -49,10 +49,10 @@ function handler(req, res) {
 io.sockets.on('connection', function (socket) {
   console.log("received connection");
 
-  socket.on('login', function(token, appName) {
+  socket.on('login', function(token, anonymousToken, appName) {
     console.log("login", token);
 
-    getUserDetails(token,appName,function(err, details){
+    getUserDetails(token, anonymousToken, appName,function(err, details){
       if(!err){
         socket.join(appName);
         socket.room = appName;
@@ -67,12 +67,12 @@ io.sockets.on('connection', function (socket) {
 
   });
 
-  socket.on('internal', function(data) {
-    var appName = data.appName;
-    var action = data.action;
-    console.log("action:", data);
+  socket.on('internal', function(internal) {
+    var appName = internal.appName;
+    var eventName = internal.eventName;
+    console.log("action:", internal);
 
-    io.to(appName).emit(action, data.content);
+    io.to(appName).emit(eventName, internal.data);
 
   });
 

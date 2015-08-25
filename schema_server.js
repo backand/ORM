@@ -132,9 +132,9 @@ router.map(function () {
 
     //use for the socket.io
 
-    this.post('/action').bind(function (req, res, data) {
-        console.log("action server:" + data.action);
-        socket.emit("internal", { "content" : data.content, "appName": req.headers.app, "action": data.action });
+    this.post('/socket/emit').bind(function (req, res, data) {
+        console.log("action server:" + data.eventName);
+        socket.emit("internal", { "data" : data.data, "appName": req.headers.app, "eventName": data.eventName });
         res.send(200, {}, {});
     });
 
