@@ -363,6 +363,7 @@ describe("validate", function(){
   		);
 		done();
 	});
+
 });
 
 describe("transform", function(){
@@ -849,6 +850,200 @@ describe("transform", function(){
 		        "valid": "always",
 		        "warnings": []	
 			}
+  		);
+		done();
+	});
+
+	it("rename columnn used in 1:n relationship", function(done){
+		var v = transformer(
+			[
+				{
+					"name": "task",
+					"fields": {
+						"owner": {
+							"object": "users"
+						},
+						"description": {
+							"type": "string"
+						},
+						"completed": {
+							"type": "boolean"
+						}
+					}
+				},
+				{
+					"name": "users",
+					"fields": {
+						"task": {
+							"collection": "task",
+							"via": "owner"
+						},
+						"email": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"role": {
+							"type": "string"
+						}
+					}
+				}
+			],
+			[
+				{
+					"name": "task",
+					"fields": {
+						"created_by": {
+							"object": "users"
+						},
+						"description": {
+							"type": "string"
+						},
+						"completed": {
+							"type": "boolean"
+						}
+					}
+				},
+				{
+					"name": "users",
+					"fields": {
+						"task": {
+							"collection": "task",
+							"via": "created_by"
+						},
+						"email": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"role": {
+							"type": "string"
+						}
+					}
+				}
+			], 0
+		);
+		expect(v).to.deep.equal(
+			{ 
+				"alter": [
+			        "alter table `task` add `created_by` int unsigned",
+			        "alter table `task` drop `owner`;",
+			        "alter table `task` add constraint task_created_by_foreign foreign key (`created_by`) references `users` (`id`) on update cascade on delete cascade"
+			    ],
+
+			    "notifications": {
+			        "droppedColumns": [
+			          {
+			            "column": "owner",
+			            "table": "task"
+			          }
+			        ]
+			    },
+
+		        "order": {
+			        "columns": {
+			          "task": [
+			            "created_by",
+			            "description",
+			            "completed",
+			          ],
+			          "users": [
+			            "task",
+			            "email",
+			            "name",
+			            "role",
+			          ]
+			        },
+
+			        "tables": [
+			          "task",
+			          "users"
+			        ]
+		        },
+
+				valid: "always",
+  			    warnings: [] 
+  			}
+  		);
+		done();
+	});
+
+	it("handle fields in camel case", function(done){
+		var v = transformer(
+			[],
+			[
+				{
+					"name": "task",
+					"fields": {
+						"createdBy": {
+							"object": "users"
+						},
+						"description": {
+							"type": "string"
+						},
+						"completed": {
+							"type": "boolean"
+						}
+					}
+				},
+				{
+					"name": "users",
+					"fields": {
+						"task": {
+							"collection": "task",
+							"via": "createdBy"
+						},
+						"email": {
+							"type": "string"
+						},
+						"name": {
+							"type": "string"
+						},
+						"role": {
+							"type": "string"
+						}
+					}
+				}
+			]
+			, 0
+		);
+		expect(v).to.deep.equal(
+			{ 
+				"alter": [
+				    "create table `task` (`id` int unsigned not null auto_increment primary key, `createdBy` int unsigned, `description` varchar(255), `completed` Bit(1))",
+      			    "create table `users` (`id` int unsigned not null auto_increment primary key, `email` varchar(255), `name` varchar(255), `role` varchar(255))",
+          			"alter table `task` add constraint task_createdby_foreign foreign key (`createdBy`) references `users` (`id`) on update cascade on delete cascade"
+			   	],
+
+			    "notifications": {
+			    },
+
+		        "order": {
+			        "columns": {
+			          "task": [
+			            "createdBy",
+			            "description",
+			            "completed",
+			          ],
+			          "users": [
+			            "task",
+			            "email",
+			            "name",
+			            "role",
+			          ]
+			        },
+
+			        "tables": [
+			          "task",
+			          "users"
+			        ]
+		        },
+
+				valid: "always",
+  			    warnings: [] 
+  			}
   		);
 		done();
 	});
