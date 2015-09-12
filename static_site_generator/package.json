@@ -1,0 +1,24 @@
+{
+  "name": "backand-jekyll",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generate a Jekyll website using Gulp from Markdown",
+  "main": "index.js",
+  "dependencies": {
+    "gulp": "latest",
+    "gulp-markdown": "latest",
+    "del": "latest",
+    "forever": "latest",
+    "gulp-rename": "latest",
+    "moment": "latest",
+    "del": "latest",
+    "gulp-replace": "latest",
+    "gulp-shell": "latest"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC"
+}

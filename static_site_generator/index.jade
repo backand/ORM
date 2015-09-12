@@ -1,0 +1,86 @@
+doctype html
+html(lang="en")
+  head
+    title REST Services
+  
+  body
+    p
+      'Search:'
+
+    input(placeholder='enter search text here' id='search')
+
+    p 
+      'Found:'
+
+    div(id='found')
+
+    p
+       'All:'
+
+    table
+        each d in data
+           tr
+              td= d.title 
+              td= d.description 
+              td 
+                a(href=d.relative) view
+
+
+    script(type='text/javascript').
+      function loadJSON(callback) {   
+
+        var xobj = new XMLHttpRequest();
+            xobj.overrideMimeType("application/json");
+        xobj.open('GET', 'index.json', true); // Replace 'my_data' with the path to your file
+        xobj.onreadystatechange = function () {
+              if (xobj.readyState == 4 && xobj.status == "200") {
+                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+                callback(xobj.responseText);
+              }
+        };
+        xobj.send(null);  
+      }
+      var toc;
+      loadJSON(function(response) {
+        // Parse JSON string into object
+        toc = JSON.parse(response);
+      });
+      var inputElement = document.getElementById('search');
+      var foundListElement = document.getElementById('found');
+
+      inputElement.onkeydown = function(keyboardEvent) {
+        if (keyboardEvent.keyCode === 13) {
+          var pattern = inputElement.value;
+          inputElement.value = '';
+          foundListElement.innerHTML = '';
+    
+          // search toc
+          var found  = [];
+          for(var title in toc){
+            if (title.indexOf(pattern) > -1 || toc[title].description.indexOf(pattern) > -1){
+              found.push({ title: title, description: toc[title].description, relative: toc[title].relative.replace(".md", ".html") });
+            }
+          } 
+
+          console.log(found);
+
+          found.forEach(function(d){
+            var newDocElement = document.createElement('div');
+            var newDocText = document.createTextNode(d.title + " " + d.description);
+            var a = document.createElement('a');
+            var linkText = document.createTextNode("view");
+            a.appendChild(linkText);
+            a.title = "view";
+            a.href = d.relative;
+
+
+            newDocElement.appendChild(newDocText);
+            newDocElement.appendChild(a);
+            foundListElement.appendChild(newDocElement);
+          });
+
+          return false;
+        } else {
+          return true;
+        }
+      };

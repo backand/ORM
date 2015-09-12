@@ -10,3 +10,8 @@ web_sockets/node_modules
 web_sockets/sftp-config.json
 BackandLogstashLogger/BackandLogstashLogger/bin
 BackandLogstashLogger/BackandLogstashLogger/obj
+orm.sublime-project
+orm.sublime-workspace
+docs
+static_site_generator/node_modules
+static_site
