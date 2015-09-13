@@ -12,6 +12,8 @@ BackandLogstashLogger/BackandLogstashLogger/bin
 BackandLogstashLogger/BackandLogstashLogger/obj
 orm.sublime-project
 orm.sublime-workspace
-docs
+docs/
 static_site_generator/node_modules
 static_site
+Simple-Jekyll-Search/
+temp/

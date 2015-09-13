@@ -21,10 +21,10 @@ gulp.task('clean-jekyll', function () {
 // give unique names to posts in jekyll
 // copies files into temporary location
 gulp.task('unique-names', ['clean-jekyll'], function(cb) {
-  return gulp.src("../docs/docs/**/*.md")
+  return gulp.src("../temp/*.md")
     .pipe(rename(function (path) {
       var d = moment().format("YYYY-MM-DD");
-      path.basename = d + "-" + path.dirname + "-" + path.basename;
+      path.basename = d + "-" + path.basename;
     }))
     .pipe(gulp.dest("../static_site/tmp")); 
 });

@@ -1,3 +1,11 @@
+# Jekyll Static Web Site
+
+* Can handle images in markdown.
+* Full-text search.
+* CSS to be configured in `_sass` folder in static site generated 
+* Note that because we generate the site, you should save scss files elsewhere and copy them into _sass when generating the site.
+* Assumes the temp folder in repo contains markdown files and images.
+
 # Installation 
 
 ## Node.js Packages
@@ -8,12 +16,15 @@
 
     cd ..
     sudo gem install jekyll
+    git clone git@github.com:christian-fei/Simple-Jekyll-Search.git
     /usr/bin/jekyll new static_site
     cd static_site
     mkdir node_modules
     npm install bower
-    bower install simple-jekyll-search
+    node_modules/bower/bin/bower install simple-jekyll-search
     cp ../static_site_generator/search.json .
+    mkdir _plugins
+    cp ../Simple-Jekyll-Search/_plugins/simple_search_filter.rb _plugins/
 
 ## Configure Search
 
