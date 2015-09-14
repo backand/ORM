@@ -1047,7 +1047,352 @@ describe("transform", function(){
   		);
 		done();
 	});
+
+	it("no error in update schema", function(done){
+		var v = transformer(
+			[
+				{
+					"name": "users",
+					"fields": {
+						"friend_proposals": {
+							"collection": "friend_request",
+							"via": "target_user"
+						},
+						"email": {
+							"type": "string"
+						},
+						"public_name": {
+						"type": "string"
+						},
+						"public_avatar": {
+						"type": "string"
+						},
+						"public_sex": {
+						"type": "string"
+						},
+						"public_status": {
+						"type": "string"
+						},
+						"private_name": {
+						"type": "string"
+						},
+						"private_avatar": {
+						"type": "string"
+						},
+						"private_sex": {
+						"type": "string"
+						},
+						"private_status": {
+						"type": "string"
+						},
+						"checkins": {
+						"collection": "checkin",
+						"via": "user"
+						},
+						"friend_requests": {
+						"collection": "friend_request",
+						"via": "user"
+						}
+					}
+				},
+				{
+					"name": "place",
+					"fields": {
+						"name": {
+						"type": "string"
+						},
+						"cover": {
+						"type": "string"
+						},
+						"description": {
+						"type": "string"
+						},
+						"checkins": {
+						"collection": "checkin",
+						"via": "place"
+						}
+					}
+				},
+			{
+				"name": "checkin",
+				"fields": {
+					"user": {
+					"object": "users"
+					},
+					"place": {
+					"object": "place"
+					},
+					"start_time": {
+					"type": "datetime"
+					}
+				}
+			},
+			{
+			"name": "friend_request",
+				"fields": {
+					"target_user": {
+					"object": "users"
+					},
+					"user": {
+					"object": "users"
+					},
+					"init_user": {
+					"type": "float"
+					}
+				}
+			}
+			]
+			,
+
+			[
+			{
+				"name": "users",
+				"fields": {
+					"friend_proposals": {
+					"collection": "friend_request",
+					"via": "target_user"
+					},
+					"friend_request": {
+					"collection": "friend_request",
+					"via": "init_user"
+					},
+					"email": {
+					"type": "string"
+					},
+					"public_name": {
+					"type": "string"
+					},
+					"public_avatar": {
+					"type": "string"
+					},
+					"public_sex": {
+					"type": "string"
+					},
+					"public_status": {
+					"type": "string"
+					},
+					"private_name": {
+					"type": "string"
+					},
+					"private_avatar": {
+					"type": "string"
+					},
+					"private_sex": {
+					"type": "string"
+					},
+					"private_status": {
+					"type": "string"
+					},
+					"checkins": {
+					"collection": "checkin",
+					"via": "user"
+					}
+				}	
+			},
+			{
+				"name": "place",
+				"fields": {
+					"name": {
+					"type": "string"
+					},
+					"cover": {
+					"type": "string"
+					},
+					"description": {
+					"type": "string"
+					},
+					"checkins": {
+					"collection": "checkin",
+					"via": "place"
+					}
+				}
+			},
+			{
+				"name": "checkin",
+				"fields": {
+					"user": {
+					"object": "users"
+					},
+					"place": {
+					"object": "place"
+					},
+					"start_time": {
+					"type": "datetime"
+					}
+				}
+			},
+			{
+				"name": "friend_request",
+				"fields": {
+					"target_user": {
+					"object": "users"
+					},
+					"init_user": {
+						"object": "users"
+					}
+				}
+			}
+			]
+
+
+			, 0
+		);
+		expect(v).to.deep.equal(
+			{ 
+				
+				      
+        "alter": [
+          "alter table `friend_request` drop `user`",
+          "alter table friend_request modify init_user undefined null  "
+        ],
+        "valid": "never",
+        "warnings": [
+          {
+            "column": "init_user",
+            "kind": "conversion between type and relationship",
+            "newType": "relation",
+            "oldType": "float",
+            "relation": "friend_request",
+          }
+         ],
+        "notifications": {
+          "droppedColumns": [
+            {
+              "column": "friend_requests",
+              "table": "users"
+            },
+            {
+              "column": "user",
+              "table": "friend_request"
+            }
+          ]
+        },
+        "order": {
+          "columns": {
+            "checkin": [
+              "user",
+              "place",
+              "start_time"
+            ],
+            "friend_request": [
+              "target_user",
+              "init_user"
+            ],
+            "place": [
+              "name",
+              "cover",
+              "description",
+              "checkins",
+            ],
+            "users": [
+              "friend_proposals",
+              "friend_request",
+              "email",
+              "public_name",
+              "public_avatar",
+              "public_sex",
+              "public_status",
+              "private_name",
+              "private_avatar",
+              "private_sex",
+              "private_status",
+              "checkins"
+            ]
+          },
+          "tables": [
+            "users",
+            "place",
+            "checkin",
+            "friend_request"
+          ]
+        },
+        "valid": "always",
+        "warnings": []
+       }
+  			
+  		);
+		done();
+	});
+
+	it("two parallel relationships", function(done){
+		var v = transformer(
+			
+	[
+	{
+		"name":"user",
+		"fields":{
+			"userName":{"type":"string","required":true},
+			"tasks":{"collection":"task","via":"owner"}
+		}
+	},
+	{
+		"name":"categorization",
+		"fields":{
+			"task_Id":{"object":"task"},
+			"tag_Id":{"object":"tag"},
+			"taskId":{"type":"float"},
+			"tagId":{"type":"float"}
+		}
+	},
+	{
+		"name":"tag",
+		"fields":{
+			"categorization":{"collection":"categorization","via":"tag_Id"},
+			"name":{"type":"string"}
+		}
+	},
+	{
+		"name":"task",
+		"fields":{
+			"categorization":{"collection":"categorization","via":"task_Id"},
+			"title":{"type":"string","required":true},
+			"description":{"type":"string"},
+			"completed":{"type":"boolean","required":true},
+			"owner":{"object":"user"}
+		}
+	}
+],
+	[
+	{	
+		"name":"user",
+		"fields":{
+			"userName":{"type":"string","required":true}
+		}
+	}
+],
+
+
+
+	0
+		);
+		expect(v).to.deep.equal(
+			{ 
+				
+				      
+        "alter":[
+        	"alter table categorization drop foreign key categorization_task_id_foreign",
+			"alter table categorization drop foreign key categorization_tag_id_foreign",
+			"drop table `categorization`",
+			"drop table `tag`",
+			"drop table `task`"
+        ],
+        "valid": "never",
+        "warnings": [
+          
+         ],
+"notifications":{"droppedTables":["categorization","tag","task"],"droppedColumns":[{"table":"user","column":"tasks"}]},
+		"order":{"tables":["user"],"columns":{"user":["userName"]}},
+        "valid": "always",
+        "warnings": []
+       }
+  			
+  		);
+		done();
+	});
+
 });
+
+
 
 describe("get connection info", function(){
 	it("get connection info with correct credentials", function(done){

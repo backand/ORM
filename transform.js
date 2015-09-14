@@ -162,7 +162,7 @@ var mapToKnexTypes =
 	"date": "date"
 };
 
-// console.log(JSON.stringify(r));
+
 // console.log("statements");
 // _.each(r.alter, function(s){
 // 	console.log(s);
@@ -299,33 +299,34 @@ function isValidTransformation(oldSchema, newSchema, modifications){
 		_.each(modifiedColumns, function(column){
 			var oldRelation = _.first(_.where(oldSchema, { name: relationName }));
 			var newRelation = _.first(_.where(newSchema, { name: relationName }));
-			if (!_.has(oldRelation.fields[column], "type") || !_.has(newRelation.fields[column], "type")){ // modified from/to relationship
-				warnings.push({ kind: relationshipTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
-				invalid = escalateValidity(invalid, "never");
-				return;
-			}
 
-			var oldColumnType = oldRelation.fields[column].type;
-			var newColumnType = newRelation.fields[column].type;
-			if (oldColumnType !=  newColumnType){
-				var conformityDegree = validTypeTransform(oldColumnType, newColumnType);
-				switch(conformityDegree)
-				{
-					case "never":
-						warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
-						invalid = escalateValidity(invalid, "never");
-					break;
+			if (_.has(oldRelation.fields[column], "type") && _.has(newRelation.fields[column], "type")){ 
+				// not a modified from/to relationship
 
-					case "data":
-						warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
-						invalid = escalateValidity(invalid, "data");
-					break;
 
-					default:
-					break;
+
+				var oldColumnType = oldRelation.fields[column].type;
+				var newColumnType = newRelation.fields[column].type;
+				if (oldColumnType !=  newColumnType){
+					var conformityDegree = validTypeTransform(oldColumnType, newColumnType);
+					switch(conformityDegree)
+					{
+						case "never":
+							warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
+							invalid = escalateValidity(invalid, "never");
+						break;
+
+						case "data":
+							warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
+							invalid = escalateValidity(invalid, "data");
+						break;
+
+						default:
+						break;
+					}
+
+
 				}
-
-
 			}
 		});
 
@@ -457,7 +458,7 @@ function createStatements(oldSchema, newSchema, modifications){
 				statements.push(statement.toString());	
 			}
 			else if (r.type = "1:n" && r.nRelation == t){
-				statements.unshift("alter table " +  r.oneRelation + " drop foreign key " + r.nRelation.toLowerCase() + "_" + r.oneAttribute + "_" + "bkname_" + r.nAttribute);
+				statements.unshift("alter table " +  r.oneRelation.toLowerCase() + " drop foreign key " + r.nAttribute.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_" + "foreign");
 			}
 		});	
 
