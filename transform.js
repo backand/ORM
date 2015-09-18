@@ -162,12 +162,6 @@ var mapToKnexTypes =
 	"date": "date"
 };
 
-
-// console.log("statements");
-// _.each(r.alter, function(s){
-// 	console.log(s);
-// });
-
 function transform(oldSchema, newSchema, severity){
 	// console.log(oldSchema, newSchema, severity);
 
@@ -441,6 +435,7 @@ function createStatements(oldSchema, newSchema, modifications){
 	var statements = [];
 	var oldRelationships = modifications.oldRelationships;
 	var newRelationships = modifications.newRelationships;
+	console.log("oldRelationships", oldRelationships);
 
 	// drop tables
 	var droppedTables = modifications.dropTable;
@@ -458,12 +453,17 @@ function createStatements(oldSchema, newSchema, modifications){
 				statements.push(statement.toString());	
 			}
 			else if (r.type = "1:n" && r.nRelation == t){
-				statements.unshift("alter table " +  r.oneRelation.toLowerCase() + " drop foreign key " + r.nAttribute.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_" + "foreign");
+				console.log("for y:", r);
+				var y = "alter table " +  r.oneRelation.toLowerCase() + " drop foreign key " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute.toLowerCase();
+				// tag_tag_id_bkname_categorization
+				// categorization_tag_id__bkname_tag
+				console.log("y", y);
+				statements.unshift(y);
 			}
 		});	
 
 	});
-	// console.log("delete table", statements);
+	console.log("after dropped tables", statements);
 
 	// add tables
 	var addedTables = modifications.createTable;
@@ -566,6 +566,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		  			var pattern = 'constraint ' + description.collection.toLowerCase() + '_' + description.via + '_foreign';
 		  			var replacement = "constraint " + t + "_"  + description.via + "_bkname_" + name;
 		  			relationshipString = relationshipString.replace(pattern, replacement);
+		  			console.log('relationshipString', relationshipString);
 		  			statementsRelationships.push(relationshipString);
 
 		  		}
@@ -576,15 +577,19 @@ function createStatements(oldSchema, newSchema, modifications){
 		var statementString = statement.toString();
 		
 		statementString = statementString.replace(/\'/g, "");
+		console.log("statementString", statementString, "SSS");
 		_.each(relationships, function(r){
-			var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute + '_foreign';
-			var replacement = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute + "_bkname_" + r.nAttribute;
+			var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign';
+			var replacement = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute;
+			console.log("pattern", pattern);
+			console.log("replacement", replacement);
 			statementString = statementString.replace(pattern, replacement);
 		});
 		var createStatementsArray = statementString.replace("\n", "").split(";");
 		_.each(createStatementsArray, function(s){
 			statements.push(s);
 		});	
+		console.log("statementsRelationships", statementsRelationships);
 		_.each(statementsRelationships, function(sR){
 			var sRArray = sR.replace("\n", "").split(";");
 			_.each(sRArray, function(s){
@@ -597,8 +602,9 @@ function createStatements(oldSchema, newSchema, modifications){
 
 	// modify tables
 	var modifiedTables = modifications.modifiedTables;
-	// console.log("modifiedTables", modifiedTables);
+	console.log("before modifiedTables", statements);
 	_.each(modifiedTables, function(m){
+		console.log("modifiedTables", m);
 		var tableName = m.name;
 		var oldTableDescription = _.findWhere(oldSchema, { "name" : m.name });
 		
@@ -606,12 +612,30 @@ function createStatements(oldSchema, newSchema, modifications){
 		var statement = knex.schema.table(oldTableDescription.dbName ? oldTableDescription.dbName : tableName,function(table){
             
 			// drop columns
+			console.log("drop columns", m.dropped);
+			console.log("before m.dropped", statements);
 			_.each(m.dropped, function(d){
 				// nothing to drop if this is a relationship column
-				if (oldTableDescription.fields[d] && !_.has(oldTableDescription.fields[d], "collection"))
-					table.dropColumn(d);
-			});
+				if (oldTableDescription.fields[d] && !_.has(oldTableDescription.fields[d], "collection")){
+					// remove foreign key constraints on column before removing column
+					if (_.has(oldTableDescription.fields[d], "object")){
+						console.log("object", tableName, d);
+						var statementString = "alter table " + tableName + " drop foreign key " + tableName + "_" + d.toLowerCase() +  "_foreign";
+						var correspondingOneRelationship = _.findWhere(oldRelationships, { oneRelation: tableName, oneAttribute: d });
 
+						var pattern = tableName.toLowerCase() + '_' + d.toLowerCase() + '_foreign';
+						var replacement = oldTableDescription.fields[d].object  + "_" + d.toLowerCase() + "_bkname_" + correspondingOneRelationship.nAttribute.toLowerCase();
+						console.log("pattern", pattern);
+						console.log("replacement", replacement);
+						statementString = statementString.replace(pattern, replacement);
+
+						statements.push(statementString);
+					}
+					table.dropColumn(d);
+				}
+
+			});
+			console.log("after m.dropped", statements);
 			// add columns
 			_.each(m.added, function(d){
 				var description = tableDescription.fields[d];
@@ -712,20 +736,23 @@ function createStatements(oldSchema, newSchema, modifications){
 			  		col.references("id").inTable(oneManyRelationship.nRelation).onDelete("cascade").onUpdate("cascade");
 			  	}			
 			});	
+			console.log("after m.added");
 		});
-		var sArray = statement.toString().replace(";", "").split("\n");
-			
+		var x = statement.toString();
+        console.log("before sArray", x);
+		var sArray = x.replace(";", "").split("\n");
+		console.log("after sArray", sArray, statements);	
 		_.each(sArray, function(a){
 			if(a != ""){
 			    var statementString = a.toString();
 			    _.each(relationships, function(r){
-				statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
-			});
+					statementString = statementString.replace('constraint ' + r.oneRelation + '_' + r.oneAttribute + '_foreign', "constraint " + r.nRelation + "_" + r.oneAttribute + "_bkname_" + r.nAttribute);
+				});
 			    statements.push(statementString);
 			}
 		});
-		// console.log("add/drop columns", statements);
-
+		console.log("add/drop columns", statements);
+		console.log("before drop relationships table")
 		// drop relationships table for dropped columns
 		_.each(m.dropped, function(c){
 			var columnDescription = tableDescription.fields[c];
@@ -741,6 +768,8 @@ function createStatements(oldSchema, newSchema, modifications){
 			}
 		});
 
+		console.log("after drop relationships table", statements);
+
 		_.each(m.modified, function(d){
 			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).fields[d];
 			var newAttributeDescription = tableDescription.fields[d];
@@ -752,7 +781,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			statements.push(statement);
 		});
 	});
-    // console.log("modify table", statements);
+    console.log("modify table", statements);
 
     // add new relationships
     _.each(newRelationships, function(nr){
