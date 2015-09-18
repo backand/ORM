@@ -10,6 +10,40 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // valid - boolean
 // warnings - array of strings
 
+var r = validateSchema([
+				{ 
+					name: "R", 
+					fields: {
+						a: {
+							type: "float"
+						},
+						b: {
+							type: "string"
+						},
+						dogs: {
+							collection: "U",
+							via: "owner"
+						}
+					}
+				},
+
+				{ 
+					name: "U", 
+					fields: {
+						c: {
+							type: "float"
+						},
+						d: {
+							type: "string"
+						},
+						owner: {
+							object: 'R'
+						}
+					}
+				}
+			]);
+console.log(r);
+
 
 function validateSchema(schema){
 	
@@ -124,7 +158,8 @@ function validRelation(relation){
 					if (_.has(value, "object")){
 						valid = false;
 						warnings.push("column cannot be both 1 and many side of relationship:" + relationName + " " + key);
-					}			
+					}
+
 				}
 				else if (_.has(value, "object")){
 					if (_.has(value, "collection") || _.has(value, "via")){
@@ -143,6 +178,11 @@ function validRelation(relation){
 				else{
 					valid = false;
 					warnings.push("column should include a type:" + relationName + " " + key);
+				}
+				
+				if (_.has(value, "collection") && _.has(value, "cascade") && value.cascade != true && value.cascade != false){
+					valid = false;
+					warnings.push("cascade property of column on many side of relationship should be either true or false:" + relationName + " " + key);
 				}
 
 				if (_.has(value, "collection") || _.has(value, "via") || _.has(value, "object")){
