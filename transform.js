@@ -162,10 +162,10 @@ var mapToKnexTypes =
 	"date": "date"
 };
 
-console.log("statements");
-_.each(r.alter, function(s){
-	console.log(s + ";");
-});
+// console.log("statements");
+// _.each(r.alter, function(s){
+// 	console.log(s + ";");
+// });
 
 function transform(oldSchema, newSchema, severity){
 	// console.log(oldSchema, newSchema, severity);
