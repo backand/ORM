@@ -162,10 +162,10 @@ var mapToKnexTypes =
 	"date": "date"
 };
 
-// console.log("statements");
-// _.each(r.alter, function(s){
-// 	console.log(s + ";");
-// });
+console.log("statements");
+_.each(r.alter, function(s){
+	console.log(s + ";");
+});
 
 function transform(oldSchema, newSchema, severity){
 	// console.log(oldSchema, newSchema, severity);
@@ -410,7 +410,8 @@ function getRelationships(newSchema){
 				var nSideAttribute = null;
 				_.each(nSideRelation.fields, function(value, key){
 					if (keyOne == value.via && value.collection == r.name){
-						newRelationships.push({ type: "1:n", oneRelation: r.name, nRelation: nSideRelation.name, oneAttribute: keyOne, nAttribute: key });
+						var isCascade = (_.has(value, "cascade") && value.cascade) || !_.has(value, "cascade");
+						newRelationships.push({ type: "1:n", oneRelation: r.name, nRelation: nSideRelation.name, oneAttribute: keyOne, nAttribute: key, isCascade: isCascade });
 					}
 				});
 			}
@@ -549,14 +550,21 @@ function createStatements(oldSchema, newSchema, modifications){
 				// var col = table.integer(name);
 				// col.unsigned();
 		  		// col.references("id").inTable(oneManyRelationship.nRelation);
-		  		table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation).onDelete("cascade").onUpdate("cascade");
+		  		var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);
+		  		if (oneManyRelationship.isCascade){
+		  			col.onDelete("cascade").onUpdate("cascade");
+		  		}	  		
 		  	}
 		  	else if (_.has(description, "collection") && _.has(description, "via")){ // n side of 1:n relationship
 		  		var wSpec = { oneRelation: description.collection, nRelation: t, nAttribute: name, oneAttribute: description.via };
 		  		var w = _.findWhere(oldRelationships, wSpec);
 		  		if (!w && !_.detect(addedTables, function(a){ return a == description.collection; })){
 		  			var statementRelationship = knex.schema.table(description.collection,function(table){
-		  				var col = table.integer(description.via).unsigned().references("id").inTable(t).onDelete("cascade").onUpdate("cascade");
+		  				var col = table.integer(description.via).unsigned().references("id").inTable(t);
+		  				if (w.isCascade){
+		  					col.onDelete("cascade").onUpdate("cascade");
+		  				}
+		  				
 		  			});
 		  			var relationshipString = statementRelationship.toString();
 		  			var pattern = 'constraint ' + description.collection.toLowerCase() + '_' + description.via + '_foreign';
@@ -718,9 +726,10 @@ function createStatements(oldSchema, newSchema, modifications){
 				else if (_.has(description, "object")){ // 1 side of 1:n relationship
 			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: m.name, oneAttribute: name });
 			  		//var col = table.integer("fk_" + m.name + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
-					var col = table.integer(name);
-					col.unsigned();
-			  		col.references("id").inTable(oneManyRelationship.nRelation).onDelete("cascade").onUpdate("cascade");
+					var col = table.integer(name).col.unsigned().references("id").inTable(oneManyRelationship.nRelation);
+					if (oneManyRelationship.isCascade){
+						col.onDelete("cascade").onUpdate("cascade");
+					}		
 			  	}			
 			});	
 		});
