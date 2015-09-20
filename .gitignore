@@ -17,3 +17,5 @@ static_site_generator/node_modules
 static_site
 Simple-Jekyll-Search/
 temp/
+json_query_language/dotnet/ConsoleApplication1/ConsoleApplication1/bin
+json_query_language/dotnet/ConsoleApplication1/ConsoleApplication1/obj
