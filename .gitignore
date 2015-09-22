@@ -19,3 +19,4 @@ Simple-Jekyll-Search/
 temp/
 json_query_language/dotnet/ConsoleApplication1/ConsoleApplication1/bin
 json_query_language/dotnet/ConsoleApplication1/ConsoleApplication1/obj
+json_query_language/nodejs/node_modules

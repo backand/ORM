@@ -1,28 +1,29 @@
-function transformJson(string) {
+module.exports.transformJson = transformJson;
+
+var _ = require('underscore');
+
+function transformJson(json, callback) {
 	var sqlQuery = null;
+	var err = null;
 	try { 
-	  var json = JSON.parse(string); 
 	  sqlQuery = generateQuery(json);
 	}
 	catch (exp) {
-		console.log(exp);
+		err = exp;
 	}
 	finally{
-		return sqlQuery;
+		callback(err, sqlQuery);
 	}
 }
 
 function generateQuery(query){
 	if (!isValidQuery(query))
 		throw "not valid query";
-
 	var selectClause = "SELECT " + (query.fields ? query.fields.join(",") : "*");
 	var fromClause = "FROM " + query.table;
 	var whereClause = "";
 	whereClause = generateExp(query.q);
-
-	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + " )" : "");
-	
+	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "");
 	return sqlQuery;
 }
 
@@ -31,7 +32,6 @@ function generateExp(exp){
 		var orExpArray = exp["$or"].map(function(a){
 			return generateExp(a);
 		});
-		console.log(orExpArray);
 		return orExpArray.map(function(o){
 			return "( " + o + " )";
 		}).join(" OR ");
@@ -43,10 +43,8 @@ function generateExp(exp){
 				var keyValueExp = {};
 				keyValueExp[a] = exp[a];
 				var r = generateKeyValueExp(keyValueExp);
-				console.log(r);
 				return r;
 			});
-			console.log(andExpArray);
 			return andExpArray.join(" AND ");
 		}
 		else{
@@ -60,15 +58,10 @@ function generateExp(exp){
 }
 
 function isValidQuery(q){
-	console.log((typeof q));
-	console.log(q.q);
-	console.log(q.q? 1 : 0);
-	console.log(q.table? 1 : 0);
-	return ((typeof q) == 'object') && q.q && q.table;
+	return  ((typeof q) == 'object') && q.q && q.table;
 }
 
 function isOrExp(exp){
-	
 	if (!((typeof exp) == "object"))
 		return false;
 
@@ -78,7 +71,6 @@ function isOrExp(exp){
 }
 
 function isValidAndExp(exp){
-	console.log((typeof exp));
 	if (!((typeof exp) == 'object'))
 		return false;
 	return true;
@@ -86,10 +78,12 @@ function isValidAndExp(exp){
 
 
 function generateKeyValueExp(kv){
-
 	var keys = Object.keys(kv);
 	var column = keys[0];
 	if (isConstant(kv[column])){ // constant value
+		if (_.isString(kv[column])){
+			return column + " = '" + kv[column] + "'";
+		}
 		return column + " = " + kv[column];
 	}
 	else if (kv[column]["$not"]){ // Not Exp value
@@ -98,6 +92,7 @@ function generateKeyValueExp(kv){
 	else { // Query Conditional value
 		return column + " " + generateQueryConditional(kv[column]);
 	}
+
 }
 
 
@@ -107,7 +102,6 @@ function generateQueryConditional(qc){
 	var comparisonOperator = keys[0];
     if (!isValidComparisonOperator(comparisonOperator))
     	throw "not valid query Conditional";
-
 	var comparand = qc[comparisonOperator];
 	var generatedComparand = " ";
 	if (isConstant(comparand)){
@@ -119,9 +113,7 @@ function generateQueryConditional(qc){
 	else{ // sub query
 		generatedComparand = "( " + generateQuery(comparand) + " )";
 	}
-	var r = comparisonOperator + " " + generatedComparand;
-	console.log(r);
-	return r;
+	return comparisonOperator + " " + generatedComparand;
 }
 
 function isConstant(value){
@@ -134,8 +126,3 @@ function isValidComparisonOperator(comparisonOperator){
 	});
 	return matchingOperators.length > 0;
 }
-
-
-
-
-

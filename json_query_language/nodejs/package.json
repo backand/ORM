@@ -1,0 +1,13 @@
+{
+  "name": "json-query-language",
+  "version": "0.0.0",
+  "description": "generate mysql query statements from jsonn queries",
+  "author": "Yoram Kornatzky",
+  "dependencies": {
+  	"underscore": "latest"
+  },
+  "devDependencies": {
+  	"mocha": "latest",
+    "chai": "latest"
+  }
+}
