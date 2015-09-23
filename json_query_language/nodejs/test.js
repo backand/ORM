@@ -29,7 +29,7 @@ describe("translate mysql", function(){
 			},
 			function(err, mysqlQuery){
 				expect(err).to.deep.equal(null);
-				expect(mysqlQuery).to.equal("SELECT * FROM Employees WHERE (DeptId $in ( SELECT DeptId FROM Dept WHERE (Budget $gt 4500) ))");
+				expect(mysqlQuery).to.equal("SELECT * FROM Employees WHERE (DeptId IN ( SELECT DeptId FROM Dept WHERE (Budget > 4500) ))");
 				done();
 			}
 		);
@@ -55,7 +55,60 @@ describe("translate mysql", function(){
 			},
 			function(err, mysqlQuery){
 				expect(err).to.deep.equal(null);
-				expect(mysqlQuery).to.equal("SELECT * FROM Employees WHERE (( Budget $gt 3000 ) OR ( Location = 'Tel Aviv' ))");
+				expect(mysqlQuery).to.equal("SELECT * FROM Employees WHERE (( Budget > 3000 ) OR ( Location = 'Tel Aviv' ))");
+				done();
+			}
+		);
+
+	});
+
+	it("retrieve parent object based on child object properties", function(done){
+		var v = queryTranslator(				
+			{
+				"table": "Dept",
+				"q": {
+					"DeptId" : {
+
+						"$in": {
+							"table": "Employee",
+							"q": {
+								"age": 30
+							},
+							"fields": ["DeptId"]
+						}
+
+					}
+				}
+			},
+			function(err, mysqlQuery){
+				expect(err).to.deep.equal(null);
+				expect(mysqlQuery).to.equal("SELECT * FROM Dept WHERE (DeptId IN ( SELECT DeptId FROM Employee WHERE (age = 30) ))");
+				done();
+			}
+		);
+
+	});
+
+	it("retrieve parent object based existence of child with properties", function(done){
+		var v = queryTranslator(				
+			{
+				"table": "Dept",
+				"q": {
+					
+
+						"$exists": {
+							"table": "Employee",
+							"q": {
+								"age": 30
+							},
+							"fields": ["DeptId"]
+						}
+
+				}
+			},
+			function(err, mysqlQuery){
+				expect(err).to.deep.equal(null);
+				expect(mysqlQuery).to.equal("SELECT * FROM Dept WHERE (EXISTS (SELECT DeptId FROM Employee WHERE (age = 30) ))");
 				done();
 			}
 		);

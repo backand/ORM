@@ -2,6 +2,22 @@ module.exports.transformJson = transformJson;
 
 var _ = require('underscore');
 
+
+
+var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$size", "$exists"];
+
+var mysqlOperator = {
+	"$in": "IN",
+	"$nin": "NOT IN",
+	"$lt": "<",
+	"$lte": "<=",
+	"$gt": ">",
+	"$gte": ">=",
+	"$eq": "=",
+	"$neq": "!=",
+	"$not": "NOT"
+};
+
 function transformJson(json, callback) {
 	var sqlQuery = null;
 	var err = null;
@@ -80,17 +96,27 @@ function isValidAndExp(exp){
 function generateKeyValueExp(kv){
 	var keys = Object.keys(kv);
 	var column = keys[0];
-	if (isConstant(kv[column])){ // constant value
-		if (_.isString(kv[column])){
-			return column + " = '" + kv[column] + "'";
+	if (column == "$exists") { // exists expression
+		if (keys.length > 1){
+			throw "Not a valid exists expression";
 		}
-		return column + " = " + kv[column];
+		else{
+			return "EXISTS (" + generateQuery(kv[column]) + " )";
+		}
 	}
-	else if (kv[column]["$not"]){ // Not Exp value
-		return "NOT " + generateQueryConditional(kv[column]["$not"]);
-	}
-	else { // Query Conditional value
-		return column + " " + generateQueryConditional(kv[column]);
+	else{
+		if (isConstant(kv[column])){ // constant value
+			if (_.isString(kv[column])){
+				return column + " = '" + kv[column] + "'";
+			}
+			return column + " = " + kv[column];
+		}
+		else if (kv[column]["$not"]){ // Not Exp value
+			return "NOT " + generateQueryConditional(kv[column]["$not"]);
+		}
+		else { // Query Conditional value
+			return column + " " + generateQueryConditional(kv[column]);
+		}
 	}
 
 }
@@ -113,16 +139,13 @@ function generateQueryConditional(qc){
 	else{ // sub query
 		generatedComparand = "( " + generateQuery(comparand) + " )";
 	}
-	return comparisonOperator + " " + generatedComparand;
+	return mysqlOperator[comparisonOperator] + " " + generatedComparand;
 }
 
 function isConstant(value){
 	return (typeof value) == 'number' || (typeof value) == 'string' || (typeof value) == "boolean";
 }
 
-function isValidComparisonOperator(comparisonOperator){
-	var matchingOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$size", "$exists"].filter(function(c) {
-		return c == comparisonOperator;
-	});
-	return matchingOperators.length > 0;
+function isValidComparisonOperator(comparison){
+	return _.includes(comparisonOperators, comparison);
 }
