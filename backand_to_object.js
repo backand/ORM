@@ -34,8 +34,8 @@ function getUserDetails(accessToken, anonymousToken, appName, callback){
 		    	'Accept': 'application/json', 
 		        'Content-Type': 'application/json',
 		        'Authorization': accessToken,
-            'AnonymousToken': anonymousToken,
-						'AppName': appName
+            	'AnonymousToken': anonymousToken,
+				'AppName': appName
 		    },
 		    
 		    method: 'GET'
@@ -71,7 +71,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    	'Accept': 'application/json', 
 		        'Content-Type': 'application/json',
 		        'Authorization': tokenType + " " + accessToken,
-			'AppName': appName
+				'AppName': appName
 		    },
 		    
 		    method: 'GET'

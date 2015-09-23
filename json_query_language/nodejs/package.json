@@ -4,7 +4,8 @@
   "description": "generate mysql query statements from jsonn queries",
   "author": "Yoram Kornatzky",
   "dependencies": {
-  	"underscore": "latest"
+  	"underscore": "latest",
+    "request": "latest"
   },
   "devDependencies": {
   	"mocha": "latest",

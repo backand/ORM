@@ -1,8 +1,10 @@
 module.exports.transformJson = transformJson;
 
 var _ = require('underscore');
-
-
+var request = require('request');
+var api_url = require('../../config').api_url;
+var tokenUrl = api_url + "/token";
+var fetchTables = require("../../backand_to_object").fetchTables; 
 
 var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$size", "$exists"];
 
@@ -18,11 +20,85 @@ var mysqlOperator = {
 	"$not": "NOT"
 };
 
-function transformJson(json, callback) {
+var email = "kornatzky@me.com";
+var password = "secret";
+var appName = "testsql";
+
+// transformJsonIntoSQL(email, password, appName, 
+// 	{
+// 		"table" : "Employees",
+// 		"q" : {
+// 			"$or" : [
+// 				{
+// 					"Budget" : {
+// 						"$gt" : 3000
+// 					}
+// 				},
+// 				{
+// 					"Location" : "Tel Aviv"
+// 				}
+// 			]
+// 		},
+// 		fields: ["Location", "Budget"]
+// 	},
+
+// 	function(err, sql){
+// 		console.log(err);
+// 		if(!err)
+// 			console.log(sql);
+// 		process.exit(1);
+// 	}
+// );
+
+function transformJsonIntoSQL(email, password, appName, json, callback){
+	getDatabaseInformation(email, password, appName, function(err, sqlSchema){
+		if (err){
+			callback(err);
+		}
+		else{
+			transformJson(json, sqlSchema, callback);
+		}
+	});
+}
+
+function getDatabaseInformation(email, password, appName, callback){
+	request(
+
+		{
+		    url: tokenUrl,
+		    
+		    method: 'POST',
+		   
+		    form: {
+		        username: email,
+		        password: password,
+		        appname: appName,
+		        grant_type: "password"
+		    }
+		}, 
+
+		function(error, response, body){
+		    if(!error && response.statusCode == 200) {    	
+		    	var b = JSON.parse(body)
+		    	var accessToken = b["access_token"];
+		    	var tokenType = b["token_type"];
+		    	fetchTables(accessToken, tokenType, appName, true, function(err, result){
+		    		callback(err, result);
+		    	});
+		    }
+		    else{
+		    	callback(error? error : "statusCode != 200", result);
+		    }
+		}
+
+	);
+}
+
+function transformJson(json, sqlSchema, callback) {
 	var sqlQuery = null;
 	var err = null;
 	try { 
-	  sqlQuery = generateQuery(json);
+	  sqlQuery = generateQuery(json, sqlSchema);
 	}
 	catch (exp) {
 		err = exp;
@@ -32,11 +108,30 @@ function transformJson(json, callback) {
 	}
 }
 
-function generateQuery(query){
+function generateQuery(query, sqlSchema){
 	if (!isValidQuery(query))
 		throw "not valid query";
-	var selectClause = "SELECT " + (query.fields ? query.fields.join(",") : "*");
-	var fromClause = "FROM " + query.table;
+	var table = _.findWhere(sqlSchema, { name: query.table });
+	// table = { "name" : "Employees", "items": "blabla", "fields" : {
+	// 	"Budget": {
+	// 		"dbname": "bbb"
+	// 	},
+	// 	"Location": {
+
+	// 	}
+	// }};
+	var realTableName = _.has(table, "items") ? table.items : query.table;
+	if (_.has(query, "fields")){
+		var realQueryFields = _.map(query.fields, function(f){
+			return table.fields[f].dbName ? table.fields[f].dbName : f;
+		});
+		var selectClause = "SELECT " + realQueryFields.join(",");
+	}
+	else{
+		var selectClause = "SELECT " + "*";
+	}
+	
+	var fromClause = "FROM " + realTableName;
 	var whereClause = "";
 	whereClause = generateExp(query.q);
 	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "");

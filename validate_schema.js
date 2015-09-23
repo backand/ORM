@@ -10,41 +10,6 @@ var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ 
 // valid - boolean
 // warnings - array of strings
 
-var r = validateSchema([
-				{ 
-					name: "R", 
-					fields: {
-						a: {
-							type: "float"
-						},
-						b: {
-							type: "string"
-						},
-						dogs: {
-							collection: "U",
-							via: "owner"
-						}
-					}
-				},
-
-				{ 
-					name: "U", 
-					fields: {
-						c: {
-							type: "float"
-						},
-						d: {
-							type: "string"
-						},
-						owner: {
-							object: 'R'
-						}
-					}
-				}
-			]);
-console.log(r);
-
-
 function validateSchema(schema){
 	
 	if (!Array.isArray(schema)){
