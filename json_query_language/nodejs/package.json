@@ -5,7 +5,8 @@
   "author": "Yoram Kornatzky",
   "dependencies": {
   	"underscore": "latest",
-    "request": "latest"
+    "request": "latest",
+    "mysql": "latest"
   },
   "devDependencies": {
   	"mocha": "latest",

@@ -1,12 +1,15 @@
 module.exports.transformJson = transformJson;
+module.exports.validValueOfType = validValueOfType;
+module.exports.escapeValueOfType = escapeValueOfType;
 
 var _ = require('underscore');
 var request = require('request');
+var mysql = require('mysql');
 var api_url = require('../../config').api_url;
 var tokenUrl = api_url + "/token";
 var fetchTables = require("../../backand_to_object").fetchTables; 
 
-var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$size", "$exists"];
+var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$exists"];
 
 var mysqlOperator = {
 	"$in": "IN",
@@ -20,9 +23,9 @@ var mysqlOperator = {
 	"$not": "NOT"
 };
 
-var email = "kornatzky@me.com";
-var password = "secret";
-var appName = "testsql";
+// var email = "kornatzky@me.com";
+// var password = "secret";
+// var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
 // 	{
@@ -31,11 +34,11 @@ var appName = "testsql";
 // 			"$or" : [
 // 				{
 // 					"Budget" : {
-// 						"$gt" : 3000
+// 						"$gt" : 30
 // 					}
 // 				},
 // 				{
-// 					"Location" : "Tel Aviv"
+// 					"Location" : "<div>Tel Aviv</div>"
 // 				}
 // 			]
 // 		},
@@ -98,6 +101,21 @@ function transformJson(json, sqlSchema, callback) {
 	var sqlQuery = null;
 	var err = null;
 	try { 
+	 //  var sqlSchema = [
+	 //  	{ 
+	 //  		"name" : "Employees", 
+	 //  		"items": "blabla", 
+	 //  		"fields" : {
+		// 		"Budget": {
+		// 			"dbname": "bbb",
+		// 			"type": "float"
+		// 		},
+		// 		"Location": {
+		// 			"type": "string"
+		// 		}
+		// 	}
+		// }
+	 //  ];
 	  sqlQuery = generateQuery(json, sqlSchema);
 	}
 	catch (exp) {
@@ -112,20 +130,14 @@ function generateQuery(query, sqlSchema){
 	if (!isValidQuery(query))
 		throw "not valid query";
 	var table = _.findWhere(sqlSchema, { name: query.table });
-	// table = { "name" : "Employees", "items": "blabla", "fields" : {
-	// 	"Budget": {
-	// 		"dbname": "bbb"
-	// 	},
-	// 	"Location": {
-
-	// 	}
-	// }};
 	var realTableName = _.has(table, "items") ? table.items : query.table;
 	if (_.has(query, "fields")){
 		var realQueryFields = _.map(query.fields, function(f){
 			return table.fields[f].dbName ? table.fields[f].dbName : f;
 		});
 		var selectClause = "SELECT " + realQueryFields.join(",");
+
+
 	}
 	else{
 		var selectClause = "SELECT " + "*";
@@ -133,15 +145,15 @@ function generateQuery(query, sqlSchema){
 	
 	var fromClause = "FROM " + realTableName;
 	var whereClause = "";
-	whereClause = generateExp(query.q);
+	whereClause = generateExp(query.q, table);
 	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "");
 	return sqlQuery;
 }
 
-function generateExp(exp){
+function generateExp(exp, table){
 	if (isOrExp(exp)){ // OrExp
 		var orExpArray = exp["$or"].map(function(a){
-			return generateExp(a);
+			return generateExp(a, table);
 		});
 		return orExpArray.map(function(o){
 			return "( " + o + " )";
@@ -153,7 +165,7 @@ function generateExp(exp){
 			var andExpArray = keys.map(function(a){
 				var keyValueExp = {};
 				keyValueExp[a] = exp[a];
-				var r = generateKeyValueExp(keyValueExp);
+				var r = generateKeyValueExp(keyValueExp, table);
 				return r;
 			});
 			return andExpArray.join(" AND ");
@@ -188,7 +200,7 @@ function isValidAndExp(exp){
 }
 
 
-function generateKeyValueExp(kv){
+function generateKeyValueExp(kv, table){
 	var keys = Object.keys(kv);
 	var column = keys[0];
 	if (column == "$exists") { // exists expression
@@ -200,17 +212,19 @@ function generateKeyValueExp(kv){
 		}
 	}
 	else{
-		if (isConstant(kv[column])){ // constant value
-			if (_.isString(kv[column])){
-				return column + " = '" + kv[column] + "'";
+		if (isConstant(kv[column])){ 
+			// constant value
+			var t = getType(table, column);
+			if (!validValueOfType(kv[column], t)){
+				throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
 			}
-			return column + " = " + kv[column];
+			return column + " = " + escapeValueOfType(kv[column], t);
 		}
 		else if (kv[column]["$not"]){ // Not Exp value
-			return "NOT " + generateQueryConditional(kv[column]["$not"]);
+			return "NOT " + generateQueryConditional(kv[column]["$not"], table, column);
 		}
 		else { // Query Conditional value
-			return column + " " + generateQueryConditional(kv[column]);
+			return column + " " + generateQueryConditional(kv[column], table, column);
 		}
 	}
 
@@ -218,7 +232,7 @@ function generateKeyValueExp(kv){
 
 
 
-function generateQueryConditional(qc){
+function generateQueryConditional(qc, table, column){
 	var keys = Object.keys(qc);
 	var comparisonOperator = keys[0];
     if (!isValidComparisonOperator(comparisonOperator))
@@ -226,7 +240,12 @@ function generateQueryConditional(qc){
 	var comparand = qc[comparisonOperator];
 	var generatedComparand = " ";
 	if (isConstant(comparand)){
-		generatedComparand = comparand;
+		// constant value
+		var t = getType(table, column);
+		if (!validValueOfType(comparand, t)){
+			throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
+		}
+		generatedComparand = escapeValueOfType(comparand, t);
 	}
 	else if (Array.isArray(comparand)){ // array
 		generatedComparand = comparand;
@@ -243,4 +262,68 @@ function isConstant(value){
 
 function isValidComparisonOperator(comparison){
 	return _.includes(comparisonOperators, comparison);
+}
+
+function getType(table, field){
+	var fields = table.fields;
+	if (_.has(fields, field)){
+		return fields[field]["type"];
+	}
+	else {
+		return null;
+	}
+}
+
+function validValueOfType(value, type){
+	switch(type)
+	{
+		case "string":
+		case "text":		
+			return _.isString(value);
+		break;
+
+		case "float":
+			return _.isNumber(value);
+		break;
+
+		case "datetime":
+			var d = new Date(value);
+			return d instanceof Date;
+		break;
+
+		case "boolean":
+			return value == 0 || value == 1;
+		break;
+
+		case "binary":
+			return _.isString(value) && /^[01]+$/.test(value);
+		break;
+
+		default: 
+			return true;
+		break;
+	}
+}
+
+function escapeValueOfType(value, type){
+	switch(type)
+	{
+		case "string":
+		case "text":
+		case "float":		
+		case "boolean":
+		case "binary":
+			return mysql.escape(value);	
+		break;
+
+		case "datetime":
+			var d = new Date(value);
+			return "FROM_UNIXTIME(" + d.valueOf() + ")";
+		break;
+
+
+		default: 
+			return mysql.escape(value);
+		break;
+	}
 }
