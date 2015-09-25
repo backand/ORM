@@ -23,9 +23,9 @@ var mysqlOperator = {
 	"$not": "NOT"
 };
 
-// var email = "kornatzky@me.com";
-// var password = "secret";
-// var appName = "testsql";
+var email = "kornatzky@me.com";
+var password = "secret";
+var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
 // 	{
@@ -34,7 +34,7 @@ var mysqlOperator = {
 // 			"$or" : [
 // 				{
 // 					"Budget" : {
-// 						"$gt" : 30
+// 						"$gt" : "#x#"
 // 					}
 // 				},
 // 				{
@@ -212,7 +212,11 @@ function generateKeyValueExp(kv, table){
 		}
 	}
 	else{
-		if (isConstant(kv[column])){ 
+		if (isVariable(kv[column])){
+			var t = getType(table, column);
+			return column + " = " + escapeVariableOfType(kv[column], t);
+		}
+		else if (isConstant(kv[column])){ 
 			// constant value
 			var t = getType(table, column);
 			if (!validValueOfType(kv[column], t)){
@@ -239,7 +243,11 @@ function generateQueryConditional(qc, table, column){
     	throw "not valid query Conditional";
 	var comparand = qc[comparisonOperator];
 	var generatedComparand = " ";
-	if (isConstant(comparand)){
+	if (isVariable(comparand)){
+		var t = getType(table, column);
+		generatedComparand = escapeVariableOfType(comparand, t);
+	}
+	else if (isConstant(comparand)){
 		// constant value
 		var t = getType(table, column);
 		if (!validValueOfType(comparand, t)){
@@ -260,9 +268,27 @@ function isConstant(value){
 	return (typeof value) == 'number' || (typeof value) == 'string' || (typeof value) == "boolean";
 }
 
+/** @function
+ * @name isVariable
+ * @param {string} value
+ * @returns {boolean} - is the value the name of a variable
+ */
+
+function isVariable(value){
+	console.log("isVariable", value);
+	return _.isString(value) && /^#[a-zA-Z]\w*#$/.test(value);
+}
+
 function isValidComparisonOperator(comparison){
 	return _.includes(comparisonOperators, comparison);
 }
+
+/** @function
+ * @name getType
+ * @param {object} table - table json definition, including items for dbname
+ * @param {string} field - column name
+ * @returns {string} - type of column
+ */
 
 function getType(table, field){
 	var fields = table.fields;
@@ -273,6 +299,14 @@ function getType(table, field){
 		return null;
 	}
 }
+
+/** @function
+ * @name validValueOfType
+ * @param {object} value - value to be tested
+ * @param {string} type - type of column
+ * @returns {boolean} - is the value valid for the type
+ */
+
 
 function validValueOfType(value, type){
 	switch(type)
@@ -305,7 +339,16 @@ function validValueOfType(value, type){
 	}
 }
 
+/** @function
+ * @name escapeValueOfType
+ * @description escape an input value according to type
+ * @param {object} value - value to be assigned to column
+ * @param {string} type - type of column
+ * @returns {object} - escaped value
+ */
+
 function escapeValueOfType(value, type){
+
 	switch(type)
 	{
 		case "string":
@@ -326,4 +369,18 @@ function escapeValueOfType(value, type){
 			return mysql.escape(value);
 		break;
 	}
+}
+
+/** @function
+ * @name escapeVariableOfType
+ * @description escape a variable to be substituted according to type
+ * does nothing, because we cannot really escape without knowing the value
+ * @param {string} variable - variable name to be later substituted
+ * @param {string} type - type of column
+ * @returns {object} - escaped value
+ */
+
+function escapeVariableOfType(value, type){
+
+	return value;
 }
