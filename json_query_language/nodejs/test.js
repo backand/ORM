@@ -10,11 +10,11 @@ describe("translate mysql", function(){
 	it("sub query", function(done){
 		var v = queryTranslator(
 			{
-				"table" : "Employees",
+				"object" : "Employees",
 				"q": {
 					"DeptId" : {
 						"$in" : {
-							"table" : "Dept",
+							"object" : "Dept",
 							"q": {
 								"Budget" : {
 									"$gt" : 4500
@@ -39,7 +39,7 @@ describe("translate mysql", function(){
 	it("or query", function(done){
 		var v = queryTranslator(				
 			{
-				"table" : "Employees",
+				"object" : "Employees",
 				"q" : {
 					"$or" : [
 						{
@@ -65,12 +65,12 @@ describe("translate mysql", function(){
 	it("retrieve parent object based on child object properties", function(done){
 		var v = queryTranslator(				
 			{
-				"table": "Dept",
+				"object": "Dept",
 				"q": {
 					"DeptId" : {
 
 						"$in": {
-							"table": "Employee",
+							"object": "Employee",
 							"q": {
 								"age": 30
 							},
@@ -92,12 +92,12 @@ describe("translate mysql", function(){
 	it("retrieve parent object based existence of child with properties", function(done){
 		var v = queryTranslator(				
 			{
-				"table": "Dept",
+				"object": "Dept",
 				"q": {
 					
 
 						"$exists": {
-							"table": "Employee",
+							"object": "Employee",
 							"q": {
 								"age": 30
 							},

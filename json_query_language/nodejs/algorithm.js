@@ -29,7 +29,7 @@ var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
 // 	{
-// 		"table" : "Employees",
+// 		"object" : "Employees",
 // 		"q" : {
 // 			"$or" : [
 // 				{
@@ -44,7 +44,7 @@ var appName = "testsql";
 // 		},
 // 		fields: ["Location", "Budget"]
 // 	},
-
+// false,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -53,13 +53,13 @@ var appName = "testsql";
 // 	}
 // );
 
-function transformJsonIntoSQL(email, password, appName, json, callback){
+function transformJsonIntoSQL(email, password, appName, json, isFilter, callback){
 	getDatabaseInformation(email, password, appName, function(err, sqlSchema){
 		if (err){
 			callback(err);
 		}
 		else{
-			transformJson(json, sqlSchema, callback);
+			transformJson(json, sqlSchema, isFilter, callback);
 		}
 	});
 }
@@ -97,7 +97,27 @@ function getDatabaseInformation(email, password, appName, callback){
 	);
 }
 
-function transformJson(json, sqlSchema, callback) {
+/** @variable
+ * @name parserState
+ * global state of parser
+ */
+
+var parserState = {
+};
+
+/** @function
+ * @name transformJson
+ * @description create sql query from json query
+ * the workhorse of the algorithm
+ * @param {object} json - json query
+ * @param {object} sqlSchema - array of json schema of tables with fields: name, fields, items (optional dbname)
+ * @param {boolean} isFilter - a filter query allows variables
+ * @param {object} callback - function(err, s) where s is the sql statement for the query
+ */
+
+function transformJson(json, sqlSchema, isFilter, callback) {
+	parserState.sqlSchema = sqlSchema;
+	parserState.isFilter = isFilter;
 	var sqlQuery = null;
 	var err = null;
 	try { 
@@ -116,7 +136,7 @@ function transformJson(json, sqlSchema, callback) {
 		// 	}
 		// }
 	 //  ];
-	  sqlQuery = generateQuery(json, sqlSchema);
+	  sqlQuery = generateQuery(json);
 	}
 	catch (exp) {
 		err = exp;
@@ -126,11 +146,11 @@ function transformJson(json, sqlSchema, callback) {
 	}
 }
 
-function generateQuery(query, sqlSchema){
+function generateQuery(query){
 	if (!isValidQuery(query))
 		throw "not valid query";
-	var table = _.findWhere(sqlSchema, { name: query.table });
-	var realTableName = _.has(table, "items") ? table.items : query.table;
+	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
+	var realTableName = _.has(table, "items") ? table.items : query.object;
 	if (_.has(query, "fields")){
 		var realQueryFields = _.map(query.fields, function(f){
 			return table.fields[f].dbName ? table.fields[f].dbName : f;
@@ -212,7 +232,7 @@ function generateKeyValueExp(kv, table){
 		}
 	}
 	else{
-		if (isVariable(kv[column])){
+		if (parserState.isFilter && isVariable(kv[column])){
 			var t = getType(table, column);
 			return column + " = " + escapeVariableOfType(kv[column], t);
 		}
@@ -243,7 +263,7 @@ function generateQueryConditional(qc, table, column){
     	throw "not valid query Conditional";
 	var comparand = qc[comparisonOperator];
 	var generatedComparand = " ";
-	if (isVariable(comparand)){
+	if (parserState.isFilter && isVariable(comparand)){
 		var t = getType(table, column);
 		generatedComparand = escapeVariableOfType(comparand, t);
 	}
