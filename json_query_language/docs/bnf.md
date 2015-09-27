@@ -1,12 +1,12 @@
 # BNF Definition of Query Language
 
-	Query ::=  SingleTableQuery | UnionQuery | JoinQuery
+	Query ::=  SingleTableQuery | UnionQuery
 
-	SingleTableQuery ::= { object: String, q: Exp, fields: Array of String, limit: Integer, sort: SortSpec }
+	SingleTableQuery ::= { object: String, q: Exp, fields: Array of String, order: SortSpec, limit: Integer }
 
 fields is optional. If omitted all fields are taken.
-limit is optional
 sort is optional
+limit is optional
 
 	SortSpec ::= Array of [ ColumnName, ColumnOrder ]
 
@@ -14,11 +14,9 @@ sort is optional
 
 	ColumnOrder ::= asc | desc
 
-	UnionQuery ::= { union: [Query1, Query2, ... ] }
+	UnionQuery ::= { $union: [Query1, Query2, ... ] }
 
-	JoinQuery ::= { join: Array of Query, on: Array of ComparisonExp }
-
-	ComparisonExp ::= Key : ValueExp | Key : Key
+	ComparisonExp ::= Key : ValueExp
 
 	Exp ::= AndExp | OrExp
 
@@ -28,7 +26,7 @@ sort is optional
 
 	QueryConditional ::= { ComparisonOperator : Comparand }
 
-	ComparisonOperator ::= $in, $nin, $lte, $lt, $gte, $gt, $eq, $neq, $not, $size
+	ComparisonOperator ::= $in, $nin, $lte, $lt, $gte, $gt, $eq, $neq, $not, $like
 
 	Comparand ::= Constant | Array of Constants | Query
 

@@ -1,8 +1,11 @@
 module.exports.validator = validateSchema;
 
+
 var _ = require('underscore');
 
 var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ "datetime", "boolean", "binary"];
+
+module.exports.validTypes = validTypes;
 
 // schema - JSON representing schema 
 

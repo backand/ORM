@@ -8,8 +8,9 @@ var mysql = require('mysql');
 var api_url = require('../../config').api_url;
 var tokenUrl = api_url + "/token";
 var fetchTables = require("../../backand_to_object").fetchTables; 
+var validTypes = require("../../validate_schema").validTypes;
 
-var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$exists"];
+var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like"];
 
 var mysqlOperator = {
 	"$in": "IN",
@@ -20,7 +21,9 @@ var mysqlOperator = {
 	"$gte": ">=",
 	"$eq": "=",
 	"$neq": "!=",
-	"$not": "NOT"
+	"$not": "NOT",
+	"$union": "UNION",
+	"$like": "LIKE"
 };
 
 var email = "kornatzky@me.com";
@@ -29,22 +32,38 @@ var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
 // 	{
-// 		"object" : "Employees",
-// 		"q" : {
-// 			"$or" : [
-// 				{
-// 					"Budget" : {
-// 						"$gt" : "#x#"
-// 					}
+// 		"$union": 	[
+// 			{
+// 				"object" : "Employees",
+// 				"q" : {
+// 					"$or" : [
+// 						{
+// 							"Budget" : {
+// 								"$gt" : 20
+// 							}
+// 						},
+// 						{
+// 							"Location" : { 
+// 								"$like" :  "Tel Aviv"
+// 							}
+// 						}
+// 					]
 // 				},
-// 				{
-// 					"Location" : "<div>Tel Aviv</div>"
-// 				}
-// 			]
-// 		},
-// 		fields: ["Location", "Budget"]
+// 				fields: ["Location"],
+// 				order: [["X", "asc"], ["Budget", "desc"]]
+// 			},
+// 			{
+// 				"object" : "Person",
+// 				"q" : {
+// 					"name": "john"
+// 				},
+// 				fields: ["City"],
+// 				limit: 11
+// 			}
+// 		]
 // 	},
-// false,
+
+// 	false,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -90,7 +109,7 @@ function getDatabaseInformation(email, password, appName, callback){
 		    	});
 		    }
 		    else{
-		    	callback(error? error : "statusCode != 200", result);
+		    	callback(error? error : "statusCode != 200", null);
 		    }
 		}
 
@@ -118,7 +137,7 @@ var parserState = {
 function transformJson(json, sqlSchema, isFilter, callback) {
 	parserState.sqlSchema = sqlSchema;
 	parserState.isFilter = isFilter;
-	var sqlQuery = null;
+	var result = null;
 	var err = null;
 	try { 
 	 //  var sqlSchema = [
@@ -132,23 +151,75 @@ function transformJson(json, sqlSchema, isFilter, callback) {
 		// 		},
 		// 		"Location": {
 		// 			"type": "string"
+		// 		},
+		// 		"X": {
+		// 			"type": "float"
+		// 		},
+		// 		"y": {
+		// 			"object": "users"
+		// 		}
+		// 	}
+		// },
+		// { 
+	 //  		"name" : "Person", 
+	 //  		"fields" : {
+		// 		"Name": {
+		// 			"type": "string"
+		// 		},
+		// 		"City": {
+		// 			"type": "string"
 		// 		}
 		// 	}
 		// }
 	 //  ];
-	  sqlQuery = generateQuery(json);
+	  parserState.sqlSchema = sqlSchema;
+	  var sqlQuery = generateQuery(json);
+	  result = sqlQuery.sql;
 	}
 	catch (exp) {
 		err = exp;
 	}
 	finally{
-		callback(err, sqlQuery);
+		callback(err, result);
 	}
 }
 
+/** @function
+ * @name generateQuery
+ * @description computes the sql query and the types of column in output of query
+ * the workhorse of the algorithm
+ * @param {object} json - json query
+ * @param {object} sqlSchema - array of json schema of tables with fields: name, fields, items (optional dbname)
+ * @param {boolean} isFilter - a filter query allows variables
+ * @param {object} callback - function(err, s) where s is an object with two fields:
+ * sql - sql statement for the query
+ * fields - array of types of columns as strings
+ */
+
 function generateQuery(query){
-	if (!isValidQuery(query))
+	var validity = isValidQuery(query);
+
+	if (!validity)
 		throw "not valid query";
+
+	switch(validity)
+	{
+		case "singleTableQuery":
+			return generateSingleTableQuery(query);
+		break;
+
+		case "unionQuery":
+			return generateUnionQuery(query);
+		break;
+
+		default:
+			throw "Unknown query type";
+		break;
+	}
+
+}
+
+function generateSingleTableQuery(query){
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
 	var realTableName = _.has(table, "items") ? table.items : query.object;
 	if (_.has(query, "fields")){
@@ -156,8 +227,6 @@ function generateQuery(query){
 			return table.fields[f].dbName ? table.fields[f].dbName : f;
 		});
 		var selectClause = "SELECT " + realQueryFields.join(",");
-
-
 	}
 	else{
 		var selectClause = "SELECT " + "*";
@@ -165,9 +234,80 @@ function generateQuery(query){
 	
 	var fromClause = "FROM " + realTableName;
 	var whereClause = "";
+	var limitClause = "";
+	var orderByClause = "";
+	if (_.has(query, "order")){
+		orderByClause = generateOrderBy(query.order, table);
+	}
+	if (_.has(query, "limit")){
+		limitClause = generateLimit(query.limit);
+	}
 	whereClause = generateExp(query.q, table);
-	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "");
-	return sqlQuery;
+	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "") + " " + orderByClause + " " + limitClause;
+	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
+	if (_.has(query, "fields")){
+		var queryFields = _.map(query.fields, function(f){
+			return table.fields[f].type;
+		});
+	}
+	else{	
+		var queryFields = _.pluck(table.fields, "type");
+	}
+	return { fields: queryFields, sql: sqlQuery };
+}
+
+function generateUnionQuery(query){
+	var operands = query["$union"];
+	if (!_.isArray(operands))
+		throw "A valid union query should have array of queries for union";
+	if (operands.length < 2)
+		throw "Need at least two queries to do union on";
+	
+	// check if all queries have the same types of fields so union is possible
+	var components = _.map(operands, function(o){
+		return generateQuery(o);
+	});
+	var querySchema = components[0].fields;
+	if (!_.every(components, function(c){ return _.isEqual(c.fields, querySchema);	})){
+		throw "not all queries in union have the same schema";
+	}
+	return { 
+		fields: querySchema, 
+		sql:  _.reduce(
+				components, 
+				function(memo, v){
+					return (memo ? memo + " UNION ": memo) + v.sql;
+				}, 
+				""
+			)
+	};
+}
+
+function generateOrderBy(orderArray, table){
+	if (!_.isArray(orderArray))
+		throw "An order spec should be an array";
+	if (!_.every(orderArray, function(o){
+		var v =  _.isArray(o) && o.length == 2 && _.isString(o[0]) && (o[1] == "asc" || o[1] == "desc") &&
+			_.has(table.fields, o[0]) &&  _.includes(validTypes, table.fields[o[0]].type);
+		return v;
+	}))
+		throw "Not a valid order spec";
+
+	return "ORDER BY " + _.reduce(
+		_.map(orderArray, function(o){
+			return o[0] + " " + o[1];
+		}), 
+		function(memo, v){
+			return (memo ? memo + " , ": memo) + v;
+		}, 
+		""
+	);
+}
+
+function generateLimit(limit){
+	if (!_.isNumber(limit) || !_.isFinite(parseInt(limit, 10)) || parseInt(limit, 10) != limit)
+		throw "limit should be integer";
+	return "LIMIT " + limit;
 }
 
 function generateExp(exp, table){
@@ -201,7 +341,16 @@ function generateExp(exp, table){
 }
 
 function isValidQuery(q){
-	return  ((typeof q) == 'object') && q.q && q.table;
+	if (!_.isObject(q))
+		return false;
+	var keys = _.keys(q);
+	if (!_.isArray(keys))
+		return false;
+	if (_.includes(keys, "q") && _.includes(keys, "object")) // single table query
+		return "singleTableQuery";
+	else if (_.includes(keys, "$union") && keys.length == 1);  // union query
+		return "unionQuery";
+	return false;
 }
 
 function isOrExp(exp){
@@ -228,7 +377,8 @@ function generateKeyValueExp(kv, table){
 			throw "Not a valid exists expression";
 		}
 		else{
-			return "EXISTS (" + generateQuery(kv[column]) + " )";
+			var subquery = generateQuery(kv[column]);
+			return "EXISTS (" + subquery.sql + " )";
 		}
 	}
 	else{
@@ -267,6 +417,9 @@ function generateQueryConditional(qc, table, column){
 		var t = getType(table, column);
 		generatedComparand = escapeVariableOfType(comparand, t);
 	}
+	else if (comparisonOperator == "$like" && (table.fields[column].type != "string" && table.fields[column].type != "text")){
+		throw "$like is not valid for column " + column + " of table " + table.name + " because it is not a string or text column";
+	}
 	else if (isConstant(comparand)){
 		// constant value
 		var t = getType(table, column);
@@ -279,8 +432,10 @@ function generateQueryConditional(qc, table, column){
 		generatedComparand = comparand;
 	}
 	else{ // sub query
-		generatedComparand = "( " + generateQuery(comparand) + " )";
+		var subquery = generateQuery(comparand);
+		generatedComparand = "( " + subquery.sql + " )";
 	}
+
 	return mysqlOperator[comparisonOperator] + " " + generatedComparand;
 }
 
@@ -295,7 +450,6 @@ function isConstant(value){
  */
 
 function isVariable(value){
-	console.log("isVariable", value);
 	return _.isString(value) && /^#[a-zA-Z]\w*#$/.test(value);
 }
 
