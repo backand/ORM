@@ -1,0 +1,18 @@
+{
+  "name": "backand-s3-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sync a source folder to AWS S3 bucket",
+  "dependencies": {
+    "gulp": "latest",
+    "gulp-watch": "latest",
+    "gulp-awspublish": "latest",
+    "underscore": "latest"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC"
+}
