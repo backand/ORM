@@ -2,13 +2,21 @@
 
 	Query ::=  SingleTableQuery | UnionQuery
 
-	SingleTableQuery ::= { object: String, q: Exp, fields: Array of String, order: SortSpec, limit: Integer }
+	SingleTableQuery ::= { object: String, q: Exp, fields: Array of ColumnName, order: SortSpec, limit: Integer, groupBy: Array of ColumnName, aggregate: AggregateSpec }
 
 fields is optional. If omitted all fields are taken.
 sort is optional
 limit is optional
+groupBy is optional, but if present, aggregate and fields should also be present. groupBy must be a subset of fields
+aggregate is optional, but if present, groupBy and fields must also be present
 
 	SortSpec ::= Array of [ ColumnName, ColumnOrder ]
+
+	AggregateSpec ::= { ColumnAggregation1, ColumnAggregation2, ... }
+
+	ColumnAggregation ::= ColumnName : AggergationOperator
+
+Columns used in ColumnAggregation must be included in fields and must not be included in groupBy
 
 	ColumnName ::= String
 
@@ -27,6 +35,8 @@ limit is optional
 	QueryConditional ::= { ComparisonOperator : Comparand }
 
 	ComparisonOperator ::= $in, $nin, $lte, $lt, $gte, $gt, $eq, $neq, $not, $like
+
+	AggregationOperator ::= $max, $min, $sum, $count, $concat, $avg
 
 	Comparand ::= Constant | Array of Constants | Query
 

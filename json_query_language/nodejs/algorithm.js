@@ -11,6 +11,7 @@ var fetchTables = require("../../backand_to_object").fetchTables;
 var validTypes = require("../../validate_schema").validTypes;
 
 var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like"];
+var aggregationOperators = ["$max", "$min", "$sum", "$count", "$concat", "$avg"];
 
 var mysqlOperator = {
 	"$in": "IN",
@@ -23,7 +24,13 @@ var mysqlOperator = {
 	"$neq": "!=",
 	"$not": "NOT",
 	"$union": "UNION",
-	"$like": "LIKE"
+	"$like": "LIKE",
+	"$max": "MAX", 
+	"$min": "MIN", 
+	"$sum": "SUM", 
+	"$count": "COUNT", 
+	"$concat": "GROUP_CONCAT",
+	"$avg": "AVG"
 };
 
 var email = "kornatzky@me.com";
@@ -49,8 +56,12 @@ var appName = "testsql";
 // 						}
 // 					]
 // 				},
-// 				fields: ["Location"],
-// 				order: [["X", "asc"], ["Budget", "desc"]]
+// 				fields: ["Location", "Budget", "country"],
+// 				order: [["X", "asc"], ["Budget", "desc"]],
+// 				groupBy: ["country"],
+// 				aggregate: {
+// 					Location: "$concat"
+// 				}
 // 			},
 // 			{
 // 				"object" : "Person",
@@ -157,6 +168,9 @@ function transformJson(json, sqlSchema, isFilter, callback) {
 		// 		},
 		// 		"y": {
 		// 			"object": "users"
+		// 		},
+		// 		"country": {
+		// 			"type": "string"
 		// 		}
 		// 	}
 		// },
@@ -222,28 +236,108 @@ function generateQuery(query){
 function generateSingleTableQuery(query){
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
 	var realTableName = _.has(table, "items") ? table.items : query.object;
-	if (_.has(query, "fields")){
-		var realQueryFields = _.map(query.fields, function(f){
-			return table.fields[f].dbName ? table.fields[f].dbName : f;
-		});
-		var selectClause = "SELECT " + realQueryFields.join(",");
-	}
-	else{
-		var selectClause = "SELECT " + "*";
-	}
+	
 	
 	var fromClause = "FROM " + realTableName;
 	var whereClause = "";
 	var limitClause = "";
 	var orderByClause = "";
+	var groupByClause = "";
+
+	// test validity of group by
+	if (_.has(query, "groupBy")){
+		// group by requires fields and aggregate
+		if (!_.has(query, "fields") || !_.has(query, "aggregate") ||  _.isEmpty(query.aggregate)){
+			throw "A group by query requires fields and aggregate";
+		}
+		// fields on which you group must be specified in select clause
+		if (_.size(_.difference(query.groupBy,query.fields)) > 0){
+			throw "Can group only on fields specified in select clause";
+		}
+		if (_.size(_.difference(_.keys(query.aggregate),query.fields)) > 0){
+			throw "Can aggregate only on fields specified in select clause";
+		}
+		// cannot group by on aggregated fields
+		if (_.size(_.intersection(_.keys(query.groupBy),_.keys(query.aggregate))) > 0){
+			throw "Cannot group on fields that are aggregate";
+		}
+		// all fields in groupby must be in the scheme of the table
+		if (_.size(_.difference(query.groupBy, _.keys(table.fields))) > 0){
+			throw "Cannot group on fields not in the object";
+		}
+		// all fields in aggregate must be in the scheme of the table
+		if (_.size(_.difference(_.keys(query.aggregate), _.keys(table.fields))) > 0){
+			throw "Cannot aggregate on fields not in the object";
+		}
+		if (_.size(_.difference(_.values(query.aggregate), aggregationOperators)) > 0){
+			throw "Only " + aggregationOperators.join(", ") + " are allowed in aggregate";
+		}
+
+		// aggregates can be applied according to type of column
+		_.each(_.pairs(query.aggregate), function(a){
+			if (!_.has(table.fields[a[0]], "type"))
+				throw "aggregate cannot be applied to relationship fields";
+			var columnType = table.fields[a[0]].type;
+			var aggregate = a[1];
+			switch(aggregate)
+			{
+				case "$sum":
+				case "$avg":
+				case "$min":
+				case "$max":
+					if (columnType != "float")
+						throw aggregate + " can be applied only to float";
+				break;
+				case "$concat":
+					if (columnType != "string" && columnType != "text")
+						throw aggregate + " can be applied only to string or text";
+				break;
+				case "$count":
+				break;
+			}
+		});		
+	}
+	if (_.has(query, "aggregate")){
+		// aggregate by requires fields and group
+		if (!_.has(query, "fields") || !_.has(query, "groupBy")){
+			throw "An aggregate query requires fields and group by";
+		}
+	}
+
 	if (_.has(query, "order")){
 		orderByClause = generateOrderBy(query.order, table);
 	}
 	if (_.has(query, "limit")){
 		limitClause = generateLimit(query.limit);
 	}
+	if (_.has(query, "groupBy")){		
+		groupByClause = generateGroupBy(query.groupBy, table);
+	}
+
+	if (_.has(query, "fields")){	
+		var aggregate = query.aggregate;	
+		var realQueryFields = _.map(query.fields, function(f){
+			if (!aggregate){
+				return table.fields[f].dbName ? table.fields[f].dbName : f;
+			}
+			else{
+				if (_.has(aggregate, f)){
+					return mysqlOperator[aggregate[f]] + "(" + (table.fields[f].dbName ? table.fields[f].dbName : f) + ")";
+				}
+				else{
+					return table.fields[f].dbName ? table.fields[f].dbName : f;
+				}
+			}
+		});
+		var selectClause = "SELECT " + realQueryFields.join(",");	
+	}
+	else{
+		var selectClause = "SELECT " + "*";
+	}
+
+
 	whereClause = generateExp(query.q, table);
-	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "") + " " + orderByClause + " " + limitClause;
+	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "") + " " + groupByClause + " " + orderByClause + " " + limitClause;
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
 	if (_.has(query, "fields")){
 		var queryFields = _.map(query.fields, function(f){
@@ -293,15 +387,20 @@ function generateOrderBy(orderArray, table){
 	}))
 		throw "Not a valid order spec";
 
-	return "ORDER BY " + _.reduce(
+	return "ORDER BY " +
 		_.map(orderArray, function(o){
 			return o[0] + " " + o[1];
-		}), 
-		function(memo, v){
-			return (memo ? memo + " , ": memo) + v;
-		}, 
-		""
-	);
+		}).join(" , ");
+
+}
+
+function generateGroupBy(groupByArray, table){
+	if (!_.isArray(groupByArray))
+		throw "A group by spec should be an array";
+	if (_.size(_.difference(groupByArray, _.keys(table.fields))) > 0)
+		throw "All fields on which you group must belong to table";
+
+	return "GROUP BY " + groupByArray.join(" , ");
 }
 
 function generateLimit(limit){
