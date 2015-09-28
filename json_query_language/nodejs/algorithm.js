@@ -1,4 +1,5 @@
 module.exports.transformJson = transformJson;
+module.exports.transformJsonIntoSQL = transformJsonIntoSQL;
 module.exports.validValueOfType = validValueOfType;
 module.exports.escapeValueOfType = escapeValueOfType;
 
@@ -33,46 +34,66 @@ var mysqlOperator = {
 	"$avg": "AVG"
 };
 
-var email = "kornatzky@me.com";
-var password = "secret";
-var appName = "testsql";
+// var email = "kornatzky@me.com";
+// var password = "secret";
+// var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
-// 	{
-// 		"$union": 	[
-// 			{
-// 				"object" : "Employees",
-// 				"q" : {
-// 					"$or" : [
-// 						{
-// 							"Budget" : {
-// 								"$gt" : 20
-// 							}
-// 						},
-// 						{
-// 							"Location" : { 
-// 								"$like" :  "Tel Aviv"
-// 							}
-// 						}
-// 					]
-// 				},
-// 				fields: ["Location", "Budget", "country"],
-// 				order: [["X", "asc"], ["Budget", "desc"]],
-// 				groupBy: ["country"],
-// 				aggregate: {
-// 					Location: "$concat"
-// 				}
-// 			},
-// 			{
-// 				"object" : "Person",
-// 				"q" : {
-// 					"name": "john"
-// 				},
-// 				fields: ["City"],
-// 				limit: 11
-// 			}
-// 		]
-// 	},
+
+	// {
+	// 	"object" : "Employees",
+	// 	"q": {
+	// 		"DeptId" : {
+	// 			"$in" : {
+	// 				"object" : "Dept",
+	// 				"q": {
+	// 					"Budget" : {
+	// 						"$gt" : 4500
+	// 					}
+	// 				},
+	// 				"fields" : [
+	// 					"DeptId"
+	// 				]
+	// 			}
+	// 		}
+	// 	}
+	// },
+
+	// {
+	// 	"$union": 	[
+	// 		{
+	// 			"object" : "Employees",
+	// 			"q" : {
+	// 				"$or" : [
+	// 					{
+	// 						"Budget" : {
+	// 							"$gt" : 20
+	// 						}
+	// 					},
+	// 					{
+	// 						"Location" : { 
+	// 							"$like" :  "Tel Aviv"
+	// 						}
+	// 					}
+	// 				]
+	// 			},
+	// 			fields: ["Location", "country"],
+	// 			order: [["X", "asc"], ["Budget", "desc"]],
+	// 			groupBy: ["country"],
+	// 			aggregate: {
+	// 				Location: "$concat"
+	// 			}
+	// 		},
+	// 		{
+	// 			"object" : "Person",
+	// 			"q" : {
+	// 				"name": "john"
+	// 			},
+	// 			fields: ["City", "country"],
+	// 			limit: 11
+	// 		}
+	// 	]
+	// },
 
 // 	false,
 // 	function(err, sql){
@@ -182,6 +203,20 @@ function transformJson(json, sqlSchema, isFilter, callback) {
 		// 		},
 		// 		"City": {
 		// 			"type": "string"
+		// 		},
+		// 		"country": {
+		// 			"type": "string"
+		// 		}
+		// 	}
+		// },
+		// {
+		// 	"name" : "Dept", 
+		// 	"fields" : {
+		// 		"DeptId": {
+		// 			"type": "string"
+		// 		},
+		// 		"Budget": {
+		// 			"type": "float"
 		// 		}
 		// 	}
 		// }
@@ -334,7 +369,6 @@ function generateSingleTableQuery(query){
 	else{
 		var selectClause = "SELECT " + "*";
 	}
-
 
 	whereClause = generateExp(query.q, table);
 	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "") + " " + groupByClause + " " + orderByClause + " " + limitClause;
