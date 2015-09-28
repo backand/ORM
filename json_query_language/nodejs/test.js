@@ -204,7 +204,7 @@ describe("translate mysql", function(){
 							},
 							fields: ["Location", "country"],
 							order: [["X", "asc"], ["Budget", "desc"]],
-							// groupBy: ["country"],
+							groupBy: ["country"],
 							aggregate: {
 								Location: "$concat"
 							}
