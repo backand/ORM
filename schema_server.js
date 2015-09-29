@@ -5,7 +5,7 @@ var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 var socket = require('socket.io-client')('http://localhost:4000');
-
+var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
 
 //
 // Create a Router
@@ -129,6 +129,30 @@ router.map(function () {
             res.send(401, {}, null);
         }
     });
+
+    // translate json into mysql
+    // status code according to result
+    // error returned in header
+    this.post('/transformJson').bind(function (req, res, data) {
+        var tokenStructure = getToken(req.headers);
+        fetchTables(tokenStructure[1], tokenStructure[0], data.appName, true, function(err, sqlSchema){
+            if (err){
+                res.send(500, { error: err }, null);
+            }
+            else{
+                transformJson(data.json, data.sqlSchema, data.isFilter, function(err, result){
+                    if (err){
+                        res.send(400, { error: err }, null);
+                    }
+                    else{
+                        res.send(200, {}, result);
+                    }
+                });
+            }
+        });
+
+    });
+
 
     //use for the socket.io
 
