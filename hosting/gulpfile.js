@@ -2,16 +2,18 @@ var gulp = require('gulp');
 var watch = require('gulp-watch');
 var awspublish = require('gulp-awspublish');
 var _ = require('underscore');
+var fs = require('fs');
 
 // get credentials
-var credentials = JSON.parse(fs.readFileSync('aws-credentials.json', 'utf8')),
+var credentials = JSON.parse(fs.readFileSync('aws-credentials.json', 'utf8'));
 
 // create a new publisher using S3 options 
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property 
 var publisherOptions = _.extend(credentials,   
   {
     params: {
-      Bucket: 'hostexperiment'
+      Bucket: 'backandhosting',
+      ACL: "public-read"
     }
   }
 );
@@ -22,18 +24,18 @@ var contentType = "text/plain";
 var headers = {
 	//'Cache-Control': 'max-age=315360000, no-transform, public'
 	// ... 
-	ACL: "public-read",
+
 	ContentType: contentType
 };
 
-gulp.task('watch', function() {
-	var publisher = awspublish.create(publisherOptions);
-	return gulp.src('./src/**/*.*')
-		.pipe(watch('./src/**/*.*'))
-		.pipe(publisher.publish(headers))
-		.pipe(publisher.cache())
-		.pipe(awspublish.reporter());
-});
+// gulp.task('watch', function() {
+// 	var publisher = awspublish.create(publisherOptions);
+// 	return gulp.src('./src/**/*.*')
+// 		.pipe(watch('./src/**/*.*'))
+// 		.pipe(publisher.publish(headers))
+// 		.pipe(publisher.cache())
+// 		.pipe(awspublish.reporter());
+// });
 
 
  
