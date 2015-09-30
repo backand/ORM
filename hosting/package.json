@@ -7,7 +7,9 @@
     "gulp": "latest",
     "gulp-watch": "latest",
     "gulp-awspublish": "latest",
-    "underscore": "latest"
+    "underscore": "latest",
+    "del": "latest",
+    "gulp-awspublish-router": "latest"
   },
   "devDependencies": {},
   "scripts": {

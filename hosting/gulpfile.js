@@ -3,6 +3,8 @@ var watch = require('gulp-watch');
 var awspublish = require('gulp-awspublish');
 var _ = require('underscore');
 var fs = require('fs');
+var del = require('del');
+var awspublishRouter = require("gulp-awspublish-router");
 
 // get credentials
 var credentials = JSON.parse(fs.readFileSync('aws-credentials.json', 'utf8'));
@@ -28,23 +30,22 @@ var headers = {
 	ContentType: contentType
 };
 
-// gulp.task('watch', function() {
-// 	var publisher = awspublish.create(publisherOptions);
-// 	return gulp.src('./src/**/*.*')
-// 		.pipe(watch('./src/**/*.*'))
-// 		.pipe(publisher.publish(headers))
-// 		.pipe(publisher.cache())
-// 		.pipe(awspublish.reporter());
-// });
 
-
- 
+// upload new and changed only 
 gulp.task('upload', function() {
 
 	var publisher = awspublish.create(publisherOptions);
  
     return gulp.src('./src/**/*.*')
 
+        // set content type
+    	// .pipe(awspublishRouter({
+     //        routes: {
+     //            "^(\w|-)+.jpg$": {
+     //                ContentType: "jpg"
+     //            }
+     //        }
+     //    }))
  
 	    // publisher will add Content-Length, Content-Type and headers specified above 
 	    // If not specified it will set x-amz-acl to public-read by default 
@@ -55,4 +56,22 @@ gulp.task('upload', function() {
 	 
 	     // print upload updates to console 
 	    .pipe(awspublish.reporter());
+});
+
+// erase deleted files. upload new and changes only
+gulp.task('sync', function() {
+
+	var publisher = awspublish.create(publisherOptions);
+ 
+	// this will publish and sync bucket files with the one in your public directory 
+	gulp.src('./src/**/*.*')
+	  .pipe(publisher.publish())
+	  .pipe(publisher.sync())
+	  .pipe(awspublish.reporter());
+
+});
+
+// clean cache of gulpfile if it gets confused about delete/insert of same file in same bucket
+gulp.task('clean', function() {
+	return del(['./.awspublish*']);
 });
