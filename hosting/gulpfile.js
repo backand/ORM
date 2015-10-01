@@ -27,7 +27,7 @@ var headers = {
 	//'Cache-Control': 'max-age=315360000, no-transform, public'
 	// ... 
 
-	ContentType: contentType
+	// ContentType: contentType
 };
 
 
@@ -41,15 +41,27 @@ gulp.task('upload', function() {
         // set content type
     	// .pipe(awspublishRouter({
      //        routes: {
-     //            "^(\w|-)+.jpg$": {
-     //                ContentType: "jpg"
-     //            }
+     //            "^./src/(\w|-)+.jpg$": {
+     //                headers: {
+     //                    "Content-Type": "image/jpg"
+     //                }
+     //            },
+
+     //            "^.+$": {
+     //                headers: {
+     //                    "Content-Type": "text/plain"
+     //                }
+     //            },
+
+                
+
+
      //        }
      //    }))
  
 	    // publisher will add Content-Length, Content-Type and headers specified above 
 	    // If not specified it will set x-amz-acl to public-read by default 
-	    .pipe(publisher.publish(headers))
+	    .pipe(publisher.publish())
 	 
 	    // create a cache file to speed up consecutive uploads 
 	    .pipe(publisher.cache())
