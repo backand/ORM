@@ -371,7 +371,15 @@ function generateSingleTableQuery(query){
 	}
 
 	whereClause = generateExp(query.q, table);
-	var sqlQuery = selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "") + " " + groupByClause + " " + orderByClause + " " + limitClause;
+	var sqlQuery = { 
+		str: selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "") + " " + groupByClause + " " + orderByClause + " " + limitClause,
+		select: selectClause,
+		from: fromClause,
+		where: whereClause,
+		group: groupByClause,
+		order: orderByClause,
+		limit: limitClause
+	};
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
 	if (_.has(query, "fields")){
 		var queryFields = _.map(query.fields, function(f){
