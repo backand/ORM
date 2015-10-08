@@ -135,7 +135,7 @@ router.map(function () {
     // error returned in header
     this.post('/transformJson').bind(function (req, res, data) {
         var tokenStructure = getToken(req.headers);
-        fetchTables(tokenStructure[1], tokenStructure[0], data.appName, true, function(err, sqlSchema){
+        fetcher(tokenStructure[1], tokenStructure[0], data.appName, true, function(err, sqlSchema){
             if (err){
                 res.send(500, { error: err }, null);
             }
