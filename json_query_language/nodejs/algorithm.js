@@ -44,30 +44,30 @@ var variableName = 0;
 var variableSeed = "A";
 var valuesArray =[];
 
-var email = "kornatzky@me.com";
-var password = "secret";
-var appName = "testsql";
+// var email = "kornatzky@me.com";
+// var password = "secret";
+// var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
 
-	// {
-	// 	"object" : "Employees",
-	// 	"q": {
-	// 		"DeptId" : {
-	// 			"$in" : {
-	// 				"object" : "Dept",
-	// 				"q": {
-	// 					"Budget" : {
-	// 						"$gt" : 4500
-	// 					}
-	// 				},
-	// 				"fields" : [
-	// 					"DeptId"
-	// 				]
-	// 			}
-	// 		}
-	// 	}
-	// },
+// 	{
+// 		"object" : "Employees",
+// 		"q": {
+// 			"DeptId" : {
+// 				"$in" : {
+// 					"object" : "Dept",
+// 					"q": {
+// 						"Budget" : {
+// 							"$gt" : 4500
+// 						}
+// 					},
+// 					"fields" : [
+// 						"DeptId"
+// 					]
+// 				}
+// 			}
+// 		}
+// 	},
 
 // 	{
 // 		"$union": 	[
@@ -106,7 +106,7 @@ var appName = "testsql";
 // 	},
 
 // 	false,
-// 	false,
+// 	true,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -185,55 +185,55 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	var result = null;
 	var err = null;
 	try { 
-	 //  var sqlSchema = [
-	 //  	{ 
-	 //  		"name" : "Employees", 
-	 //  		"items": "blabla", 
-	 //  		"fields" : {
-		// 		"Budget": {
-		// 			"dbname": "bbb",
-		// 			"type": "float"
-		// 		},
-		// 		"Location": {
-		// 			"type": "string"
-		// 		},
-		// 		"X": {
-		// 			"type": "float"
-		// 		},
-		// 		"y": {
-		// 			"object": "users"
-		// 		},
-		// 		"country": {
-		// 			"type": "string"
-		// 		}
-		// 	}
-		// },
-		// { 
-	 //  		"name" : "Person", 
-	 //  		"fields" : {
-		// 		"Name": {
-		// 			"type": "string"
-		// 		},
-		// 		"City": {
-		// 			"type": "string"
-		// 		},
-		// 		"country": {
-		// 			"type": "string"
-		// 		}
-		// 	}
-		// },
-		// {
-		// 	"name" : "Dept", 
-		// 	"fields" : {
-		// 		"DeptId": {
-		// 			"type": "string"
-		// 		},
-		// 		"Budget": {
-		// 			"type": "float"
-		// 		}
-		// 	}
-		// }
-	 //  ];
+	  var sqlSchema = [
+	  	{ 
+	  		"name" : "Employees", 
+	  		"items": "blabla", 
+	  		"fields" : {
+				"Budget": {
+					"dbname": "bbb",
+					"type": "float"
+				},
+				"Location": {
+					"type": "string"
+				},
+				"X": {
+					"type": "float"
+				},
+				"y": {
+					"object": "users"
+				},
+				"country": {
+					"type": "string"
+				}
+			}
+		},
+		{ 
+	  		"name" : "Person", 
+	  		"fields" : {
+				"Name": {
+					"type": "string"
+				},
+				"City": {
+					"type": "string"
+				},
+				"country": {
+					"type": "string"
+				}
+			}
+		},
+		{
+			"name" : "Dept", 
+			"fields" : {
+				"DeptId": {
+					"type": "string"
+				},
+				"Budget": {
+					"type": "float"
+				}
+			}
+		}
+	  ];
 	  parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
@@ -384,6 +384,7 @@ function generateSingleTableQuery(query){
 	}
 
 	whereClause = generateExp(query.q, table);
+	var variablesArray = _.map(_.range(1, variableName + 1), function(i){ return encloseVariable(s.repeat(variableSeed, i)); });
 	var sqlQuery = { 
 		str: selectClause + " " + fromClause + " " + (whereClause ? "WHERE (" + whereClause + ")" : "") + " " + groupByClause + " " + orderByClause + " " + limitClause,
 		select: selectClause,
@@ -392,8 +393,8 @@ function generateSingleTableQuery(query){
 		group: groupByClause,
 		order: orderByClause,
 		limit: limitClause,
-		variables: _.map(_.range(1, variableName + 1), function(i){ return s.repeat(variableSeed, i); }),
-		values: valuesArray
+		variables: variablesArray,
+		values: _.object(variablesArray, valuesArray)
 	};
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
 	if (_.has(query, "fields")){
@@ -422,6 +423,8 @@ function generateUnionQuery(query){
 	if (!_.every(components, function(c){ return _.isEqual(c.fields, querySchema);	})){
 		throw "not all queries in union have the same schema";
 	}
+
+	var variablesArray = _.map(_.range(1, variableName + 1), function(i){ return encloseVariable(s.repeat(variableSeed, i)); });
 	var sqlQuery = {
 		sql:  _.reduce(
 			components, 
@@ -436,8 +439,8 @@ function generateUnionQuery(query){
 		group: "",
 		order: "",
 		limit: "",
-		variables: _.map(_.range(1, variableName + 1), function(i){ return s.repeat(variableSeed, i); }),
-		values: valuesArray
+		variables: variablesArray,
+		values: _.object(variablesArray, valuesArray)
 	};
 	return { 
 		fields: querySchema, 
@@ -767,5 +770,9 @@ function assignNewVariable(value){
 		variableName += 1;
 		newVariable = s.repeat(variableSeed, variableName);
 	}
-	return newVariable;
+	return encloseVariable(newVariable);
+}
+
+function encloseVariable(variableName){
+	return leftEncloseVariable + variableName + rightEncloseVariable;
 }
