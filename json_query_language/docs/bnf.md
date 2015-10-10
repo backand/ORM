@@ -47,3 +47,17 @@ Columns used in ColumnAggregation must be included in fields and must not be inc
 	AndExp ::= { KeyValueExp1, KeyValueExp2, …  }
 
 	OrExp ::=  { $or : [ Exp1, Exp2, ...  ] }
+
+# Variables
+
+Variables to be used in filters are used in queries in place of constants. A variable name has the form: 
+
+    #<string>#
+
+where `string` cannot containt the `#` character.
+
+A variable appears in the query surrounded by quotes, as in:
+
+	'#<string>#'
+
+Variables can be used only if the query is a filter.

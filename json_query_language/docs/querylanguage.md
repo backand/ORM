@@ -225,4 +225,43 @@ A group by query aggregates on fields, and then applies aggregation operators to
 
 # Algorithm to Generate SQL from JSON Queries
 
-The algorith transforms a JSON to SQL by top-down transformation. 
+The algorithm transforms a JSON to SQL by top-down transformation. 
+
+## Usage
+
+    transformJson(json, sqlSchema, isFilter, callback) 
+
+The parameters are:
+
+1. `json` - JSON query or filter
+2. `sqlSchema` - JSON schema of database
+3. `isFilter` - boolean if `json` is filter
+4. `callback` - `function(err, result)`
+
+The result is a structure with fields:
+
+    {
+       str: <SQL statement for query>,
+        select: <select clause>,
+        from: <from clause>,
+        where: <where clause>,
+        group: <group by clause>,
+        order: <order by clause>,
+        limit: <limit clause>     
+    }
+
+## Escaping
+
+All constants appearing in the JSON query are escaped when transformed to SQL.
+
+## Filters
+
+For the case of filter, the query can include variables. Variables take the form of:
+
+    #<variable name>#
+
+and should be enclosed in quotes for the JSON query to be a valid JSON. 
+
+Variables are not escaped because we can escape only constants.
+
+The generated SQL statement will include the variables. Variables will be substituted later by constants.
