@@ -36,6 +36,8 @@ var mysqlOperator = {
 
 var leftEncloseVariable = "{{";
 var rightEncloseVariable = "}}";
+var leftEncloseObject = "`";
+var rightEncloseObject = "`";
 
 // var email = "kornatzky@me.com";
 // var password = "secret";
@@ -43,24 +45,24 @@ var rightEncloseVariable = "}}";
 
 // transformJsonIntoSQL(email, password, appName, 
 
-	// {
-	// 	"object" : "Employees",
-	// 	"q": {
-	// 		"DeptId" : {
-	// 			"$in" : {
-	// 				"object" : "Dept",
-	// 				"q": {
-	// 					"Budget" : {
-	// 						"$gt" : 4500
-	// 					}
-	// 				},
-	// 				"fields" : [
-	// 					"DeptId"
-	// 				]
-	// 			}
-	// 		}
-	// 	}
-	// },
+// 	{
+// 		"object" : "Employees",
+// 		"q": {
+// 			"DeptId" : {
+// 				"$in" : {
+// 					"object" : "Dept",
+// 					"q": {
+// 						"Budget" : {
+// 							"$gt" : 4500
+// 						}
+// 					},
+// 					"fields" : [
+// 						"DeptId"
+// 					]
+// 				}
+// 			}
+// 		}
+// 	},
 
 	// {
 	// 	"$union": 	[
@@ -98,7 +100,7 @@ var rightEncloseVariable = "}}";
 	// 	]
 	// },
 
-	// false,
+// 	false,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -276,7 +278,7 @@ function generateSingleTableQuery(query){
 	var realTableName = _.has(table, "items") ? table.items : query.object;
 	
 	
-	var fromClause = "FROM " + realTableName;
+	var fromClause = "FROM " + encloseObject(realTableName);
 	var whereClause = "";
 	var limitClause = "";
 	var orderByClause = "";
@@ -367,7 +369,7 @@ function generateSingleTableQuery(query){
 				}
 			}
 		});
-		var selectClause = "SELECT " + realQueryFields.join(",");	
+		var selectClause = "SELECT " + _.map(realQueryFields, encloseObject).join(",");	
 	}
 	else{
 		var selectClause = "SELECT " + "*";
@@ -434,7 +436,7 @@ function generateOrderBy(orderArray, table){
 
 	return "ORDER BY " +
 		_.map(orderArray, function(o){
-			return o[0] + " " + o[1];
+			return encloseObject(o[0]) + " " + o[1];
 		}).join(" , ");
 
 }
@@ -445,7 +447,7 @@ function generateGroupBy(groupByArray, table){
 	if (_.size(_.difference(groupByArray, _.keys(table.fields))) > 0)
 		throw "All fields on which you group must belong to table";
 
-	return "GROUP BY " + groupByArray.join(" , ");
+	return "GROUP BY " + _.map(groupByArray, encloseObject).join(" , ");
 }
 
 function generateLimit(limit){
@@ -528,7 +530,7 @@ function generateKeyValueExp(kv, table){
 	else{
 		if (parserState.isFilter && isVariable(kv[column])){
 			var t = getType(table, column);
-			return column + " = " + escapeVariableOfType(kv[column], t);
+			return encloseObject(column) + " = " + escapeVariableOfType(kv[column], t);
 		}
 		else if (isConstant(kv[column])){ 
 			// constant value
@@ -536,13 +538,13 @@ function generateKeyValueExp(kv, table){
 			if (!validValueOfType(kv[column], t)){
 				throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
 			}
-			return column + " = " + escapeValueOfType(kv[column], t);
+			return encloseObject(column) + " = " + escapeValueOfType(kv[column], t);
 		}
 		else if (kv[column]["$not"]){ // Not Exp value
 			return "NOT " + generateQueryConditional(kv[column]["$not"], table, column);
 		}
 		else { // Query Conditional value
-			return column + " " + generateQueryConditional(kv[column], table, column);
+			return encloseObject(column) + " " + generateQueryConditional(kv[column], table, column);
 		}
 	}
 
@@ -702,4 +704,8 @@ function escapeValueOfType(value, type){
 function escapeVariableOfType(value, type){
 
 	return value;
+}
+
+function encloseObject(o){ 
+	return leftEncloseObject + o + rightEncloseObject;
 }
