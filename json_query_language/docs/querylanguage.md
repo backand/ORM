@@ -241,7 +241,7 @@ The parameters are:
 The result is a structure with fields:
 
     {
-       str: <SQL statement for query>,
+        str: <SQL statement for query>,
         select: <select clause>,
         from: <from clause>,
         where: <where clause>,
@@ -258,7 +258,7 @@ All constants appearing in the JSON query are escaped when transformed to SQL.
 
 For the case of filter, the query can include variables. Variables take the form of:
 
-    #<variable name>#
+    {{<variable name>}}
 
 and should be enclosed in quotes for the JSON query to be a valid JSON. 
 

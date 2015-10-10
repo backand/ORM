@@ -52,12 +52,12 @@ Columns used in ColumnAggregation must be included in fields and must not be inc
 
 Variables to be used in filters are used in queries in place of constants. A variable name has the form: 
 
-    #<string>#
+    {{<string>}}
 
 where `string` cannot containt the `#` character.
 
 A variable appears in the query surrounded by quotes, as in:
 
-	'#<string>#'
+	'{{<string>}}'
 
 Variables can be used only if the query is a filter.

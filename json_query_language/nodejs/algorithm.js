@@ -34,6 +34,9 @@ var mysqlOperator = {
 	"$avg": "AVG"
 };
 
+var leftEncloseVariable = "{{";
+var rightEncloseVariable = "}}";
+
 // var email = "kornatzky@me.com";
 // var password = "secret";
 // var appName = "testsql";
@@ -95,7 +98,7 @@ var mysqlOperator = {
 	// 	]
 	// },
 
-// 	false,
+	// false,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -172,55 +175,55 @@ function transformJson(json, sqlSchema, isFilter, callback) {
 	var result = null;
 	var err = null;
 	try { 
-	 //  var sqlSchema = [
-	 //  	{ 
-	 //  		"name" : "Employees", 
-	 //  		"items": "blabla", 
-	 //  		"fields" : {
-		// 		"Budget": {
-		// 			"dbname": "bbb",
-		// 			"type": "float"
-		// 		},
-		// 		"Location": {
-		// 			"type": "string"
-		// 		},
-		// 		"X": {
-		// 			"type": "float"
-		// 		},
-		// 		"y": {
-		// 			"object": "users"
-		// 		},
-		// 		"country": {
-		// 			"type": "string"
-		// 		}
-		// 	}
-		// },
-		// { 
-	 //  		"name" : "Person", 
-	 //  		"fields" : {
-		// 		"Name": {
-		// 			"type": "string"
-		// 		},
-		// 		"City": {
-		// 			"type": "string"
-		// 		},
-		// 		"country": {
-		// 			"type": "string"
-		// 		}
-		// 	}
-		// },
-		// {
-		// 	"name" : "Dept", 
-		// 	"fields" : {
-		// 		"DeptId": {
-		// 			"type": "string"
-		// 		},
-		// 		"Budget": {
-		// 			"type": "float"
-		// 		}
-		// 	}
-		// }
-	 //  ];
+	  var sqlSchema = [
+	  	{ 
+	  		"name" : "Employees", 
+	  		"items": "blabla", 
+	  		"fields" : {
+				"Budget": {
+					"dbname": "bbb",
+					"type": "float"
+				},
+				"Location": {
+					"type": "string"
+				},
+				"X": {
+					"type": "float"
+				},
+				"y": {
+					"object": "users"
+				},
+				"country": {
+					"type": "string"
+				}
+			}
+		},
+		{ 
+	  		"name" : "Person", 
+	  		"fields" : {
+				"Name": {
+					"type": "string"
+				},
+				"City": {
+					"type": "string"
+				},
+				"country": {
+					"type": "string"
+				}
+			}
+		},
+		{
+			"name" : "Dept", 
+			"fields" : {
+				"DeptId": {
+					"type": "string"
+				},
+				"Budget": {
+					"type": "float"
+				}
+			}
+		}
+	  ];
 	  parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
@@ -519,7 +522,7 @@ function generateKeyValueExp(kv, table){
 		}
 		else{
 			var subquery = generateQuery(kv[column]);
-			return "EXISTS (" + subquery.sql + " )";
+			return "EXISTS (" + subquery.sql.str + " )";
 		}
 	}
 	else{
@@ -574,7 +577,7 @@ function generateQueryConditional(qc, table, column){
 	}
 	else{ // sub query
 		var subquery = generateQuery(comparand);
-		generatedComparand = "( " + subquery.sql + " )";
+		generatedComparand = "( " + subquery.sql.str + " )";
 	}
 
 	return mysqlOperator[comparisonOperator] + " " + generatedComparand;
@@ -591,7 +594,8 @@ function isConstant(value){
  */
 
 function isVariable(value){
-	return _.isString(value) && /^#[a-zA-Z]\w*#$/.test(value);
+	var pattern = new RegExp('^' + leftEncloseVariable + '[a-zA-Z]\\w*' + rightEncloseVariable + '$');
+	return _.isString(value) && pattern.test(value);
 }
 
 function isValidComparisonOperator(comparison){

@@ -10,6 +10,7 @@
   },
   "devDependencies": {
   	"mocha": "latest",
-    "chai": "latest"
+    "chai": "latest",
+    "node-inspector": "latest"
   }
 }
