@@ -6,7 +6,8 @@
   "dependencies": {
   	"underscore": "latest",
     "request": "latest",
-    "mysql": "latest"
+    "mysql": "latest",
+    "underscore.string": "latest"
   },
   "devDependencies": {
   	"mocha": "latest",

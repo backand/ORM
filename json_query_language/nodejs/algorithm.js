@@ -4,6 +4,7 @@ module.exports.validValueOfType = validValueOfType;
 module.exports.escapeValueOfType = escapeValueOfType;
 
 var _ = require('underscore');
+var s = require("underscore.string");
 var request = require('request');
 var mysql = require('mysql');
 var api_url = require('../../config').api_url;
@@ -39,9 +40,13 @@ var rightEncloseVariable = "}}";
 var leftEncloseObject = "`";
 var rightEncloseObject = "`";
 
-// var email = "kornatzky@me.com";
-// var password = "secret";
-// var appName = "testsql";
+var variableName = 0;
+var variableSeed = "A";
+var valuesArray =[];
+
+var email = "kornatzky@me.com";
+var password = "secret";
+var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
 
@@ -101,6 +106,7 @@ var rightEncloseObject = "`";
 // 	},
 
 // 	false,
+// 	false,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -109,13 +115,13 @@ var rightEncloseObject = "`";
 // 	}
 // );
 
-function transformJsonIntoSQL(email, password, appName, json, isFilter, callback){
+function transformJsonIntoSQL(email, password, appName, json, isFilter, shouldGeneralize, callback){
 	getDatabaseInformation(email, password, appName, function(err, sqlSchema){
 		if (err){
 			callback(err);
 		}
 		else{
-			transformJson(json, sqlSchema, isFilter, callback);
+			transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback);
 		}
 	});
 }
@@ -168,64 +174,66 @@ var parserState = {
  * @param {object} json - json query
  * @param {object} sqlSchema - array of json schema of tables with fields: name, fields, items (optional dbname)
  * @param {boolean} isFilter - a filter query allows variables
+ * @param {boolean} shouldGeneralize - should we generalize constants into variables
  * @param {object} callback - function(err, s) where s is the sql statement for the query
  */
 
-function transformJson(json, sqlSchema, isFilter, callback) {
+function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	parserState.sqlSchema = sqlSchema;
 	parserState.isFilter = isFilter;
+	parserState.shouldGeneralize = shouldGeneralize;
 	var result = null;
 	var err = null;
 	try { 
-	  var sqlSchema = [
-	  	{ 
-	  		"name" : "Employees", 
-	  		"items": "blabla", 
-	  		"fields" : {
-				"Budget": {
-					"dbname": "bbb",
-					"type": "float"
-				},
-				"Location": {
-					"type": "string"
-				},
-				"X": {
-					"type": "float"
-				},
-				"y": {
-					"object": "users"
-				},
-				"country": {
-					"type": "string"
-				}
-			}
-		},
-		{ 
-	  		"name" : "Person", 
-	  		"fields" : {
-				"Name": {
-					"type": "string"
-				},
-				"City": {
-					"type": "string"
-				},
-				"country": {
-					"type": "string"
-				}
-			}
-		},
-		{
-			"name" : "Dept", 
-			"fields" : {
-				"DeptId": {
-					"type": "string"
-				},
-				"Budget": {
-					"type": "float"
-				}
-			}
-		}
-	  ];
+	 //  var sqlSchema = [
+	 //  	{ 
+	 //  		"name" : "Employees", 
+	 //  		"items": "blabla", 
+	 //  		"fields" : {
+		// 		"Budget": {
+		// 			"dbname": "bbb",
+		// 			"type": "float"
+		// 		},
+		// 		"Location": {
+		// 			"type": "string"
+		// 		},
+		// 		"X": {
+		// 			"type": "float"
+		// 		},
+		// 		"y": {
+		// 			"object": "users"
+		// 		},
+		// 		"country": {
+		// 			"type": "string"
+		// 		}
+		// 	}
+		// },
+		// { 
+	 //  		"name" : "Person", 
+	 //  		"fields" : {
+		// 		"Name": {
+		// 			"type": "string"
+		// 		},
+		// 		"City": {
+		// 			"type": "string"
+		// 		},
+		// 		"country": {
+		// 			"type": "string"
+		// 		}
+		// 	}
+		// },
+		// {
+		// 	"name" : "Dept", 
+		// 	"fields" : {
+		// 		"DeptId": {
+		// 			"type": "string"
+		// 		},
+		// 		"Budget": {
+		// 			"type": "float"
+		// 		}
+		// 	}
+		// }
+	 //  ];
 	  parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
@@ -383,7 +391,9 @@ function generateSingleTableQuery(query){
 		where: whereClause,
 		group: groupByClause,
 		order: orderByClause,
-		limit: limitClause
+		limit: limitClause,
+		variables: _.map(_.range(1, variableName + 1), function(i){ return s.repeat(variableSeed, i); }),
+		values: valuesArray
 	};
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
 	if (_.has(query, "fields")){
@@ -412,15 +422,27 @@ function generateUnionQuery(query){
 	if (!_.every(components, function(c){ return _.isEqual(c.fields, querySchema);	})){
 		throw "not all queries in union have the same schema";
 	}
+	var sqlQuery = {
+		sql:  _.reduce(
+			components, 
+			function(memo, v){
+				return (memo ? memo + " UNION ": memo) + v.sql.str;
+			}, 
+			""
+		),
+		select: "",
+		from: "",
+		where: "",
+		group: "",
+		order: "",
+		limit: "",
+		variables: _.map(_.range(1, variableName + 1), function(i){ return s.repeat(variableSeed, i); }),
+		values: valuesArray
+	};
 	return { 
 		fields: querySchema, 
-		sql:  _.reduce(
-				components, 
-				function(memo, v){
-					return (memo ? memo + " UNION ": memo) + v.sql.str;
-				}, 
-				""
-			)
+		sql: sqlQuery
+		
 	};
 }
 
@@ -540,7 +562,7 @@ function generateKeyValueExp(kv, table){
 			if (!validValueOfType(kv[column], t)){
 				throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
 			}
-			return relateColumnWithTable(realTableName, column) + " = " + escapeValueOfType(kv[column], t);
+			return relateColumnWithTable(realTableName, column) + " = " + (parserState.shouldGeneralize ? assignNewVariable(kv[column]) : escapeValueOfType(kv[column], t));
 		}
 		else if (kv[column]["$not"]){ // Not Exp value
 			return "NOT " + generateQueryConditional(kv[column]["$not"], table, column);
@@ -574,7 +596,7 @@ function generateQueryConditional(qc, table, column){
 		if (!validValueOfType(comparand, t)){
 			throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
 		}
-		generatedComparand = escapeValueOfType(comparand, t);
+		generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand) : escapeValueOfType(comparand, t);
 	}
 	else if (Array.isArray(comparand)){ // array
 		generatedComparand = comparand;
@@ -732,4 +754,18 @@ function encloseObject(o){
  */
 function relateColumnWithTable(tableName, columnName){ 
 	return encloseObject(tableName) + "." + encloseObject(columnName);
+}
+
+function assignNewVariable(value){
+	var newVariable = "";
+	var index = _.indexOf(valuesArray, value);
+	if (index > -1){
+		newVariable = s.repeat(variableSeed, (index + 1));
+	}
+	else{
+		valuesArray.push(value);
+		variableName += 1;
+		newVariable = s.repeat(variableSeed, variableName);
+	}
+	return newVariable;
 }
