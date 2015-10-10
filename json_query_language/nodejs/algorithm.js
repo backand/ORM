@@ -45,60 +45,60 @@ var rightEncloseObject = "`";
 
 // transformJsonIntoSQL(email, password, appName, 
 
-// 	{
-// 		"object" : "Employees",
-// 		"q": {
-// 			"DeptId" : {
-// 				"$in" : {
-// 					"object" : "Dept",
-// 					"q": {
-// 						"Budget" : {
-// 							"$gt" : 4500
-// 						}
-// 					},
-// 					"fields" : [
-// 						"DeptId"
-// 					]
-// 				}
-// 			}
-// 		}
-// 	},
-
 	// {
-	// 	"$union": 	[
-	// 		{
-	// 			"object" : "Employees",
-	// 			"q" : {
-	// 				"$or" : [
-	// 					{
-	// 						"Budget" : {
-	// 							"$gt" : 20
-	// 						}
-	// 					},
-	// 					{
-	// 						"Location" : { 
-	// 							"$like" :  "Tel Aviv"
-	// 						}
+	// 	"object" : "Employees",
+	// 	"q": {
+	// 		"DeptId" : {
+	// 			"$in" : {
+	// 				"object" : "Dept",
+	// 				"q": {
+	// 					"Budget" : {
+	// 						"$gt" : 4500
 	// 					}
+	// 				},
+	// 				"fields" : [
+	// 					"DeptId"
 	// 				]
-	// 			},
-	// 			fields: ["Location", "country"],
-	// 			order: [["X", "asc"], ["Budget", "desc"]],
-	// 			groupBy: ["country"],
-	// 			aggregate: {
-	// 				Location: "$concat"
 	// 			}
-	// 		},
-	// 		{
-	// 			"object" : "Person",
-	// 			"q" : {
-	// 				"name": "john"
-	// 			},
-	// 			fields: ["City", "country"],
-	// 			limit: 11
 	// 		}
-	// 	]
+	// 	}
 	// },
+
+// 	{
+// 		"$union": 	[
+// 			{
+// 				"object" : "Employees",
+// 				"q" : {
+// 					"$or" : [
+// 						{
+// 							"Budget" : {
+// 								"$gt" : 20
+// 							}
+// 						},
+// 						{
+// 							"Location" : { 
+// 								"$like" :  "Tel Aviv"
+// 							}
+// 						}
+// 					]
+// 				},
+// 				fields: ["Location", "country"],
+// 				order: [["X", "asc"], ["Budget", "desc"]],
+// 				groupBy: ["country"],
+// 				aggregate: {
+// 					Location: "$concat"
+// 				}
+// 			},
+// 			{
+// 				"object" : "Person",
+// 				"q" : {
+// 					"name": "john"
+// 				},
+// 				fields: ["City", "country"],
+// 				limit: 11
+// 			}
+// 		]
+// 	},
 
 // 	false,
 // 	function(err, sql){
@@ -369,7 +369,7 @@ function generateSingleTableQuery(query){
 				}
 			}
 		});
-		var selectClause = "SELECT " + _.map(realQueryFields, encloseObject).join(",");	
+		var selectClause = "SELECT " + _.map(realQueryFields, function(f) { return relateColumnWithTable(realTableName, f); }).join(",");	
 	}
 	else{
 		var selectClause = "SELECT " + "*";
@@ -417,7 +417,7 @@ function generateUnionQuery(query){
 		sql:  _.reduce(
 				components, 
 				function(memo, v){
-					return (memo ? memo + " UNION ": memo) + v.sql;
+					return (memo ? memo + " UNION ": memo) + v.sql.str;
 				}, 
 				""
 			)
@@ -434,9 +434,10 @@ function generateOrderBy(orderArray, table){
 	}))
 		throw "Not a valid order spec";
 
+	var realTableName = _.has(table, "items") ? table.items : table.name;
 	return "ORDER BY " +
 		_.map(orderArray, function(o){
-			return encloseObject(o[0]) + " " + o[1];
+			return relateColumnWithTable(realTableName, o[0]) + " " + o[1];
 		}).join(" , ");
 
 }
@@ -446,8 +447,8 @@ function generateGroupBy(groupByArray, table){
 		throw "A group by spec should be an array";
 	if (_.size(_.difference(groupByArray, _.keys(table.fields))) > 0)
 		throw "All fields on which you group must belong to table";
-
-	return "GROUP BY " + _.map(groupByArray, encloseObject).join(" , ");
+	var realTableName = _.has(table, "items") ? table.items : table.name;
+	return "GROUP BY " + _.map(groupByArray, function(c) { return relateColumnWithTable(realTableName, c); }).join(" , ");
 }
 
 function generateLimit(limit){
@@ -528,9 +529,10 @@ function generateKeyValueExp(kv, table){
 		}
 	}
 	else{
+		var realTableName = _.has(table, "items") ? table.items : table.name;
 		if (parserState.isFilter && isVariable(kv[column])){
 			var t = getType(table, column);
-			return encloseObject(column) + " = " + escapeVariableOfType(kv[column], t);
+			return relateColumnWithTable(realTableName, column) + " = " + escapeVariableOfType(kv[column], t);
 		}
 		else if (isConstant(kv[column])){ 
 			// constant value
@@ -538,13 +540,13 @@ function generateKeyValueExp(kv, table){
 			if (!validValueOfType(kv[column], t)){
 				throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
 			}
-			return encloseObject(column) + " = " + escapeValueOfType(kv[column], t);
+			return relateColumnWithTable(realTableName, column) + " = " + escapeValueOfType(kv[column], t);
 		}
 		else if (kv[column]["$not"]){ // Not Exp value
 			return "NOT " + generateQueryConditional(kv[column]["$not"], table, column);
 		}
 		else { // Query Conditional value
-			return encloseObject(column) + " " + generateQueryConditional(kv[column], table, column);
+			return relateColumnWithTable(realTableName, column) + " " + generateQueryConditional(kv[column], table, column);
 		}
 	}
 
@@ -706,6 +708,28 @@ function escapeVariableOfType(value, type){
 	return value;
 }
 
+/** @function
+ * @name encloseObject
+ * @description enclose column or table name in characters so that if the name
+ * contains spaces it will be valid in SQL.
+ * The enclosing characters are parametrized by leftEncloseObject, rightEncloseObject
+ * @param {string} o - column or table name
+ * @returns {string} - enclosed value
+ */
 function encloseObject(o){ 
 	return leftEncloseObject + o + rightEncloseObject;
+}
+
+/** @function
+ * @name relateColumnWithTable
+ * @description add a table name to column, to get full column name, e.g. R.A
+ * enclose full column name in characters so that if the name
+ * contains spaces it will be valid in SQL.
+ * The enclosing characters are parametrized by leftEncloseObject, rightEncloseObject
+ * @param {string} tableName
+ * @param {string} columnName
+ * @returns {string} - enclosed value
+ */
+function relateColumnWithTable(tableName, columnName){ 
+	return encloseObject(tableName) + "." + encloseObject(columnName);
 }
