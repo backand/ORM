@@ -135,12 +135,12 @@ router.map(function () {
     // error returned in header
     this.post('/transformJson').bind(function (req, res, data) {
         var tokenStructure = getToken(req.headers);
-        fetcher(tokenStructure[1], tokenStructure[0], data.appName, true, false, function(err, sqlSchema){
+        fetcher(tokenStructure[1], tokenStructure[0], data.appName, false, function(err, sqlSchema){
             if (err){
                 res.send(500, { error: err }, null);
             }
             else{
-                transformJson(data.json, sqlSchema, data.isFilter, function(err, result){
+                transformJson(data.json, sqlSchema, data.isFilter, false, function(err, result){
                     if (err){
                         res.send(400, { error: err }, null);
                     }
