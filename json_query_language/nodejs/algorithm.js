@@ -50,6 +50,37 @@ var valuesArray =[];
 
 // transformJsonIntoSQL(email, password, appName, 
 
+	// {
+	// 	"object" : "Employees",
+	// 	"q": {
+			
+	// 					"Location" : {
+	// 						"$gt" : 'Moshe'
+	// 					}
+			
+	// 	}
+	// },
+
+	// {
+	// 	"object" : "Employees",
+	// 	"q": {
+	// 		"DeptId" : {
+	// 			"$in" : {
+	// 				"object" : "Dept",
+	// 				"q": {
+	// 					"Location" : {
+	// 						"$gt" : 'Haifa'
+	// 					}
+	// 				},
+	// 				"fields" : [
+	// 					"DeptId"
+	// 				]
+	// 			}
+	// 		}
+	// 	}
+	// },
+
+
 // 	{
 // 		"object" : "Employees",
 // 		"q": {
