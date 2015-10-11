@@ -185,55 +185,55 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	var result = null;
 	var err = null;
 	try { 
-	  var sqlSchema = [
-	  	{ 
-	  		"name" : "Employees", 
-	  		"items": "blabla", 
-	  		"fields" : {
-				"Budget": {
-					"dbname": "bbb",
-					"type": "float"
-				},
-				"Location": {
-					"type": "string"
-				},
-				"X": {
-					"type": "float"
-				},
-				"y": {
-					"object": "users"
-				},
-				"country": {
-					"type": "string"
-				}
-			}
-		},
-		{ 
-	  		"name" : "Person", 
-	  		"fields" : {
-				"Name": {
-					"type": "string"
-				},
-				"City": {
-					"type": "string"
-				},
-				"country": {
-					"type": "string"
-				}
-			}
-		},
-		{
-			"name" : "Dept", 
-			"fields" : {
-				"DeptId": {
-					"type": "string"
-				},
-				"Budget": {
-					"type": "float"
-				}
-			}
-		}
-	  ];
+	 //  var sqlSchema = [
+	 //  	{ 
+	 //  		"name" : "Employees", 
+	 //  		"items": "blabla", 
+	 //  		"fields" : {
+		// 		"Budget": {
+		// 			"dbname": "bbb",
+		// 			"type": "float"
+		// 		},
+		// 		"Location": {
+		// 			"type": "string"
+		// 		},
+		// 		"X": {
+		// 			"type": "float"
+		// 		},
+		// 		"y": {
+		// 			"object": "users"
+		// 		},
+		// 		"country": {
+		// 			"type": "string"
+		// 		}
+		// 	}
+		// },
+		// { 
+	 //  		"name" : "Person", 
+	 //  		"fields" : {
+		// 		"Name": {
+		// 			"type": "string"
+		// 		},
+		// 		"City": {
+		// 			"type": "string"
+		// 		},
+		// 		"country": {
+		// 			"type": "string"
+		// 		}
+		// 	}
+		// },
+		// {
+		// 	"name" : "Dept", 
+		// 	"fields" : {
+		// 		"DeptId": {
+		// 			"type": "string"
+		// 		},
+		// 		"Budget": {
+		// 			"type": "float"
+		// 		}
+		// 	}
+		// }
+	 //  ];
 	  parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
