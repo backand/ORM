@@ -140,7 +140,7 @@ router.map(function () {
                 res.send(500, { error: err }, null);
             }
             else{
-                transformJson(data.json, sqlSchema, data.isFilter, false, function(err, result){
+                transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function(err, result){
                     if (err){
                         res.send(400, { error: err }, null);
                     }

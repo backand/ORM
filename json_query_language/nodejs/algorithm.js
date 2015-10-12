@@ -55,7 +55,7 @@ var valuesArray =[];
 	// 	"q": {
 			
 	// 					"Location" : {
-	// 						"$gt" : 'Moshe'
+	// 						"$gt" : "Moshe"
 	// 					}
 			
 	// 	}
@@ -69,7 +69,7 @@ var valuesArray =[];
 	// 				"object" : "Dept",
 	// 				"q": {
 	// 					"Location" : {
-	// 						"$gt" : 'Haifa'
+	// 						"$gt" : "Haifa"
 	// 					}
 	// 				},
 	// 				"fields" : [
@@ -79,7 +79,6 @@ var valuesArray =[];
 	// 		}
 	// 	}
 	// },
-
 
 // 	{
 // 		"object" : "Employees",
@@ -100,41 +99,56 @@ var valuesArray =[];
 // 		}
 // 	},
 
-// 	{
-// 		"$union": 	[
-// 			{
-// 				"object" : "Employees",
-// 				"q" : {
-// 					"$or" : [
-// 						{
-// 							"Budget" : {
-// 								"$gt" : 20
-// 							}
-// 						},
-// 						{
-// 							"Location" : { 
-// 								"$like" :  "Tel Aviv"
-// 							}
-// 						}
-// 					]
-// 				},
-// 				fields: ["Location", "country"],
-// 				order: [["X", "asc"], ["Budget", "desc"]],
-// 				groupBy: ["country"],
-// 				aggregate: {
-// 					Location: "$concat"
-// 				}
-// 			},
-// 			{
-// 				"object" : "Person",
-// 				"q" : {
-// 					"name": "john"
-// 				},
-// 				fields: ["City", "country"],
-// 				limit: 11
-// 			}
-// 		]
-// 	},
+	// {
+	// 	"object" : "Dept",
+	// 	"q": {
+			
+	// 		"DeptId": "Finance"
+	// 	},
+					
+	// 	"fields" : [
+	// 		"DeptId"
+	// 	]
+				
+			
+		
+	// },
+
+	// {
+	// 	"$union": 	[
+	// 		{
+	// 			"object" : "Employees",
+	// 			"q" : {
+	// 				"$or" : [
+	// 					{
+	// 						"Budget" : {
+	// 							"$gt" : 20
+	// 						}
+	// 					},
+	// 					{
+	// 						"Location" : { 
+	// 							"$like" :  "Tel Aviv"
+	// 						}
+	// 					}
+	// 				]
+	// 			},
+	// 			fields: ["Location", "country"],
+	// 			order: [["X", "asc"], ["Budget", "desc"]],
+	// 			groupBy: ["country"],
+	// 			aggregate: {
+	// 				Location: "$concat"
+	// 			}
+	// 		},
+	// 		{
+	// 			"object" : "Person",
+	// 			"q" : {
+	// 				"name": "john"
+	// 			},
+	// 			fields: ["City", "country"],
+	// 			limit: 11
+	// 		}
+	// 	]
+	// },
 
 // 	false,
 // 	true,
@@ -155,6 +169,42 @@ function transformJsonIntoSQL(email, password, appName, json, isFilter, shouldGe
 			transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback);
 		}
 	});
+}
+
+// obtainToken(email, password, appName, function(err, r){
+// 	console.log(err);
+// 	console.log(r);
+// });
+
+function obtainToken(email, password, appName, callback){
+	request(
+
+		{
+		    url: tokenUrl,
+		    
+		    method: 'POST',
+		   
+		    form: {
+		        username: email,
+		        password: password,
+		        appname: appName,
+		        grant_type: "password"
+		    }
+		}, 
+
+		function(error, response, body){
+		    if(!error && response.statusCode == 200) {    	
+		    	var b = JSON.parse(body)
+		    	// var accessToken = b["access_token"];
+		    	// var tokenType = b["token_type"];
+		    	callback(error, b);
+		    }
+		    else{
+		    	callback(error? error : "statusCode != 200", null);
+		    }
+		}
+
+	);
 }
 
 function getDatabaseInformation(email, password, appName, callback){
@@ -189,6 +239,7 @@ function getDatabaseInformation(email, password, appName, callback){
 
 	);
 }
+
 
 /** @variable
  * @name parserState
@@ -265,7 +316,7 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 		// 	}
 		// }
 	 //  ];
-	  parserState.sqlSchema = sqlSchema;
+	  // parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
 	}
