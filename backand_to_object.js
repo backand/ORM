@@ -60,7 +60,7 @@ function getUserDetails(accessToken, anonymousToken, appName, callback){
 	);
 }
 
-function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDbName, callbackColumns){
+function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDbName, withIdColumn, callbackColumns){
 
 	request(
 
@@ -82,7 +82,10 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    	var body = JSON.parse(body);
 	    		async.map(body.fields,
 	    			function(item, callback){
-	    				if (item.name == "id" || item.name == "Id" || item.name == "createAt" || item.name == "updatedAt"){
+	    				if (!withIdColumn && (item.name == "id" || item.name == "Id")){
+	    					callback(null, null);
+	    				}
+	    				else if (item.name == "createAt" || item.name == "updatedAt"){
 	    					callback(null, null);
 	    				}
 	    				else{
@@ -133,7 +136,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 
 }
 
-function fetchTables(accessToken, tokenType, appName, withDbName, callback){
+function fetchTables(accessToken, tokenType, appName, withDbName, withIdColumn, callback){
 
 	request(
 
@@ -163,7 +166,7 @@ function fetchTables(accessToken, tokenType, appName, withDbName, callback){
 								function(item, callbackColumns){
 									var relationName = item.name
 									var databaseName = item.databaseName;
-									fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, callbackColumns);
+									fetchColumns(accessToken, tokenType, appName, relationName, databaseName, withDbName, withIdColumn, callbackColumns);
 								},
 								function(err, results){
 									var tables = _.filter(results, function(r){

@@ -98,7 +98,7 @@ router.map(function () {
     this.post('/json').bind(function (req, res, data) {
         var tokenStructure = getToken(req.headers);
         if (tokenStructure){
-            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, function(err, result){
+            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, false, function(err, result){
 
                 if (err){
                     res.send(400, {}, null);
@@ -135,7 +135,7 @@ router.map(function () {
     // error returned in header
     this.post('/transformJson').bind(function (req, res, data) {
         var tokenStructure = getToken(req.headers);
-        fetcher(tokenStructure[1], tokenStructure[0], data.appName, false, function(err, sqlSchema){
+        fetcher(tokenStructure[1], tokenStructure[0], data.appName, true, true, function(err, sqlSchema){
             if (err){
                 res.send(500, { error: err }, null);
             }

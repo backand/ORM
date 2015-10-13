@@ -50,6 +50,24 @@ var valuesArray =[];
 
 // transformJsonIntoSQL(email, password, appName, 
 
+
+	// {
+	// 	"object":"todo",
+	// 	"q":{
+	// 		"created_by":{
+	// 			"$in":{
+	// 				"object":"users",
+	// 				"q":{
+	// 					"email":{
+	// 						"$eq":"{{sys::username}}"
+	// 					}
+	// 				},
+	// 				"fields":["id"]
+	// 			}
+	// 		}
+	// 	}
+	// },
+
 // 	{
 // 		"object" : "Employees",
 // 		"q": {
@@ -151,7 +169,7 @@ var valuesArray =[];
 	// },
 
 // 	false,
-// 	true,
+// 	false,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -228,7 +246,7 @@ function getDatabaseInformation(email, password, appName, callback){
 		    	var b = JSON.parse(body)
 		    	var accessToken = b["access_token"];
 		    	var tokenType = b["token_type"];
-		    	fetchTables(accessToken, tokenType, appName, true, function(err, result){
+		    	fetchTables(accessToken, tokenType, appName, true, true, function(err, result){
 		    		callback(err, result);
 		    	});
 		    }
@@ -320,7 +338,37 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 		// 	}
 		// }
 	 //  ];
-	 //  parserState.sqlSchema = sqlSchema;
+	  // sqlSchema = [
+	  // 	{
+	  // 		"name":"todo",
+	  // 		"fields":{
+	  // 			"created_by":{"object":"users"},
+	  // 			"description":{"type":"string"},
+	  // 			"completed":{"type":"boolean"},
+	  // 			"notes":{"collection":"notes","via":"todo"}
+	  // 		}
+	  // 	},
+	  // 	{
+	  // 		"name":"notes",
+	  // 		"fields":{
+	  // 			"todo":{"object":"todo"},"description":{"type":"string"}
+	  // 		}
+	  // 	},
+	  // 	{
+
+	  // 		"name":"users",
+	  // 		"fields":{
+	  // 			"id": { 
+		 //  			"type" : "integer"
+		 //  		},
+	  // 			"todo":{"collection":"todo","via":"created_by"},
+	  // 			"email":{"type":"string"},
+	  // 			"firstName":{"type":"string"},
+	  // 			"lastName":{"type":"string"}
+	  // 		}
+	  // 	}
+	  // ];
+	  // parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
 	}
@@ -450,6 +498,7 @@ function generateSingleTableQuery(query){
 
 	if (_.has(query, "fields")){	
 		var aggregate = query.aggregate;	
+		console.log("get real fields", query.fields, table.fields);
 		var realQueryFields = _.map(query.fields, function(f){
 			if (!aggregate){
 				return table.fields[f].dbName ? table.fields[f].dbName : f;
