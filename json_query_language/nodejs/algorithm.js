@@ -50,16 +50,16 @@ var valuesArray =[];
 
 // transformJsonIntoSQL(email, password, appName, 
 
-	// {
-	// 	"object" : "Employees",
-	// 	"q": {
+// 	{
+// 		"object" : "Employees",
+// 		"q": {
 			
-	// 					"Location" : {
-	// 						"$gt" : "Moshe"
-	// 					}
+// 						"Location" : {
+// 							"$gt" : "Moshe"
+// 						}
 			
-	// 	}
-	// },
+// 		}
+// 	},
 
 	// {
 	// 	"object" : "Employees",
@@ -320,7 +320,7 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 		// 	}
 		// }
 	 //  ];
-	  // parserState.sqlSchema = sqlSchema;
+	 //  parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
 	}
@@ -655,7 +655,7 @@ function generateKeyValueExp(kv, table){
 			if (!validValueOfType(kv[column], t)){
 				throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
 			}
-			return relateColumnWithTable(realTableName, column) + " = " + (parserState.shouldGeneralize ? assignNewVariable(kv[column]) : escapeValueOfType(kv[column], t));
+			return relateColumnWithTable(realTableName, column) + " = " + (parserState.shouldGeneralize ? assignNewVariable(kv[column], t) : escapeValueOfType(kv[column], t));
 		}
 		else if (kv[column]["$not"]){ // Not Exp value
 			return "NOT " + generateQueryConditional(kv[column]["$not"], table, column);
@@ -689,7 +689,7 @@ function generateQueryConditional(qc, table, column){
 		if (!validValueOfType(comparand, t)){
 			throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
 		}
-		generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand) : escapeValueOfType(comparand, t);
+		generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand, t) : escapeValueOfType(comparand, t);
 	}
 	else if (Array.isArray(comparand)){ // array
 		generatedComparand = comparand;
@@ -812,14 +812,27 @@ function escapeValueOfType(value, type){
 /** @function
  * @name escapeVariableOfType
  * @description escape a variable to be substituted according to type
- * does nothing, because we cannot really escape without knowing the value
  * @param {string} variable - variable name to be later substituted
  * @param {string} type - type of column
  * @returns {object} - escaped value
  */
 
 function escapeVariableOfType(value, type){
-
+	switch(type)
+	{
+		case "string":
+		case "text":
+		case "datetime":
+		case "binary":
+			return "'" + value + "'";
+		case "float":		
+		case "boolean":
+			return value;
+		break;
+		default: 
+			return value;
+		break;
+	}
 	return value;
 }
 
@@ -849,7 +862,15 @@ function relateColumnWithTable(tableName, columnName){
 	return encloseObject(tableName) + "." + encloseObject(columnName);
 }
 
-function assignNewVariable(value){
+
+/** @function
+ * @name assignNewVariable
+ * @description generalize a value to a new variable
+ * @param {object} value - can be one of the primitive types
+ * @param {string} type of value
+ * @returns {string} - enclosed value including escaping by quites
+ */
+function assignNewVariable(value, type){
 	var newVariable = "";
 	var index = _.indexOf(valuesArray, value);
 	if (index > -1){
@@ -860,8 +881,10 @@ function assignNewVariable(value){
 		variableName += 1;
 		newVariable = s.repeat(variableSeed, variableName);
 	}
-	return encloseVariable(newVariable);
+	return escapeVariableOfType(encloseVariable(newVariable), type);
 }
+
+
 
 function encloseVariable(variableName){
 	return leftEncloseVariable + variableName + rightEncloseVariable;
