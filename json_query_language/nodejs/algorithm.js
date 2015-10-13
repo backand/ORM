@@ -261,6 +261,10 @@ var parserState = {
  */
 
 function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
+	// reset data structures
+	parserState = {};
+	valuesArray = [];
+
 	parserState.sqlSchema = sqlSchema;
 	parserState.isFilter = isFilter;
 	parserState.shouldGeneralize = shouldGeneralize;
