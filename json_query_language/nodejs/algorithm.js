@@ -474,10 +474,12 @@ function generateSingleTableQuery(query){
 		where: whereClause,
 		group: groupByClause,
 		order: orderByClause,
-		limit: limitClause,
-		variables: variablesArray,
-		values: _.object(variablesArray, valuesArray)
+		limit: limitClause
 	};
+	if (parserState.shouldGeneralize){
+		sqlQuery["variables"] = variablesArray;
+		sqlQuery["values"] = _.object(variablesArray, valuesArray)
+    }
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
 	if (_.has(query, "fields")){
 		var queryFields = _.map(query.fields, function(f){
@@ -521,9 +523,11 @@ function generateUnionQuery(query){
 		group: "",
 		order: "",
 		limit: "",
-		variables: variablesArray,
-		values: _.object(variablesArray, valuesArray)
 	};
+	if (parserState.shouldGeneralize){
+		sqlQuery["variables"] = variablesArray;
+		sqlQuery["values"] = _.object(variablesArray, valuesArray);
+	}
 	return { 
 		fields: querySchema, 
 		sql: sqlQuery
