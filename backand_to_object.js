@@ -89,7 +89,10 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 	    					callback(null, null);
 	    				}
 	    				else{
-	    					var description = { "name": item.name, "type": backandToJsonType[item.type]};
+	    					var description = { "name": item.name, "type": backandToJsonType[item.type] };
+	    					if (item.databaseName){
+	    						description["dbName"] = item.databaseName;
+	    					}
 		    				if (_.has(item, "relatedViewName") && item.relatedViewName)
 		    				 	description.relatedViewName = item.relatedViewName;
 		    				if (_.has(item, "relatedParentFieldName") && item.relatedParentFieldName)
@@ -120,7 +123,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 	    				var fields = _.object(_.pluck(results, "name"), _.map(results, function(c){ return _.omit(c, "name"); }));
 	    				var columnsDescription = { "name": tableName, "fields": fields };
 	    				if (withDbName){
-	    					columnsDescription[dbName] = dbName;
+	    					columnsDescription["dbName"] = dbName;
 	    				}
 	    				callbackColumns(null, columnsDescription);
 	    			}

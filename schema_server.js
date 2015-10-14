@@ -50,7 +50,7 @@ router.map(function () {
     this.post('/transformAuthorized').bind(function (req, res, data) {
         var tokenStructure = getToken(req.headers);
         if (tokenStructure){
-            fetcher(tokenStructure[1], tokenStructure[0], function(err, oldSchema){
+            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, true, false, function(err, oldSchema){
                 if (err){
                     res.send(400, {}, null);
                 }
@@ -141,12 +141,7 @@ router.map(function () {
             }
             else{
                 transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function(err, result){
-                    if (err){
-                        res.send(400, { error: err }, null);
-                    }
-                    else{
-                        res.send(200, {}, result);
-                    }
+                    res.send(200, { error: err }, result);
                 });
             }
         });
