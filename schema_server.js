@@ -6,6 +6,7 @@ var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 var socket = require('socket.io-client')('http://localhost:4000');
 var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
+var substitute = require('./json_query_language/nodejs/substitution').substitute;
 
 //
 // Create a Router
@@ -52,7 +53,7 @@ router.map(function () {
         if (tokenStructure){
             fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, true, false, function(err, oldSchema){
                 if (err){
-                    res.send(400, {}, null);
+                    res.send(400, { error: err }, null);
                 }
                 else{
                     if (data.withoutValidation){
@@ -88,7 +89,7 @@ router.map(function () {
         else{
             executer(data.hostname, data.port, data.db, data.username, data.password, data.statementsArray, function(err, result){
                 if (!err)
-                    res.send(200, {}, result);
+                    res.send(200, { error : err }, result);
                 else
                     res.send(500, {}, null);
             });  
@@ -101,7 +102,7 @@ router.map(function () {
             fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, false, function(err, result){
 
                 if (err){
-                    res.send(400, {}, null);
+                    res.send(400, { error: err }, null);
                 }
                 else{
                     res.send(200, {}, result);
@@ -120,7 +121,7 @@ router.map(function () {
         if (tokenStructure){          
             getConnectionInfo(tokenStructure[1], tokenStructure[0], data.appName, function(err, result){
                 if (!err)
-                    res.send(200, {}, result);
+                    res.send(200, { error: err }, result);
                 else
                     res.send(500, {}, null);
             });  
@@ -148,6 +149,13 @@ router.map(function () {
 
     });
 
+    // substitute variables into query 
+    // req should contain sql - the sql statement, and assignment - variable assignment
+    this.post('/substitution').bind(function (req, res, data) {
+        substitute(data.sql, data.assignment, function(err, result){
+            res.send(200, {  }, result);
+        });
+    });
 
     //use for the socket.io
 

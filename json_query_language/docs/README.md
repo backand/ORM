@@ -4,12 +4,7 @@
 
 # Usage
 
-	transform(<json expression>, <callback>);
-
-where `callback` has the signature:
-
-	function(err, mysqlQuery){}
-
+See `querylanguage.md`
 
 # Unit Testing 
 

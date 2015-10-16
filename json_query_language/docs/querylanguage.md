@@ -229,13 +229,14 @@ The algorithm transforms a JSON to SQL by top-down transformation.
 
 ## Usage
 
-    transformJson(json, sqlSchema, isFilter, callback) 
+    transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) 
 
 The parameters are:
 
 1. `json` - JSON query or filter
 2. `sqlSchema` - JSON schema of database
 3. `isFilter` - boolean if `json` is filter
+4. `shouldGeneralize` - boolean if we should generalize constants into variables
 4. `callback` - `function(err, result)`
 
 The result is a structure with fields:
@@ -265,3 +266,9 @@ and should be enclosed in quotes for the JSON query to be a valid JSON.
 Variables are not escaped because we can escape only constants.
 
 The generated SQL statement will include the variables. Variables will be substituted later by constants.
+
+# Substitution
+
+Substitute variables into a query with variables. 
+The variable assigment is a hash whose keys are the names of the variables and whose values are the constants 
+to be substituted.

@@ -272,7 +272,7 @@ var parserState = {
  * @description create sql query from json query
  * the workhorse of the algorithm
  * @param {object} json - json query
- * @param {object} sqlSchema - array of json schema of tables with fields: name, fields, items (optional dbname)
+ * @param {object} sqlSchema - array of json schema of tables with fields: name, fields, dbName (optional)
  * @param {boolean} isFilter - a filter query allows variables
  * @param {boolean} shouldGeneralize - should we generalize constants into variables
  * @param {object} callback - function(err, s) where s is the sql statement for the query
@@ -289,10 +289,11 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	var result = null;
 	var err = null;
 	try { 
+
 	 //  var sqlSchema = [
 	 //  	{ 
 	 //  		"name" : "Employees", 
-	 //  		"items": "blabla", 
+	 //  		"dbName": "blabla", 
 	 //  		"fields" : {
 		// 		"Budget": {
 		// 			"dbname": "bbb",
@@ -368,6 +369,40 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	  // 		}
 	  // 	}
 	  // ];
+
+	// sqlSchema = [
+	// 	{
+	// 		"name":"todo",
+	// 		"fields":{
+	// 			"id":{"type":"float"},
+	// 			"created_by":{"object":"users"},
+	// 			"description":{"type":"string"},
+	// 			"completed":{"type":"boolean"},
+	// 			"notes":{"collection":"notes","via":"todo"}
+	// 		},
+	// 		"todo":"todo"
+	// 	},
+	// 	{
+	// 		"name":"notes",
+	// 		"fields":{
+	// 			"id":{"type":"float"},
+	// 			"todo":{"object":"todo"},
+	// 			"description":{"type":"string"}
+	// 		},
+	// 		"notes":"notes"
+	// 	},
+	// 	{
+	// 		"name":"users",
+	// 		"fields":{
+	// 			"id":{"type":"float"},
+	// 			"todo":{"collection":"todo","via":"created_by"},
+	// 			"email":{"type":"string"},
+	// 			"firstName":{"type":"string"},
+	// 			"lastName":{"type":"string"}
+	// 		},
+	// 		"users":"users"
+	// 	}
+	//   ];
 	  // parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
@@ -376,6 +411,8 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 		err = exp;
 	}
 	finally{
+		console.log(err);
+		console.log(result);
 		callback(err, result);
 	}
 }
@@ -385,7 +422,7 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
  * @description computes the sql query and the types of column in output of query
  * the workhorse of the algorithm
  * @param {object} json - json query
- * @param {object} sqlSchema - array of json schema of tables with fields: name, fields, items (optional dbname)
+ * @param {object} sqlSchema - array of json schema of tables with fields: name, fields, dbName (optional)
  * @param {boolean} isFilter - a filter query allows variables
  * @param {object} callback - function(err, s) where s is an object with two fields:
  * sql - sql statement for the query
@@ -417,7 +454,10 @@ function generateQuery(query){
 
 function generateSingleTableQuery(query){
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
-	var realTableName = _.has(table, "items") ? table.items : query.object;
+	if (!table){
+		throw "object " + query.object + " does not exist in the model";
+	}
+	var realTableName = _.has(table, "dbName") ? table.dbName : query.object;
 	
 	
 	var fromClause = "FROM " + encloseObject(realTableName);
@@ -498,7 +538,6 @@ function generateSingleTableQuery(query){
 
 	if (_.has(query, "fields")){	
 		var aggregate = query.aggregate;	
-		console.log("get real fields", query.fields, table.fields);
 		var realQueryFields = _.map(query.fields, function(f){
 			if (!aggregate){
 				return table.fields[f].dbName ? table.fields[f].dbName : f;
@@ -534,6 +573,9 @@ function generateSingleTableQuery(query){
 		sqlQuery["values"] = _.object(variablesArray, valuesArray)
     }
 	var table = _.findWhere(parserState.sqlSchema, { name: query.object });
+	if (!table){
+		throw "object " + query.object + " does not exist in the model";
+	}
 	if (_.has(query, "fields")){
 		var queryFields = _.map(query.fields, function(f){
 			return table.fields[f].type;
@@ -598,7 +640,7 @@ function generateOrderBy(orderArray, table){
 	}))
 		throw "Not a valid order spec";
 
-	var realTableName = _.has(table, "items") ? table.items : table.name;
+	var realTableName = _.has(table, "dbName") ? table.dbName : table.name;
 	return "ORDER BY " +
 		_.map(orderArray, function(o){
 			return relateColumnWithTable(realTableName, o[0]) + " " + o[1];
@@ -611,7 +653,7 @@ function generateGroupBy(groupByArray, table){
 		throw "A group by spec should be an array";
 	if (_.size(_.difference(groupByArray, _.keys(table.fields))) > 0)
 		throw "All fields on which you group must belong to table";
-	var realTableName = _.has(table, "items") ? table.items : table.name;
+	var realTableName = _.has(table, "dbName") ? table.dbName : table.name;
 	return "GROUP BY " + _.map(groupByArray, function(c) { return relateColumnWithTable(realTableName, c); }).join(" , ");
 }
 
@@ -693,7 +735,7 @@ function generateKeyValueExp(kv, table){
 		}
 	}
 	else{
-		var realTableName = _.has(table, "items") ? table.items : table.name;
+		var realTableName = _.has(table, "dbName") ? table.dbName : table.name;
 		if (parserState.isFilter && isVariable(kv[column])){
 			var t = getType(table, column);
 			return relateColumnWithTable(realTableName, column) + " = " + escapeVariableOfType(kv[column], t);
@@ -702,7 +744,7 @@ function generateKeyValueExp(kv, table){
 			// constant value
 			var t = getType(table, column);
 			if (!validValueOfType(kv[column], t)){
-				throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
+				throw "not a valid constant for column " + column + " of table " + (table.dbName ? table.dbName : table.name);
 			}
 			return relateColumnWithTable(realTableName, column) + " = " + (parserState.shouldGeneralize ? assignNewVariable(kv[column], t) : escapeValueOfType(kv[column], t));
 		}
@@ -710,7 +752,13 @@ function generateKeyValueExp(kv, table){
 			return "NOT " + generateQueryConditional(kv[column]["$not"], table, column);
 		}
 		else { // Query Conditional value
-			return relateColumnWithTable(realTableName, column) + " " + generateQueryConditional(kv[column], table, column);
+			if(!table.fields[column]){
+				throw "attribute " + column + " does not exist in the object " + table.name;
+			}
+			else{
+				return relateColumnWithTable(realTableName, column) + " " + generateQueryConditional(kv[column], table, column);
+			}
+			
 		}
 	}
 
@@ -736,7 +784,7 @@ function generateQueryConditional(qc, table, column){
 		// constant value
 		var t = getType(table, column);
 		if (!validValueOfType(comparand, t)){
-			throw "not a valid constant for column " + column + " of table " + (table.items ? table.items : table.name);
+			throw "not a valid constant for column " + column + " of table " + (table.dbName ? table.dbName : table.name);
 		}
 		generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand, t) : escapeValueOfType(comparand, t);
 	}
@@ -762,7 +810,8 @@ function isConstant(value){
  */
 
 function isVariable(value){
-	var pattern = new RegExp('^' + leftEncloseVariable + '[a-zA-Z]\\w*' + rightEncloseVariable + '$');
+	// ^{{[a-zA-Z](\w|::)*}}$
+	var pattern = new RegExp('^' + leftEncloseVariable + '[a-zA-Z](\\w|::)*' + rightEncloseVariable + '$');
 	return _.isString(value) && pattern.test(value);
 }
 
@@ -772,7 +821,7 @@ function isValidComparisonOperator(comparison){
 
 /** @function
  * @name getType
- * @param {object} table - table json definition, including items for dbname
+ * @param {object} table - table json definition
  * @param {string} field - column name
  * @returns {string} - type of column
  */
@@ -873,7 +922,7 @@ function escapeVariableOfType(value, type){
 		case "text":
 		case "datetime":
 		case "binary":
-			return "'" + value + "'";
+			return value;
 		case "float":		
 		case "boolean":
 			return value;
@@ -908,9 +957,13 @@ function encloseObject(o){
  * @returns {string} - enclosed value
  */
 function relateColumnWithTable(tableName, columnName){ 
-	return encloseObject(tableName) + "." + encloseObject(columnName);
+	if (isVariable(s.replaceAll(columnName, "'", ""))){
+		return columnName;
+	}
+	else{
+		return encloseObject(tableName) + "." + encloseObject(columnName);
+	}
 }
-
 
 /** @function
  * @name assignNewVariable
