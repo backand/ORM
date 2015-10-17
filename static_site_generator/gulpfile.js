@@ -21,7 +21,7 @@ gulp.task('clean-jekyll', function () {
 // give unique names to posts in jekyll
 // copies files into temporary location
 gulp.task('unique-names', ['clean-jekyll'], function(cb) {
-  return gulp.src("../temp/*.md")
+  return gulp.src("../docs/*.md")
     .pipe(rename(function (path) {
       var d = moment().format("YYYY-MM-DD");
       path.basename = d + "-" + path.basename;
