@@ -90,7 +90,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 	    				}
 	    				else{
 	    					var description = { "name": item.name, "type": backandToJsonType[item.type] };
-	    					if (item.databaseName){
+	    					if (withDbName && item.databaseName){
 	    						description["dbName"] = item.databaseName;
 	    					}
 		    				if (_.has(item, "relatedViewName") && item.relatedViewName)
