@@ -9,7 +9,8 @@
     "gulp-awspublish": "latest",
     "underscore": "latest",
     "del": "latest",
-    "gulp-awspublish-router": "latest"
+    "gulp-awspublish-router": "latest",
+    "minimist": "latest"
   },
   "devDependencies": {},
   "scripts": {
