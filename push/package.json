@@ -1,0 +1,14 @@
+{
+  "name": "gcm-sender",
+  "version": "1.0.0",
+  "description": "Send GCM Push Notifications",
+  "main": "gcm_sender.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC",
+  "dependencies": {
+  	"node-gcm": "latest"
+  }
+}

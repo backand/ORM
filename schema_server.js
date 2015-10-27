@@ -7,6 +7,7 @@ var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 var socket = require('socket.io-client')('http://localhost:4000');
 var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
+var getTemporaryCredentials = require('./sts').getTemporaryCredentials;
 
 //
 // Create a Router
@@ -164,6 +165,19 @@ router.map(function () {
         socket.emit("internal", { "data" : data.data, "appName": req.headers.app, "eventName": data.eventName });
         res.send(200, {}, {});
     });
+
+    this.get('/bucketCredentials').bind(function (req, res, data) {
+        getTemporaryCredentials(data.bucket, function(err, data){
+            if (err){
+                res.send(403, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        });
+    });
+
+
 
 });
 

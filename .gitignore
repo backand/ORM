@@ -23,3 +23,4 @@ json_query_language/nodejs/node_modules
 .idea
 hosting/.awspublish-backandhosting
 hosting/src
+.DS_Store
