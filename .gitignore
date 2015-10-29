@@ -24,3 +24,4 @@ json_query_language/nodejs/node_modules
 hosting/.awspublish-backandhosting
 hosting/src
 .DS_Store
+push/node_modules

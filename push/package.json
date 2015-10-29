@@ -9,6 +9,7 @@
   "author": "Yoram Kornatzky",
   "license": "ISC",
   "dependencies": {
-  	"node-gcm": "latest"
+  	"node-gcm": "latest",
+    "underscore": "latest"
   }
 }
