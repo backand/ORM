@@ -7,7 +7,7 @@ var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 var socket = require('socket.io-client')('http://localhost:4000');
 var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
-var getTemporaryCredentials = require('./sts').getTemporaryCredentials;
+// var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 
 //
 // Create a Router
@@ -166,16 +166,16 @@ router.map(function () {
         res.send(200, {}, {});
     });
 
-    this.get('/bucketCredentials').bind(function (req, res, data) {
-        getTemporaryCredentials(data.bucket, function(err, data){
-            if (err){
-                res.send(403, { error: err }, {});
-            }
-            else{
-                res.send(200, {}, data);
-            }
-        });
-    });
+    // this.get('/bucketCredentials').bind(function (req, res, data) {
+    //     getTemporaryCredentials(data.bucket, function(err, data){
+    //         if (err){
+    //             res.send(403, { error: err }, {});
+    //         }
+    //         else{
+    //             res.send(200, {}, data);
+    //         }
+    //     });
+    // });
 
 
 
