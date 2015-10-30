@@ -50,6 +50,13 @@ var valuesArray =[];
 
 // transformJsonIntoSQL(email, password, appName, 
 
+// 	{ 
+//    "object": "items",
+//    "q": {
+//        "name": { "$eq" : "kuku" } 
+//    }  
+// },
+
 
 	// {
 	// 	"object":"todo",
@@ -289,6 +296,28 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	var result = null;
 	var err = null;
 	try { 
+
+// var sqlSchema = [
+//   {
+//     "name": "items",
+//     "fields": {
+//       "name": {
+//         "type": "string"
+//       },
+//       "description": {
+//         "type": "text"
+//       },
+//       "price": {
+//         "type": "float"
+//       },
+//       "category": {
+//         "type": "string"
+//       },
+//       "user": {
+//         "object": "users"
+//       }
+//     }
+//   }];
 
 	 //  var sqlSchema = [
 	 //  	{ 
@@ -796,7 +825,10 @@ function generateQueryConditional(qc, table, column){
 		generatedComparand = "( " + subquery.sql.str + " )";
 	}
 
-	return mysqlOperator[comparisonOperator] + " " + generatedComparand;
+	if (comparisonOperator == "$in")
+		return mysqlOperator[comparisonOperator] + " ( " + generatedComparand + " ) ";
+	else
+		return mysqlOperator[comparisonOperator] + " " + generatedComparand;
 }
 
 function isConstant(value){
