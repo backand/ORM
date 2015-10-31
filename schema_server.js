@@ -1,4 +1,7 @@
 var journey = require('journey');
+var async = require('async');
+var _ = require('underscore');
+
 var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
 var fetcher = require('./backand_to_object').fetchTables;
@@ -8,6 +11,7 @@ var socket = require('socket.io-client')('http://localhost:4000');
 var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 // var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
+var gcmSender = require('./push/gcm_sender').sendMessage;
 
 //
 // Create a Router
@@ -176,6 +180,61 @@ router.map(function () {
     //         }
     //     });
     // });
+
+    // send push messages 
+    // data has fields: 
+    // devices - array of { deviceType, deviceId }
+    // gcmOptions - object with field ServerAPIKey
+    // apnsOptions - object
+    // messageLabel - string
+    // msgObject - hash of data to be sent with push notification
+    this.post('/push/send').bind(function (req, res, data) {
+        
+        // separate into gcm and apns
+        async.parallel(
+
+            { 
+                gcm: function(callback){
+                    
+                    if (data.gcmOptions && data.gcmOptions.ServerAPIKey){
+                        var deviceIds = _.filter(data.devices, function(d){ 
+                            return d.deviceType == 'Android'; 
+                        });
+                        gcmSender(data.gcmOptions.ServerAPIKey, deviceIds, data.messageLabel, data.msgObject, function(err){
+                            callback(null, err);
+                        });  
+                    }
+                    else{
+                        callback(null, "no gcm information");
+                    }
+
+                    
+                }, 
+                apns: function(callback){
+                    if (data.apnsOptions){
+                        var deviceIds = _.filter(data.devices, function(d){ 
+                            return d.deviceType == 'iOS'; 
+                        });
+                        // sendMessage(data.apnsOptions.ServerAPIKey, deviceIds, data.messageLabel, data.msgObject, function(err){
+                        //     callback(null, err);
+                        // }); 
+                        callback(null, null); 
+                    }
+                    else{
+                        callback(null, "no apns information");
+                    }
+                    
+                }
+            },
+
+            function(err, results) {
+                res.send(200, { error: results }, {});
+            }
+
+        );
+
+        
+    });
 
 
 

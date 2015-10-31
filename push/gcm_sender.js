@@ -1,11 +1,25 @@
+module.exports.sendMessage = sendMessage;
+
 var gcm = require('node-gcm');
 var _ = require('underscore');
 
 
-var sender = new gcm.Sender('AIzaSyCY8AOb3qF4dVODMkBELjR7n1ClfFnBwq4');
+/** @function
+ * @name sendMessage
+ * @description send a push notification through GCM push service to a 
+ * set of Android devices
+ * push notification appears as text on device and can include data to be processed by app
+ * we do not deal with badges on the app icon or with custom sound or icon for notification
+ * @param {string} ServerAPIKey - from Google Play for app
+ * @param {array} deviceIds - array of strings - Android device ids
+ * @param {string} messageLabel - label of push notification
+ * @param {object} msgObject - data to send with push
+ * @param {function} callback - function(err)
+ */
 
-function sendMessage(deviceIds, messageLabel, msgObject, callback) {
+function sendMessage(ServerAPIKey, deviceIds, messageLabel, msgObject, callback) {
 
+    var sender = new gcm.Sender(ServerAPIKey); // 'AIzaSyCY8AOb3qF4dVODMkBELjR7n1ClfFnBwq4'
 
     var message = new gcm.Message({
     //    collapseKey: 'getpro',
@@ -27,8 +41,6 @@ function sendMessage(deviceIds, messageLabel, msgObject, callback) {
      * Params: message-literal, registrationIds-array, No. of retries, callback-function
      **/
     sender.send(message, deviceIds, 4, function (err, result) {
-        console.log(err);
-        console.log(result);
         callback(err || result.success != 1 && result.failure == 0);
     });
 
