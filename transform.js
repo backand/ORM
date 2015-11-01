@@ -170,52 +170,59 @@ var mapToKnexTypes =
 function transform(oldSchema, newSchema, severity){
 	// console.log(oldSchema, newSchema, severity);
 
-	// Compare the JSON
-	var modifications = compareSchemes(oldSchema, newSchema, severity);
-    // console.log(JSON.stringify(modifications));
-	// Determine validity 
-	var validity = isValidTransformation(oldSchema, newSchema, modifications);
-	// console.log(validity);
+	try{
+
+		// Compare the JSON
+		var modifications = compareSchemes(oldSchema, newSchema, severity);
+	    // console.log(JSON.stringify(modifications));
+		// Determine validity 
+		var validity = isValidTransformation(oldSchema, newSchema, modifications);
+		// console.log(validity);
 
 
-	if (severity == 0 && validity.valid != "always"){
-		return validity;
+		if (severity == 0 && validity.valid != "always"){
+			return validity;
+		}
+		else if (severity == 1 && validity.valid == "never"){
+			return validity;
+		}
+
+		// generate notifications on dropping tables and columns
+	    validity.notifications = {};
+	    if (modifications.dropTable.length > 0){
+	            validity.notifications["droppedTables"] = modifications.dropTable;
+	    }
+	    if (modifications.modifiedTables.length > 0){
+	            validity.notifications["droppedColumns"] = [];
+	            _.each(modifications.modifiedTables, function(m){
+	                    _.each(m.dropped, function(d){
+	                            validity.notifications["droppedColumns"].push({ table: m.name, column: d });
+	                    });
+	            });
+	    }
+
+
+		// Construct an array of the required changes between schemes
+		var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
+
+		// remove created at and updated at columns
+		alterStatementsArray = _.map(alterStatementsArray, function(s){
+			return s.replace(/, `created_at` datetime/g,"").replace(/, `updated_at` datetime/g,"").replace(/;/g, "");
+		});
+
+		// describe the order of the database
+		var tablesOrder = _.pluck(newSchema, "name");
+		var columnsOrder = _.map(newSchema, function(t){
+			return _.keys(t.fields);
+		});
+		var orderStructure = { tables: tablesOrder, columns: _.object(tablesOrder, columnsOrder) };
+		
+		return _.extend(validity, { alter: alterStatementsArray, order: orderStructure });
+
 	}
-	else if (severity == 1 && validity.valid == "never"){
-		return validity;
+	catch(exp){
+		return { error: exp };
 	}
-
-	// generate notifications on dropping tables and columns
-    validity.notifications = {};
-    if (modifications.dropTable.length > 0){
-            validity.notifications["droppedTables"] = modifications.dropTable;
-    }
-    if (modifications.modifiedTables.length > 0){
-            validity.notifications["droppedColumns"] = [];
-            _.each(modifications.modifiedTables, function(m){
-                    _.each(m.dropped, function(d){
-                            validity.notifications["droppedColumns"].push({ table: m.name, column: d });
-                    });
-            });
-    }
-
-
-	// Construct an array of the required changes between schemes
-	var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
-
-	// remove created at and updated at columns
-	alterStatementsArray = _.map(alterStatementsArray, function(s){
-		return s.replace(/, `created_at` datetime/g,"").replace(/, `updated_at` datetime/g,"").replace(/;/g, "");
-	});
-
-	// describe the order of the database
-	var tablesOrder = _.pluck(newSchema, "name");
-	var columnsOrder = _.map(newSchema, function(t){
-		return _.keys(t.fields);
-	});
-	var orderStructure = { tables: tablesOrder, columns: _.object(tablesOrder, columnsOrder) };
-	
-	return _.extend(validity, { alter: alterStatementsArray, order: orderStructure });
 
 }
 

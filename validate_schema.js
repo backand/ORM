@@ -14,64 +14,71 @@ module.exports.validTypes = validTypes;
 // warnings - array of strings
 
 function validateSchema(schema){
-	
-	if (!Array.isArray(schema)){
-		return { valid: false, warnings: ["should be array of table definitions"]};
-	}
-	var relationships = [];
 
-	var result = _.reduce(schema, function(memo, value){
-		var currentResult = validRelation(value);
-		memo.warnings.push(currentResult.warnings);
-		
-		var relationshipsCheck = getRelationships(value);
-		relationships.push(relationshipsCheck.relationships);
-		memo.warnings.push(relationshipsCheck.warnings);
+	try{
 
-		return { valid: memo.valid && currentResult.valid && relationshipsCheck.valid, warnings: _.flatten(memo.warnings) };
-	}, { valid: true, warnings: [] });
-	var relationships = _.flatten(relationships);
+		if (!Array.isArray(schema)){
+			return { valid: false, warnings: ["should be array of table definitions"]};
+		}
+		var relationships = [];
 
-	// validate the two sides of a relationship
-	_.each(relationships, 
-		function(r){
-			if (r.type == "n"){				
-				var fn = _.filter(relationships, function(o){
-					return r.collection == o.relation && o.collection == r.relation && o.via == r.attribute && r.via == o.attribute && o.type == "n";
-				});
-				var otherSideM = fn.length > 0 ? _.first(fn) : null;
-				if (!otherSideM){
+		var result = _.reduce(schema, function(memo, value){
+			var currentResult = validRelation(value);
+			memo.warnings.push(currentResult.warnings);
+			
+			var relationshipsCheck = getRelationships(value);
+			relationships.push(relationshipsCheck.relationships);
+			memo.warnings.push(relationshipsCheck.warnings);
+
+			return { valid: memo.valid && currentResult.valid && relationshipsCheck.valid, warnings: _.flatten(memo.warnings) };
+		}, { valid: true, warnings: [] });
+		var relationships = _.flatten(relationships);
+
+		// validate the two sides of a relationship
+		_.each(relationships, 
+			function(r){
+				if (r.type == "n"){				
+					var fn = _.filter(relationships, function(o){
+						return r.collection == o.relation && o.collection == r.relation && o.via == r.attribute && r.via == o.attribute && o.type == "n";
+					});
+					var otherSideM = fn.length > 0 ? _.first(fn) : null;
+					if (!otherSideM){
+						var fone = _.filter(relationships, function(o){
+							return o.object == r.relation && r.collection == o.relation && r.via == o.attribute && o.type == "one";
+						})
+						var otherSide1 = fone.length > 0 ? _.first(fone) : null;
+						if (!otherSide1){
+							// result.warnings.push("multi select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
+							result.warnings.push("missing one side of one-to-many relationship: relation " + r.relation + " attribute " + r.attribute);
+							result.valid = false;
+						}
+							
+					}
+					else{
+						result.valid = false;
+						result.warnings.push("multi select relationship are not allowed: relation " + r.relation + " attribute " + r.attribute + " and relation " + otherSideM.relation + " attribute " + otherSideM.attribute);
+					}
+				}
+				else if (r.type == "one"){
 					var fone = _.filter(relationships, function(o){
-						return o.object == r.relation && r.collection == o.relation && r.via == o.attribute && o.type == "one";
-					})
-					var otherSide1 = fone.length > 0 ? _.first(fone) : null;
-					if (!otherSide1){
-						// result.warnings.push("multi select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
-						result.warnings.push("missing one side of one-to-many relationship: relation " + r.relation + " attribute " + r.attribute);
+						return r.object == o.relation && o.collection == r.relation && o.via == r.attribute && o.type == "n";
+					});
+					var otherSide = fone.length > 0 ? _.first(fone) : null;
+					if (!otherSide){
+						result.warnings.push("single select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
 						result.valid = false;
 					}
-						
-				}
-				else{
-					result.valid = false;
-					result.warnings.push("multi select relationship are not allowed: relation " + r.relation + " attribute " + r.attribute + " and relation " + otherSideM.relation + " attribute " + otherSideM.attribute);
 				}
 			}
-			else if (r.type == "one"){
-				var fone = _.filter(relationships, function(o){
-					return r.object == o.relation && o.collection == r.relation && o.via == r.attribute && o.type == "n";
-				});
-				var otherSide = fone.length > 0 ? _.first(fone) : null;
-				if (!otherSide){
-					result.warnings.push("single select relationship of relation " + r.relation + " attribute " + r.attribute + " has no other side");
-					result.valid = false;
-				}
-			}
-		}
-	);
+		);
 
-	return result;
-
+		return result;
+	}
+	catch(exp){
+		console.log(exp);
+		return { error: exp };
+	}
+	
 }
 
 

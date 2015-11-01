@@ -36,16 +36,31 @@ router.map(function () {
     
     this.post('/validate').bind(function (req, res, data) {
         result = validator(data)
-        res.send(200, {}, result);
+        if (result.error){
+            res.send(500, { error: result.error }, {});
+        }
+        else{
+           res.send(200, {}, result); 
+        }
+        
     });
 
     this.post('/transform').bind(function (req, res, data) {
-        //result = transformer(data.oldSchema, data.newSchema, data.severity)
-        //res.send(200, {}, result);
+
         var isValidNewSchema = validator(data.newSchema);
-        if (isValidNewSchema.valid){
+        if (isValidNewSchema.error){
+            res.send(500, { error: isValidNewSchema.error }, {});
+        }
+        else if (isValidNewSchema.valid){
             result = transformer(data.oldSchema, data.newSchema, data.severity)
-            res.send(200, {}, result);
+
+            if (result.error){
+                res.send(500, { error: isValidNewSchema.error }, {});
+            }
+            else{
+                res.send(200, {}, result);
+            }
+            
         }
         else{
             isValidNewSchema.valid = "never";
@@ -63,14 +78,29 @@ router.map(function () {
                 else{
                     if (data.withoutValidation){
                         result = transformer(oldSchema, data.newSchema, data.severity)
-                        res.send(200, {}, result);
+                        if (result.error){
+                            res.send(500, { result.error }, {});
+                        }
+                        else{
+                            res.send(200, {}, result); 
+                        }
+                        
                     }
                     else{
                         // test if new schema is valid
                         var isValidNewSchema = validator(data.newSchema);
-                        if (isValidNewSchema.valid){
+                        if (isValidNewSchema.error){
+                            res.send(500, { result.error }, {});
+                        }
+                        else if (isValidNewSchema.valid){
                             result = transformer(oldSchema, data.newSchema, data.severity)
-                            res.send(200, {}, result);
+                            if (result.error){
+                                res.send(500, { result.error }, {});
+                            }
+                            else{
+                                res.send(200, {}, result);  
+                            }
+                            
                         }
                         else{
                             //isValidNewSchema.valid = "never";
