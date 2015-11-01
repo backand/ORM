@@ -79,7 +79,7 @@ router.map(function () {
                     if (data.withoutValidation){
                         result = transformer(oldSchema, data.newSchema, data.severity)
                         if (result.error){
-                            res.send(500, { result.error }, {});
+                            res.send(500, { error: result.error }, {});
                         }
                         else{
                             res.send(200, {}, result); 
@@ -90,12 +90,12 @@ router.map(function () {
                         // test if new schema is valid
                         var isValidNewSchema = validator(data.newSchema);
                         if (isValidNewSchema.error){
-                            res.send(500, { result.error }, {});
+                            res.send(500, { error: result.error }, {});
                         }
                         else if (isValidNewSchema.valid){
                             result = transformer(oldSchema, data.newSchema, data.severity)
                             if (result.error){
-                                res.send(500, { result.error }, {});
+                                res.send(500, { error: result.error }, {});
                             }
                             else{
                                 res.send(200, {}, result);  
