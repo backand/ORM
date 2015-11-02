@@ -29,7 +29,7 @@ switch(options._[0])
 
 
 // get credentials
-var credentials = JSON.parse(fs.readFileSync('aws-credentials.json', 'utf8'));
+var credentials = JSON.parse(fs.readFileSync('temporary-credentials.json', 'utf8'));
 
 // folder of project
 var folder = options.f;
@@ -44,7 +44,8 @@ var publisherOptions = _.extend(credentials,
     params: {
       Bucket: bucket,
       ACL: "public-read"
-    }
+    },
+    logger: process.stdout 
   }
 );
 

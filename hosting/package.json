@@ -10,7 +10,9 @@
     "underscore": "latest",
     "del": "latest",
     "gulp-awspublish-router": "latest",
-    "minimist": "latest"
+    "minimist": "latest",
+    "aws-sdk": "latest",
+    "uuid": "latest"
   },
   "devDependencies": {},
   "scripts": {
