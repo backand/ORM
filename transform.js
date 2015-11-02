@@ -162,7 +162,9 @@ var mapToKnexTypes =
 	"date": "date"
 };
 
+
 // console.log("statements");
+// console.log(r);
 // _.each(r.alter, function(s){
 // 	console.log(s + ";");
 // });
@@ -562,25 +564,6 @@ function createStatements(oldSchema, newSchema, modifications){
 		  			col.onDelete("cascade").onUpdate("cascade");
 		  		}	  		
 		  	}
-		  	else if (_.has(description, "collection") && _.has(description, "via")){ // n side of 1:n relationship
-		  		var wSpec = { oneRelation: description.collection, nRelation: t, nAttribute: name, oneAttribute: description.via };
-		  		var w = _.findWhere(oldRelationships, wSpec);
-		  		if (!w && !_.detect(addedTables, function(a){ return a == description.collection; })){
-		  			var statementRelationship = knex.schema.table(description.collection,function(table){
-		  				var col = table.integer(description.via).unsigned().references("id").inTable(t);
-		  				if (w.isCascade){
-		  					col.onDelete("cascade").onUpdate("cascade");
-		  				}
-		  				
-		  			});
-		  			var relationshipString = statementRelationship.toString();
-		  			var pattern = 'constraint ' + description.collection.toLowerCase() + '_' + description.via + '_foreign';
-		  			var replacement = "constraint " + t + "_"  + description.via + "_bkname_" + name;
-		  			relationshipString = relationshipString.replace(pattern, replacement);
-		  			statementsRelationships.push(relationshipString);
-
-		  		}
-		  	}
 		  });
 		    
 		});
@@ -729,15 +712,7 @@ function createStatements(oldSchema, newSchema, modifications){
 				  	if (!_.isUndefined(description.defaultValue)){
 			  			col.defaultTo(description.defaultValue); 
 			  		}
-				}
-				else if (_.has(description, "object")){ // 1 side of 1:n relationship
-			  		var oneManyRelationship = _.findWhere(newRelationships, { oneRelation: m.name, oneAttribute: name });
-			  		//var col = table.integer("fk_" + m.name + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
-					var col = table.integer(name).col.unsigned().references("id").inTable(oneManyRelationship.nRelation);
-					if (oneManyRelationship.isCascade){
-						col.onDelete("cascade").onUpdate("cascade");
-					}		
-			  	}			
+				}		
 			});	
 		});
         
