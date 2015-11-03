@@ -10,25 +10,26 @@ function getTemporaryCredentials(bucket, callback){
 	// AWS.config.loadFromPath('aws-credentials.json');
 	AWS.config.loadFromPath('kornatzky-credentials.json');
 	AWS.config.update({ logger: process.stdout });
-	var params = {
-	  RoleArn: 'arn:aws:s3:::backandhosting/*', //'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole', // 'arn:aws:s3:::backandhosting', // 'arn:aws:iam::aws:policy/AmazonS3FullAccess', //  'arn:aws:iam::328923390206:policy/stsAllowAssumeRole', //'arn:aws:iam::328923390206:policy/full-s3-kornatzky', //'arn:aws:iam::328923390206:role/gulpmanager', //'arn:aws:iam::aws:policy/AmazonS3FullAccess', //'arn:aws:s3:::backandhosting', /* required */
-	  RoleSessionName: uuid.v4().slice(31), /* required */
+  //'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforDataPipelineRole', // 'arn:aws:s3:::backandhosting', // 'arn:aws:iam::aws:policy/AmazonS3FullAccess', //  'arn:aws:iam::328923390206:policy/stsAllowAssumeRole', //'arn:aws:iam::328923390206:policy/full-s3-kornatzky', //'arn:aws:iam::328923390206:role/gulpmanager', //'arn:aws:iam::aws:policy/AmazonS3FullAccess', //'arn:aws:s3:::backandhosting', /* required */
+  var params = {
+	  RoleArn: 'arn:aws:iam::328923390206:role/hosting',
+    RoleSessionName: uuid.v4().slice(31), /* required */
 	  DurationSeconds: 3600,
 	  // ExternalId: 'STRING_VALUE',
 	  Policy: // 'STRING_VALUE',
 	  	JSON.stringify({
 		  "Version": "2012-10-17",
 		  "Statement": [
-		    // {
-		    //   "Effect": "Allow",
-		    //   "Action": "s3:ListBucket",
-		    //   "Resource": "arn:aws:s3:::backandhosting/*"
-		    // },
+		     {
+		       "Effect": "Allow",
+		       "Action": "s3:ListBucket",
+		       "Resource": "arn:aws:s3:::backandhosting"
+		     },
 		    {
 		      "Effect": "Allow",
 		      "Action": [
-		        "s3:GetObject",
-		        "s3:PutObject",
+		        "s3:GetObject*",
+		        "s3:PutObject*",
 		        "s3:DeleteObject"
 		      ],
 		      "Resource": "arn:aws:s3:::backandhosting/*"
