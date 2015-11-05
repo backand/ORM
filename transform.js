@@ -162,12 +162,10 @@ var mapToKnexTypes =
 	"date": "date"
 };
 
-
-
-console.log("statements");
-_.each(r.alter, function(s){
-	console.log(s + ";");
-});
+// console.log("statements");
+// _.each(r.alter, function(s){
+// 	console.log(s + ";");
+// });
 
 
 function transform(oldSchema, newSchema, severity){
@@ -713,6 +711,30 @@ function createStatements(oldSchema, newSchema, modifications){
 				  	if (!_.isUndefined(description.defaultValue)){
 			  			col.defaultTo(description.defaultValue); 
 			  		}
+				}
+				else if (description.object){ // 1 side of 1:n relationship
+			  		console.log("description.object");
+			  		var searchPattern = { oneRelation: tableName, oneAttribute: name };
+			  		console.log(searchPattern);
+			  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
+			  		var alreadyCreatedRelationship = _.findWhere(relationships, searchPattern);
+			  		
+			  		if (oneManyRelationship && !alreadyCreatedRelationship){
+
+
+			  			relationships.push(oneManyRelationship);
+				  		//var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
+						// var col = table.integer(name);
+						// col.unsigned();
+				  		// col.references("id").inTable(oneManyRelationship.nRelation);
+				  		var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);
+				  		if (oneManyRelationship.isCascade){
+				  			col.onDelete("cascade").onUpdate("cascade");
+				  		}	
+
+			  		}
+			  		  		
+			  	
 				}		
 			});	
 		});
