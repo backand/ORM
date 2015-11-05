@@ -163,11 +163,12 @@ var mapToKnexTypes =
 };
 
 
-// console.log("statements");
-// console.log(r);
-// _.each(r.alter, function(s){
-// 	console.log(s + ";");
-// });
+
+console.log("statements");
+_.each(r.alter, function(s){
+	console.log(s + ";");
+});
+
 
 function transform(oldSchema, newSchema, severity){
 	// console.log(oldSchema, newSchema, severity);
@@ -467,7 +468,7 @@ function createStatements(oldSchema, newSchema, modifications){
 				statements.push(statement.toString());	
 			}
 			else if (r.type = "1:n" && r.nRelation == t){				
-				statements.unshift("alter table " +  r.oneRelation.toLowerCase() + " drop foreign key " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute.toLowerCase());
+				statements.unshift("alter table " +  r.oneRelation + " drop foreign key " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute.toLowerCase());
 			}
 		});	
 
