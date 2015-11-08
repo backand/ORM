@@ -37,15 +37,18 @@ var folder = options.f;
 // bucket
 var bucket = options.b;
 
+
+var dir = options.d
+
 // create a new publisher using S3 options 
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property 
 var publisherOptions = _.extend(credentials,   
   {
     params: {
       Bucket: bucket,
-      ACL: "public-read"
+      // ACL: "public-read"
     },
-    logger: process.stdout 
+    logger: process.stdout
   }
 );
 
@@ -72,46 +75,53 @@ gulp.task('dist', function() {
         .pipe(awspublishRouter({
             routes: {
 
-                "\\w*\.css$": {
+                "[\\w/]*\.css$": {
                     headers: {
                         "Content-Type": "text/css"
-                    }
+                    },
+                    key: dir + "/" + "$&"
                 },
 
-                "\\w*\.js$": {
+                "[\\w/]*\.js$": {
                     headers: {
                         "Content-Type": "application/javascript"
-                    }
+                    },
+                    key: dir + "/" + "$&"
                 },
 
-                "\\w*\.jpg$": {
+                "[\\w/]*\.jpg$": {
                     headers: {
                         "Content-Type": "image/jpg"
-                    }
+                    },
+                    key: dir + "/" + "$&"
                 },
 
-                "\\w*\.jpeg$": {
+                "[\\w/]*\.jpeg$": {
                     headers: {
                         "Content-Type": "image/jpg"
-                    }
+                    },
+                    key: dir + "/" + "$&"
                 },
 
-                "\\w*\.gif$": {
+                "[\\w/]*\.gif$": {
                     headers: {
                         "Content-Type": "image/gif"
-                    }
+                    },
+                    key: dir + "/" + "$&"
                 },
 
-                "\\w*\.png$": {
+                "[\\w/]*\.png$": {
                     headers: {
                         "Content-Type": "image/png"
-                    }
+                    },
+                    key: dir + "/" + "$&"
                 },
 
-                "\w*\\.\w*": {
+                "[\\w/]*\\.\w*": {
                     headers: {
                         "Content-Type": "text/plain"
-                    }
+                    },
+                    key: dir + "/" + "$&"
                 },
 
             }

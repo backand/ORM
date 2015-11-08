@@ -12,7 +12,8 @@
     "gulp-awspublish-router": "latest",
     "minimist": "latest",
     "aws-sdk": "latest",
-    "uuid": "latest"
+    "uuid": "latest",
+    "gulp-rename": "latest"
   },
   "devDependencies": {},
   "scripts": {

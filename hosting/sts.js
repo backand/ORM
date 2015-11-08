@@ -20,11 +20,32 @@ function getTemporaryCredentials(bucket, callback){
 	  	JSON.stringify({
 		  "Version": "2012-10-17",
 		  "Statement": [
-		     {
+		  	{
 		       "Effect": "Allow",
 		       "Action": "s3:ListBucket",
-		       "Resource": "arn:aws:s3:::backandhosting"
-		     },
+		       // "Resource": "arn:aws:s3:::backandhosting/dir1"
+		       "Resource": "arn:aws:s3:::backandhosting",
+		       // "Condition":{"StringLike":{"s3:prefix":["","dir1/*"],"s3:delimiter":["/"]}}
+		       "Condition":{"StringEquals":{"s3:prefix":["","dir1/"],"s3:delimiter":["/"]}}
+		    },
+		    {
+		       "Effect": "Allow",
+		       // "Action": "s3:ListBucket",
+		       "Action": "s3:ListObjects",
+		       // "Resource": "arn:aws:s3:::backandhosting/dir1"
+		       "Resource": "arn:aws:s3:::backandhosting",
+		       // "Condition":{"StringLike":{"s3:prefix":["","dir1/*"],"s3:delimiter":["/"]}}
+		       "Condition":{"StringEquals":{"s3:prefix":["","dir1"],"s3:delimiter":["/"]}}
+		    },
+		    {
+		       "Effect": "Allow",
+		       // "Action": "s3:ListBucket",
+		       "Action": "s3:ListObjects",
+		       // "Resource": "arn:aws:s3:::backandhosting/dir1"
+		       "Resource": "arn:aws:s3:::backandhosting",
+		       // "Condition":{"StringLike":{"s3:prefix":["","dir1/*"],"s3:delimiter":["/"]}}
+		       "Condition":{"StringLike":{"s3:prefix":["","dir1/*"],"s3:delimiter":["/"]}}
+		    },
 		    {
 		      "Effect": "Allow",
 		      "Action": [
@@ -32,7 +53,9 @@ function getTemporaryCredentials(bucket, callback){
 		        "s3:PutObject*",
 		        "s3:DeleteObject"
 		      ],
-		      "Resource": "arn:aws:s3:::backandhosting/*"
+		      // "Resource": "arn:aws:s3:::backandhosting/*",
+		      "Resource": "arn:aws:s3:::backandhosting/dir1/*"
+		      // "Condition":{"StringLike":{"s3:prefix":["","dir1/*"],"s3:delimiter":["/"]}}
 		    }
 		  ]
 		})
