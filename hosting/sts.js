@@ -78,6 +78,7 @@ function getTemporaryCredentials(bucket, dir, callback){
 }
 
 // test of sts
+// should be commented out before using with schema server
 getTemporaryCredentials("backandhosting", "dir1", function(err, data){
 	if (err){
 		process.exit(1);
