@@ -8,12 +8,14 @@ var awspublishRouter = require("gulp-awspublish-router");
 var minimist = require('minimist');
 var options = minimist(process.argv.slice(2));
 
+var temporaryCredentialsFile = 'temporary-credentials.json';
+
 
 switch(options._[0])
 {
     case "dist":
-        if (!options.f || !options.b){
-            console.log("usage: sync: node_modules/gulp/bin/gulp.js dist --f /path/to/project/folder --b bucket");
+        if (!options.f || !options.b || !options.d){
+            console.log("usage: sync: node_modules/gulp/bin/gulp.js dist --f /path/to/project/folder --b backandbucket --d /folder/in/backand/bucket");
             process.exit(1);
         }
     break;
@@ -29,7 +31,7 @@ switch(options._[0])
 
 
 // get credentials
-var credentials = JSON.parse(fs.readFileSync('temporary-credentials.json', 'utf8'));
+var credentials = JSON.parse(fs.readFileSync(temporaryCredentialsFile, 'utf8'));
 
 // folder of project
 var folder = options.f;

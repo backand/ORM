@@ -25,3 +25,5 @@ hosting/.awspublish-backandhosting
 hosting/src
 .DS_Store
 push/node_modules
+hosting/node_modules
+hosting/temporary-credentials.json
