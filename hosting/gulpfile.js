@@ -6,6 +6,8 @@ var fs = require('fs');
 var del = require('del');
 var awspublishRouter = require("gulp-awspublish-router");
 var minimist = require('minimist');
+var rename = require("gulp-rename");
+
 var options = minimist(process.argv.slice(2));
 
 var temporaryCredentialsFile = 'temporary-credentials.json';
@@ -72,6 +74,11 @@ gulp.task('dist', function() {
  
 	// this will publish and sync bucket files with the one in your public directory 
 	gulp.src(folder + '/**/*.*')
+
+        // rename extensions to lower case
+        .pipe(rename(function (path) {
+            path.extname = path.extname.toLowerCase();
+        }))
 
         // set content type
         .pipe(awspublishRouter({
