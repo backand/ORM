@@ -4,13 +4,15 @@ var AWS = require('aws-sdk');
 var uuid = require('uuid');
 var jsonfile = require('jsonfile')
  
-var credentialsFile = './hosting/aws-credentials.json';
-var iamRole = 'arn:aws:iam::328923390206:role/hosting';
+//var credentialsFile = './hosting/aws-credentials.json';
+var credentialsFile = require('./credentials').credentials;
+var iamRole = require('./credentials').iamRole;
 
 function getTemporaryCredentials(bucket, dir, callback){
 
 	// get iam credentials
-	AWS.config.loadFromPath(credentialsFile);
+	//AWS.config.loadFromPath(credentialsFile);
+  AWS.config.set('credentials',credentialsFile,null);
 	AWS.config.update({ logger: process.stdout });
     var params = {
 	  RoleArn: iamRole,
