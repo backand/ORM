@@ -4,7 +4,7 @@ var AWS = require('aws-sdk');
 var uuid = require('uuid');
 var jsonfile = require('jsonfile')
  
-var credentialsFile = 'aws-credentials.json';
+var credentialsFile = './hosting/aws-credentials.json';
 var iamRole = 'arn:aws:iam::328923390206:role/hosting';
 
 function getTemporaryCredentials(bucket, dir, callback){

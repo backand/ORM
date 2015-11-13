@@ -200,10 +200,10 @@ router.map(function () {
         res.send(200, {}, {});
     });
 
-    this.get('/bucketCredentials').bind(function (req, res, data) {
+    this.post('/bucketCredentials').bind(function (req, res, data) {
         getTemporaryCredentials(data.bucket, data.dir, function(err, data){
             if (err){
-                res.send(403, { error: err }, {});
+                res.send(500, { error: err }, {});
             }
             else{
                 res.send(200, {}, data);
