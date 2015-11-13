@@ -1,0 +1,45 @@
+$ace-height: 550px;
+
+.model-edit-ace-diff #flex-container.ace-diff-container {
+  height: $ace-height;
+  div.ace_editor {
+    font-size: 15px;
+    height: $ace-height;
+  }
+
+  #acediff-right-editor {
+    background-color: #3D3D38;
+
+    .ace_marker-layer .ace_active-line {
+      background-color: #363636;
+    }
+  }
+}
+
+.model-help.angled-window  {
+  left: calc(50% - 200px);
+  .angled-window-body-content {
+    height: 600px;
+  }
+}
+
+.model-validation.panel {
+  margin-bottom: 0;
+  word-wrap: break-word;
+
+  .modal-footer {
+    padding-bottom: 0;
+  }
+}
+
+.model-diff-container {
+  height: $ace-height;
+  margin-left: 15px;
+  margin-right: -15px;
+}
+
+.model-types-container {
+  padding-left: 30px;
+}
+
+

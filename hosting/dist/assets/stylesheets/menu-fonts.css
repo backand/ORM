@@ -1,0 +1,124 @@
+@font-face {
+	font-family: 'backand-menu';
+	src:url('../fonts/backand-menu.eot?-3kl00u');
+	src:url('../fonts/backand-menu.eot?#iefix-3kl00u') format('embedded-opentype'),
+		url('../fonts/backand-menu.ttf?-3kl00u') format('truetype'),
+		url('../fonts/backand-menu.woff?-3kl00u') format('woff'),
+		url('../fonts/backand-menu.svg?-3kl00u#backand-menu') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+[class^="ba-icon-"], [class*=" ba-icon-"] {
+	font-family: 'backand-menu';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.ba-icon-icon-copy:before {
+	content: "\e801";
+}
+.ba-icon-icon-field-type-number:before {
+	content: "\e802";
+}
+.ba-icon-icon-field-type-text:before {
+	content: "\e803";
+}
+.ba-icon-icon-field-type-true:before {
+	content: "\e804";
+}
+.ba-icon-icon-field-type-false:before {
+	content: "\e805";
+}
+.ba-icon-icon-refresh:before {
+	content: "\e806";
+}
+.ba-icon-security-actions:before {
+	content: "\e619";
+}
+.ba-icon-external-link:before {
+	content: "\e800";
+}
+.ba-icon-admins:before {
+	content: "\e601";
+}
+.ba-icon-angularjs-quickstart:before {
+	content: "\e600";
+}
+.ba-icon-configuration:before {
+	content: "\e602";
+}
+.ba-icon-dashboard:before {
+	content: "\e603";
+}
+.ba-icon-database:before {
+	content: "\e604";
+}
+.ba-icon-data-history:before {
+	content: "\e605";
+}
+.ba-icon-docs-and-api:before {
+	content: "\e606";
+}
+.ba-icon-documentation:before {
+	content: "\e607";
+}
+.ba-icon-general:before {
+	content: "\e608";
+}
+.ba-icon-kickstart-tutorial:before {
+	content: "\e609";
+}
+.ba-icon-keys:before {
+	content: "\e618";
+}
+.ba-icon-log:before {
+	content: "\e60a";
+}
+.ba-icon-model:before {
+	content: "\e60b";
+}
+.ba-icon-new-query:before {
+	content: "\e60c";
+}
+.ba-icon-objects:before {
+	content: "\e60d";
+}
+.ba-icon-quries:before {
+	content: "\e60e";
+}
+.ba-icon-registered-users:before {
+	content: "\e60f";
+}
+.ba-icon-rest-api-playground:before {
+	content: "\e610";
+}
+.ba-icon-secruirty-templates:before {
+	content: "\e611";
+}
+.ba-icon-security-and-auth:before {
+	content: "\e612";
+}
+.ba-icon-server-side-exceptions:before {
+	content: "\e613";
+}
+.ba-icon-settings:before {
+	content: "\e614";
+}
+.ba-icon-social-login:before {
+	content: "\e615";
+}
+.ba-icon-todo:before {
+	content: "\e616";
+}
+.ba-icon-todo-example:before {
+	content: "\e617";
+}

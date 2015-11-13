@@ -1,0 +1,72 @@
+$icon-font-path:          "/assets/fonts/bootstrap/" !default;
+
+@import "bootstrap";
+@import "ui/ui";
+
+// Shared variables and mixins
+@import
+    "global/var"                        // global variables (TODO: (Adam) This has no affect if it's after import bootstrap)
+,   "mixins"        // Bootstrap mixins
+,   "bourbon/bourbon"                   // mixins
+;
+
+
+@import
+
+// Plugins, overrides plugins' style
+    "plugins/bootstrap-slider"
+,   "plugins/responsive-tables"
+,   "plugins/easypiecharts"
+,   "plugins/toastr"
+,   "plugins/sparkline"
+,   "plugins/jquery-steps"
+,   "plugins/angular-ui-tree"
+,   "plugins/morris"
+,   "plugins/jquery-jvectormap"
+,   "plugins/ng-tags-input"
+
+// Pages
+,   "global/var-pages"
+,   "pages/dashboard"
+,   "pages/pages"
+,   "pages/err"
+,   "pages/lock-screen"
+,   "pages/tasks"
+,   "pages/auth"
+,   "pages/profile"
+,   "pages/invoice"
+,   "pages/ui"
+,   "pages/demo"
+,   "pages/apps"
+,   "pages/database"
+,   "pages/docs"
+,   "pages/model"
+,   "pages/security"
+,   "pages/auth-landing"
+,   "pages/object_data"
+,   "pages/filter_form"
+,   "pages/object_security"
+,   "pages/db_query"
+,   "pages/erd_model"
+
+// sections
+,   "sections/layouts"
+,   "sections/shared"
+,   "sections/nav"
+,   "sections/nav-off-canvas"
+,   "sections/nav-horizontal"
+,   "sections/nav-min"
+,   "sections/header"
+,   "sections/body"
+,   "sections/skin"
+,   "sections/collapsible-fieldset"
+;
+
+// custom
+@import "custom";
+@import "dashboard";
+@import "angled-windows";
+@import "javascript-editor";
+@import "rules";
+@import "tables";
+@import "bootstrap-social";

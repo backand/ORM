@@ -1,0 +1,20 @@
+.erd-model {
+  svg {
+    height: 2000px;
+    width: 100%;
+
+    text.fa-icon {
+      font-family: FontAwesome;
+
+      &.magic-icon {
+        font-size: 20px;
+        fill: #555;
+
+        &:hover {
+          fill: #222;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}

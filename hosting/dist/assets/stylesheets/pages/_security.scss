@@ -1,0 +1,43 @@
+.social-provider-title {
+  font-size: 18px;
+  &.google-title {
+    color: $colorGoogle;
+  }
+  &.github-title {
+    color: $colorGithub;
+  }
+  &.facebook-title {
+    color: $colorFacebook;
+  }
+
+  .social-provider-icon {
+    font-size: 24px;
+    width: 30px;
+    text-align: center;
+  }
+
+  span {
+    vertical-align: top;
+  }
+}
+
+.social-keys-container {
+  padding-top: 15px;
+}
+
+.social-provider-container {
+  height: 147px;
+  position: relative;
+
+  .social-provider-help {
+    position: absolute;
+    bottom: 0;
+    background-color: #ECF7FE;
+    padding: 20px;
+
+    .social-provider-help-title {
+      font-weight: bold;
+      padding-bottom: 5px;
+    }
+  }
+}

@@ -1,0 +1,126 @@
+.ui-tab-container .goto-diagram-icon {
+  float: right;
+  padding: 14px;
+  font-size: 20px;
+  color: #777;
+
+  &:hover {
+    color: #333;
+    cursor: pointer;
+  }
+}
+
+tabs .tab-content {
+  display: none;
+}
+
+.dropdown .dropdown-menu.panel {
+  padding: 0;
+  line-height: 22px;
+}
+
+.single-table-message {
+  padding: 5px 15px;
+}
+
+/* edit in place overrides (nir kaufman)
+// ------------------------------------*/
+// .editable-buttons button {
+//   display: none !important;
+// }
+
+.editable-click, a.editable-click {
+  text-decoration: none !important;
+  color: black !important;
+  border-bottom: none !important;
+}
+
+.editable-wrap {
+  position: absolute;
+  top: -8px;
+  left: -18px;
+  box-shadow: 0 0 1px 1px rgba(0,0,0,0.5);
+  background: rgba(255,255,255,0.9);
+  padding: 6px 16px;
+  z-index: 10;
+}
+
+.ui-grid-cell-contents .editable-input {
+  padding: 6px 6px;
+  border-radius: 3px;
+}
+
+.ui-grid-viewport {
+  //overflow: visible !important;
+}
+
+.ui-grid-cell {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.grid-icon {
+  -moz-transform: scale(-1, 1);
+  -webkit-transform: scale(-1, 1);
+  -o-transform: scale(-1, 1);
+  -ms-transform: scale(-1, 1);
+  transform: scale(-1, 1);
+
+  text-align: center;
+  vertical-align: middle;
+  line-height: 30px;
+  cursor: pointer;
+
+  &:hover {
+    color: green;
+  }
+}
+
+.edit-row-modal {
+  form label {
+    font-weight: bold;
+    text-transform: capitalize;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  [type="checkbox"] {
+    width: 34px;
+  }
+
+  [type="date"], [type="time"] {
+    display: inline-block;
+  }
+}
+
+.typeahead-select-row {
+  cursor: pointer;
+}
+
+.tooltip.select-row-tooltip .tooltip-inner {
+  background-color: rgb(243, 243, 243);
+  color: black;
+  font-size: 14px;
+  text-align: left;
+  min-width: 350px;
+}
+
+.input-group .input-group-addon.addon-goto-object {
+  height: 34px;
+
+  &:hover {
+    background: white;
+    cursor: pointer
+  }
+}
+
+.object-data-log-container {
+  height: 600px;
+  overflow: auto;
+
+  .object-data-log-response {
+    resize: vertical;
+  }
+}

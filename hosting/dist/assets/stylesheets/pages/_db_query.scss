@@ -1,0 +1,49 @@
+.database-query-section {
+
+  .database-query-panel {
+    & > .row {
+      max-width:100%;
+      margin:0 auto;
+    }
+    .left-col {
+      width:50%;
+      padding-right:3%;
+      padding-left:2%;
+      border-right:1px solid #ccc;
+      float:left;
+      @media screen and (max-width:900px) {
+        width:100%;
+        padding:0;
+        clear:both;
+        border-right:none;
+        border-bottom:1px solid #ccc;
+        padding-bottom:20px;
+        margin-bottom:20px;
+      }
+    }
+    .right-col {
+      width:50%;
+      padding-left:3%;
+      float:left;
+
+      @media screen and (max-width:900px) {
+        width:100%;
+        clear:both;
+        padding:0;
+        padding-bottom:20px;
+      }
+    }
+  }
+
+  .db-query-anchor {
+    margin: 14px;
+
+    span {
+      vertical-align: middle;
+    }
+  }
+}
+
+
+
+

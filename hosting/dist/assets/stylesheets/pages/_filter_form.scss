@@ -1,0 +1,74 @@
+.bknd-filter-form {
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  .form-inline {
+    margin-bottom: 5px;
+
+    fieldset {
+      display:inline;
+    }
+
+    label {
+      font-weight: bold;
+      border: 1px solid #ccc;
+      width: 202px;
+      height: 36px;
+      padding: 6px 12px;
+      font-size: 14px;
+      line-height: 1.42857;
+      display: inline-block;
+      vertical-align: middle;
+      border-radius: 4px;
+      margin-bottom: 0px;
+    }
+
+    input {
+      height: 36px;
+
+      &[type="text"] {
+        width: 346px;
+      }
+    }
+
+    .close-button {
+      border-radius: 20px;
+      background: #ccc;
+      margin: 3px;
+      padding: 5px;
+      width: 25px;
+      height: 25px;
+      text-align: center;
+      color: white;
+
+      &:hover {
+        color: #666;
+      }
+    }
+
+
+    .input-group {
+      display: inline-flex;
+
+      .input-group-addon {
+        padding: 10px;
+        min-width: 39px;
+      }
+
+      .ui-select {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+
+        &:after {
+          right: 16px;
+        }
+
+        select {
+          width: 343px;
+
+        }
+      }
+    }
+  }
+}

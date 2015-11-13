@@ -1,0 +1,210 @@
+$dawn-bg: rgba(150, 150, 150, 0.7);
+$dawn-color: #eee;
+$monokai-bg: rgba(70, 70, 70, 0.7);
+$monokai-color: #ccc;
+
+.bknd-ace-container {
+  position: relative;
+
+  &.monokai {
+    color: $monokai-color;
+    background-color: $monokai-bg;
+  }
+
+  &.dawn {
+    color: $dawn-color;
+    background-color: $dawn-bg;
+  }
+
+  &::selection {
+    background: yellow;
+  }
+
+  &.ace-full-screen {
+
+    .ace_editor {
+      font-size: 15px;
+      position: fixed;
+      top: 50px;
+      left: 0;
+      z-index: 1000;
+      width: 100%;
+      height: calc(100% - 50px) !important;
+    }
+
+    #flex-container.ace-diff-container {
+      font-size: 15px;
+      position: fixed;
+      top: 50px !important;
+      left: 0;
+      z-index: 1000;
+      width: 100%;
+      height: 100%;
+    }
+
+    .full-screen-button {
+      z-index: 1000;
+      position: fixed;
+      top: 60px;
+      right: 30px;
+      opacity: 0.5;
+      border-radius: 4px;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    .bknd-ace-features {
+      z-index: 1001;
+      position: fixed;
+      top: 60px;
+    }
+  }
+
+  .bknd-ace-features {
+    position: absolute;
+    top: 10px;
+    right: 65px;
+    z-index: 8;
+    background-color: inherit;
+
+    &.ace-find-left-editor {
+      right: calc(50% + 80px);
+
+      .ace-icon.find-in-ace-icon {
+        top: 0;
+      }
+    }
+
+    .find-in-ace {
+      background-color: inherit;
+
+      .find-in-ace-form {
+        position: absolute;
+        right: 7px;
+        background-color: inherit;
+        width: 220px;
+        padding: 7px;
+        border-radius: 5px;
+
+        form {
+          position: relative;
+
+          &::selection {
+            background: transparent;
+          }
+
+          &.ng-hide {
+            opacity: 0;
+          }
+
+          &.ng-hide-add, &.ng-hide-remove {
+            -webkit-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+            -moz-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+            -o-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+            transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+          }
+
+          .input-ace-icon {
+            padding: 0;
+            color: #bbb;
+            background: initial;
+            top: 7px;
+            width: 20px;
+
+            &:hover {
+              color: #aaa;
+            }
+
+            &.first-ace-icon {
+              right: 6px;
+            }
+
+            &.second-ace-icon {
+              right: 28px;
+            }
+          }
+        }
+
+        &.ng-hide {
+          opacity: 0;
+          width: 0;
+          font-size: 1px;
+          max-height: 115px;
+        }
+
+        &.ng-hide-add, &.ng-hide-remove {
+          -webkit-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+          -moz-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+          -o-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+          transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+
+          .find-in-ace-options {
+            display: none;
+          }
+        }
+
+        .input-round {
+          margin-bottom: 5px;
+        }
+
+        .find-in-ace-options {
+          margin-top: 7px;
+          margin-bottom: -7px;
+
+          .ui-checkbox input[type="checkbox"] {
+
+            + span:hover:before {
+              border-color: #888;
+            }
+
+            &:checked + span {
+
+              &:before {
+                border-color: initial;
+              }
+
+              &:after {
+                background-color: #888;
+              }
+            }
+          }
+
+          .find-in-ace-options-left {
+            left: 5px;
+          }
+
+          .find-in-ace-options-right {
+            margin-right: 0;
+            position: absolute;
+            left: 123px;
+          }
+        }
+      }
+    }
+
+      .ace-icon {
+        position: absolute;
+        font-size: 20px;
+        vertical-align: middle;
+        background-color: inherit;
+        padding: 7px;
+        border-radius: 18px;
+        cursor: pointer;
+        width: 34px;
+
+        &:hover {
+          background-color: rgba(110, 110, 110, 0.7);
+        }
+
+        &.find-in-ace-icon {
+          top: 40px;
+        }
+
+        &.expand-ace-icon {
+
+        }
+      }
+    }
+}

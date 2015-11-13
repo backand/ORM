@@ -1,0 +1,65 @@
+.security-filter {
+
+  .security-filter-ace-row {
+    display: flex;
+
+    &.security-filter-ace-row-disabled {
+      opacity: 0.7;
+
+    }
+    .ace-to-edit {
+      width: 90%;
+    }
+
+    .ace-to-view {
+      width: 10%;
+    }
+
+    .ace-to-edit-add, .ace-to-edit-remove {
+      -webkit-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+      -moz-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+      -o-transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+      transition: all cubic-bezier(0.250, 0.460, 0.450, 0.940) 0.5s;
+
+      .pull-right {
+        display: none;
+      }
+    }
+
+    .panel-left {
+      border-right: none;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .panel-right {
+      border-left: none;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+
+    .panel {
+      .panel-heading {
+        text-transform: none;
+
+        &:hover {
+          cursor: pointer;
+        }
+
+        .pull-right {
+
+          .ti-anchor {
+            cursor: pointer;
+            font-size: 20px;
+            color: black;
+            padding: 5px;
+          }
+
+          .btn {
+            margin-top: -3px;
+          }
+        }
+      }
+    }
+  }
+}
