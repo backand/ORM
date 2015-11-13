@@ -4,9 +4,8 @@ var AWS = require('aws-sdk');
 var uuid = require('uuid');
 var jsonfile = require('jsonfile')
  
-var credentialsFile = 'kornatzky-credentials.json';
+var credentialsFile = 'aws-credentials.json';
 var iamRole = 'arn:aws:iam::328923390206:role/hosting';
-var temporaryCredentialsFile = 'temporary-credentials.json';
 
 function getTemporaryCredentials(bucket, dir, callback){
 
@@ -79,25 +78,27 @@ function getTemporaryCredentials(bucket, dir, callback){
 
 // test of sts
 // should be commented out before using with schema server
-getTemporaryCredentials("backandhosting", "dir1", function(err, data){
-	if (err){
-		process.exit(1);
-	}
-	else {
-		var temporaryCredentials = { 
-			accessKeyId: data.Credentials.AccessKeyId, 
-			secretAccessKey: data.Credentials.SecretAccessKey, 
-			sessionToken: data.Credentials.SessionToken 
-		};
-		console.log(temporaryCredentials);
-		jsonfile.writeFile(temporaryCredentialsFile, temporaryCredentials, {spaces: 2}, function(err) {
-		  if (err){
-		  	process.exit(2);
-		  }
-		  else{
-		  	process.exit(0);
-		  }
-		});
-		
-	}
-});
+//getTemporaryCredentials("hosting.backand.net", "app3", function(err, data){
+//  var temporaryCredentialsFile = 'temporary-credentials.json';
+//
+//  if (err){
+//		process.exit(1);
+//	}
+//	else {
+//		var temporaryCredentials = {
+//			accessKeyId: data.Credentials.AccessKeyId,
+//			secretAccessKey: data.Credentials.SecretAccessKey,
+//			sessionToken: data.Credentials.SessionToken
+//		};
+//		console.log(temporaryCredentials);
+//		jsonfile.writeFile(temporaryCredentialsFile, temporaryCredentials, {spaces: 2}, function(err) {
+//		  if (err){
+//		  	process.exit(2);
+//		  }
+//		  else{
+//		  	process.exit(0);
+//		  }
+//		});
+//
+//	}
+//});
