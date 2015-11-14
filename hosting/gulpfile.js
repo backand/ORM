@@ -98,7 +98,6 @@ gulp.task('dist', ['sts'], function() {
       }
     );
 
-    console.log(publisherOptions);
 
 	var publisher = awspublish.create(publisherOptions);
  
