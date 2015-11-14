@@ -9,6 +9,8 @@
     "gulp": "latest",
     "gulp-awspublish": "latest",
     "gulp-awspublish-router": "latest",
+    "gulp-downloader": "^1.0.4",
+    "gulp-json-editor": "^2.2.1",
     "gulp-rename": "latest",
     "gulp-watch": "latest",
     "jsonfile": "^2.2.3",

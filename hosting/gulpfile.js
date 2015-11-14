@@ -7,6 +7,12 @@ var del = require('del');
 var awspublishRouter = require("gulp-awspublish-router");
 var minimist = require('minimist');
 var rename = require("gulp-rename");
+var download = require('gulp-downloader');
+var jeditor = require("gulp-json-editor");
+
+
+
+var sts_url = require('./config').sts_url;
 
 var options = minimist(process.argv.slice(2));
 
@@ -17,11 +23,17 @@ switch(options._[0])
 {
     case "dist":
         if (!options.f || !options.b || !options.d){
-            console.log("usage: sync: node_modules/gulp/bin/gulp.js dist --f /path/to/project/folder --b backandbucket --d /folder/in/backand/bucket");
+            console.log("usage dist: node_modules/gulp/bin/gulp.js dist --f /path/to/project/folder --b backandbucket --d /folder/in/backand/bucket --user mastertoken --pass usertoken");
             process.exit(1);
         }
     break;
     case "clean":
+    break;
+    case "sts":
+        if (!options.user || !options.pass){
+            console.log("usage sts: node_modules/gulp/bin/gulp.js sts --user mastertoken --pass usertoken");
+            process.exit(1);
+        }
     break;
     default:
         console.log("unknown task");
@@ -29,51 +41,69 @@ switch(options._[0])
     break;
 }
 
-
-
-
-// get credentials
-var credentials = JSON.parse(fs.readFileSync(temporaryCredentialsFile, 'utf8'));
-
-// folder of project
-var folder = options.f;
-
-// bucket
-var bucket = options.b;
-
-
-var dir = options.d
-
-// create a new publisher using S3 options 
-// http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property 
-var publisherOptions = _.extend(credentials,   
-  {
-    params: {
-      Bucket: bucket,
-      // ACL: "public-read"
-    },
-    logger: process.stdout
-  }
-);
-
 var contentType = "text/plain";
 
-// define custom headers 
-// var headers = {
-// 	//'Cache-Control': 'max-age=315360000, no-transform, public'
-// 	// ... 
 
-// 	// ContentType: contentType
-// };
+gulp.task('sts', function(){
+
+    var username = options.user;
+    var password = options.pass;
+
+    var downloadOptions = {
+      url: "http://" + username + ":" + password + "@" +   sts_url.replace(/http(s)?:\/\//, ''),
+      method: 'POST',
+    };
+
+    return download({
+          fileName: temporaryCredentialsFile,
+          request: downloadOptions
+        })
+        .pipe(jeditor(function(json) {   // must return JSON object.   
+            var r = { 
+                accessKeyId: json.Credentials.AccessKeyId,
+                secretAccessKey: json.Credentials.SecretAccessKey,
+                sessionToken: json.Credentials.SessionToken
+            }; 
+            return r;
+        }))
+        .pipe(gulp.dest('.'))
+      ;
+});
 
 
 // erase deleted files. upload new and changes only
-gulp.task('dist', function() {
+gulp.task('dist', ['sts'], function() {
+
+    // get credentials
+    var credentials = JSON.parse(fs.readFileSync(temporaryCredentialsFile, 'utf8'));
+
+    // folder of project
+    var folder = options.f;
+
+    // bucket
+    var bucket = options.b;
+
+
+    var dir = options.d
+
+    // create a new publisher using S3 options 
+    // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property 
+    var publisherOptions = _.extend(credentials,   
+      {
+        params: {
+          Bucket: bucket,
+          // ACL: "public-read"
+        },
+        logger: process.stdout
+      }
+    );
+
+    console.log(publisherOptions);
 
 	var publisher = awspublish.create(publisherOptions);
  
 	// this will publish and sync bucket files with the one in your public directory 
-	gulp.src(folder + '/**/*.*')
+	return gulp.src(folder + '/**/*.*')
 
         // rename extensions to lower case
         .pipe(rename(function (path) {
