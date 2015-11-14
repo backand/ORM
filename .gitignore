@@ -27,3 +27,4 @@ hosting/src
 push/node_modules
 hosting/node_modules
 hosting/temporary-credentials.json
+sync-gulp-plugin/node_modules

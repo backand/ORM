@@ -1,0 +1,25 @@
+{
+  "name": "gulp-backand-s3-sync",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Sync a source folder to a folder in AWS S3 Backand bucket",
+  "dependencies": {
+    "aws-sdk": "latest",
+    "del": "latest",
+    "gulp": "latest",
+    "gulp-awspublish": "latest",
+    "gulp-awspublish-router": "latest",
+    "gulp-rename": "latest",
+    "gulp-watch": "latest",
+    "jsonfile": "^2.2.3",
+    "minimist": "latest",
+    "underscore": "latest",
+    "uuid": "latest"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC"
+}
