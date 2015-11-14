@@ -80,27 +80,27 @@ function getTemporaryCredentials(bucket, dir, callback){
 
 // test of sts
 // should be commented out before using with schema server
-//getTemporaryCredentials("hosting.backand.net", "app3", function(err, data){
+// getTemporaryCredentials("hosting.backand.net", "k1", function(err, data){
 //  var temporaryCredentialsFile = 'temporary-credentials.json';
-//
+
 //  if (err){
-//		process.exit(1);
-//	}
-//	else {
-//		var temporaryCredentials = {
-//			accessKeyId: data.Credentials.AccessKeyId,
-//			secretAccessKey: data.Credentials.SecretAccessKey,
-//			sessionToken: data.Credentials.SessionToken
-//		};
-//		console.log(temporaryCredentials);
-//		jsonfile.writeFile(temporaryCredentialsFile, temporaryCredentials, {spaces: 2}, function(err) {
-//		  if (err){
-//		  	process.exit(2);
-//		  }
-//		  else{
-//		  	process.exit(0);
-//		  }
-//		});
-//
-//	}
-//});
+// 		process.exit(1);
+// 	}
+// 	else {
+// 		var temporaryCredentials = {
+// 			accessKeyId: data.Credentials.AccessKeyId,
+// 			secretAccessKey: data.Credentials.SecretAccessKey,
+// 			sessionToken: data.Credentials.SessionToken
+// 		};
+// 		console.log(temporaryCredentials);
+// 		jsonfile.writeFile(temporaryCredentialsFile, temporaryCredentials, {spaces: 2}, function(err) {
+// 		  if (err){
+// 		  	process.exit(2);
+// 		  }
+// 		  else{
+// 		  	process.exit(0);
+// 		  }
+// 		});
+
+// 	}
+// });

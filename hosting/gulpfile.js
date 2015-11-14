@@ -84,49 +84,49 @@ gulp.task('dist', function() {
         .pipe(awspublishRouter({
             routes: {
 
-                "[\\w/]*\.css$": {
+                "[\\w/\-]*\.css$": {
                     headers: {
                         "Content-Type": "text/css"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/]*\.js$": {
+                "[\\w/\-]*\.js$": {
                     headers: {
                         "Content-Type": "application/javascript"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/]*\.jpg$": {
+                "[\\w/\-]*\.jpg$": {
                     headers: {
                         "Content-Type": "image/jpg"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/]*\.jpeg$": {
+                "[\\w/\-]*\.jpeg$": {
                     headers: {
                         "Content-Type": "image/jpg"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/]*\.gif$": {
+                "[\\w/\-]*\.gif$": {
                     headers: {
                         "Content-Type": "image/gif"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/]*\.png$": {
+                "[\\w/\-]*\.png$": {
                     headers: {
                         "Content-Type": "image/png"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/]*\\.\w*": {
+                "[\\w/\-]*\\.\w*": {
                     headers: {
                         "Content-Type": "text/plain"
                     },
