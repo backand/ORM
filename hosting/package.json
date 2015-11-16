@@ -16,7 +16,8 @@
     "jsonfile": "^2.2.3",
     "minimist": "latest",
     "underscore": "latest",
-    "uuid": "latest"
+    "uuid": "latest",
+    "concurrent-transform": "latest"
   },
   "devDependencies": {},
   "scripts": {

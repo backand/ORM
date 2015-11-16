@@ -9,7 +9,7 @@ var minimist = require('minimist');
 var rename = require("gulp-rename");
 var download = require('gulp-downloader');
 var jeditor = require("gulp-json-editor");
-
+var parallelize = require("concurrent-transform");
 
 
 var sts_url = require('./config').sts_url;
@@ -22,7 +22,7 @@ var temporaryCredentialsFile = 'temporary-credentials.json';
 switch(options._[0])
 {
     case "dist":
-        if (!options.f || !options.b || !options.d){
+        if (!options.f){
             console.log("usage dist: node_modules/gulp/bin/gulp.js dist --f /path/to/project/folder --b backandbucket --d /folder/in/backand/bucket --user mastertoken --pass usertoken");
             process.exit(1);
         }
@@ -51,7 +51,7 @@ gulp.task('sts', function(){
 
     var downloadOptions = {
       url: "http://" + username + ":" + password + "@" +   sts_url.replace(/http(s)?:\/\//, ''),
-      method: 'POST',
+      method: 'POST'
     };
 
     return download({
@@ -63,7 +63,11 @@ gulp.task('sts', function(){
                 accessKeyId: json.Credentials.AccessKeyId,
                 secretAccessKey: json.Credentials.SecretAccessKey,
                 sessionToken: json.Credentials.SessionToken
-            }; 
+            };
+            //get bucket and folder of S3 //--b hosting.backand.net --d qa08111
+            options.b = (typeof options.b !== 'undefined') ? options.b : json.Info.Bucket;
+            options.d = (typeof options.d !== 'undefined') ? options.d : json.Info.Dir;
+
             return r;
         }))
         .pipe(gulp.dest('.'))
@@ -136,7 +140,7 @@ gulp.task('dist', ['clean','sts'], function() {
 
                 "[\\w/\-\\s\.]*\\.ico$": {
                   headers: {
-                    "Content-Type": "image/jpg"
+                    "Content-Type": "image/x-icon"
                   },
                   key: dir + "/" + "$&"
                 },
@@ -162,6 +166,13 @@ gulp.task('dist', ['clean','sts'], function() {
                     key: dir + "/" + "$&"
                 },
 
+                "[\\w/\-\\s\.]*\\.html": {
+                  headers: {
+                    "Content-Type": "text/html"
+                  },
+                  key: dir + "/" + "$&"
+                },
+
                 "^.+$": {
                     headers: {
                         "Content-Type": "text/plain"
@@ -174,7 +185,8 @@ gulp.task('dist', ['clean','sts'], function() {
 	    
         // publisher will add Content-Length, Content-Type and headers specified above 
         // If not specified it will set x-amz-acl to public-read by default 
-        .pipe(publisher.publish())
+        //.pipe(publisher.publish())
+        .pipe(parallelize(publisher.publish(), 10))
 	    
         .pipe(publisher.sync(dir + "/"))
         
