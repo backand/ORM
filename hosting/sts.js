@@ -32,7 +32,7 @@ function getTemporaryCredentials(bucket, dir, callback){
 		       "Effect": "Allow",
 		       "Action": "s3:ListBucket",
 		       "Resource": "arn:aws:s3:::" + bucket,
-		       "Condition":{"StringLike":{"s3:prefix":["", dir + "/*"],"s3:delimiter":["/"]}}
+		       "Condition":{"StringLike":{"s3:prefix":["", dir + "/*"]}}
 		    },
 		    {
 		       "Effect": "Allow",
@@ -80,9 +80,9 @@ function getTemporaryCredentials(bucket, dir, callback){
 
 // test of sts
 // should be commented out before using with schema server
-// getTemporaryCredentials("hosting.backand.net", "k1", function(err, data){
+// getTemporaryCredentials("hosting.backand.net", "qa08111", function(err, data){
 //  var temporaryCredentialsFile = 'temporary-credentials.json';
-
+//
 //  if (err){
 // 		process.exit(1);
 // 	}
@@ -101,6 +101,6 @@ function getTemporaryCredentials(bucket, dir, callback){
 // 		  	process.exit(0);
 // 		  }
 // 		});
-
+//
 // 	}
 // });

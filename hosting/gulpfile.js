@@ -72,7 +72,7 @@ gulp.task('sts', function(){
 
 
 // erase deleted files. upload new and changes only
-gulp.task('dist', ['sts'], function() {
+gulp.task('dist', ['clean','sts'], function() {
 
     // get credentials
     var credentials = JSON.parse(fs.readFileSync(temporaryCredentialsFile, 'utf8'));
@@ -134,6 +134,13 @@ gulp.task('dist', ['sts'], function() {
                     key: dir + "/" + "$&"
                 },
 
+                "[\\w/\-]*\.ico$": {
+                  headers: {
+                    "Content-Type": "image/ico"
+                  },
+                  key: dir + "/" + "$&"
+                },
+
                 "[\\w/\-]*\.jpeg$": {
                     headers: {
                         "Content-Type": "image/jpg"
@@ -169,7 +176,7 @@ gulp.task('dist', ['sts'], function() {
         // If not specified it will set x-amz-acl to public-read by default 
         .pipe(publisher.publish())
 	    
-        .pipe(publisher.sync())
+        .pipe(publisher.sync(dir + "/"))
         
         // create a cache file to speed up consecutive uploads 
         .pipe(publisher.cache())
