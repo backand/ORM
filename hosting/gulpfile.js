@@ -81,13 +81,13 @@ gulp.task('dist', ['clean','sts'], function() {
     // get credentials
     var credentials = JSON.parse(fs.readFileSync(temporaryCredentialsFile, 'utf8'));
 
-    // folder of project
+    // Local folder of project
     var folder = options.f;
 
-    // bucket
+    // S3 Bucket
     var bucket = options.b;
 
-
+    //S3 Folder
     var dir = options.d
 
     // create a new publisher using S3 options 
