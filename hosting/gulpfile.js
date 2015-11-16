@@ -113,56 +113,56 @@ gulp.task('dist', ['clean','sts'], function() {
         .pipe(awspublishRouter({
             routes: {
 
-                "[\\w/\-]*\.css$": {
+                "[\\w/\-\\s\.]*\\.css$": {
                     headers: {
                         "Content-Type": "text/css"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/\-]*\.js$": {
+                "[\\w/\-\\s\.]*\\.js$": {
                     headers: {
                         "Content-Type": "application/javascript"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/\-]*\.jpg$": {
+                "[\\w/\-\\s\.]*\\.jpg$": {
                     headers: {
                         "Content-Type": "image/jpg"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/\-]*\.ico$": {
+                "[\\w/\-\\s\.]*\\.ico$": {
                   headers: {
-                    "Content-Type": "image/ico"
+                    "Content-Type": "image/jpg"
                   },
                   key: dir + "/" + "$&"
                 },
 
-                "[\\w/\-]*\.jpeg$": {
+                "[\\w/\-\\s\.]*\\.jpeg$": {
                     headers: {
                         "Content-Type": "image/jpg"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/\-]*\.gif$": {
+                "[\\w/\-\\s\.]*\\.gif$": {
                     headers: {
                         "Content-Type": "image/gif"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/\-]*\.png$": {
+                "[\\w/\-\\s\.]*\\.png$": {
                     headers: {
                         "Content-Type": "image/png"
                     },
                     key: dir + "/" + "$&"
                 },
 
-                "[\\w/\-]*\\.\w*": {
+                "^.+$": {
                     headers: {
                         "Content-Type": "text/plain"
                     },
