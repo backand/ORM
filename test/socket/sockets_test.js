@@ -27,10 +27,24 @@ var login = function (email, password, appName, callback) {
 var socket = require('socket.io-client')('http://localhost:4000');
 var socket2 = require('socket.io-client')('http://localhost:4000');
 
-describe("end-to-end-work one user", function () {
-    var spy1 = sinon.spy();
+function sendEventToServer(sendData) {
+  request.post('http://localhost:9000/socket/emit')
+      .send(sendData)
+      .set('app', 'noterious')
+      .end(function (err, res) {
+        if (res.ok) {
+          console.log('yay got ' + JSON.stringify(res.body));
+        } else {
+          console.log('Oh no! error ' + res.text);
+        }
 
-    before(function (done) {
+      })
+};
+
+describe("end-to-end-work one user", function () {
+  var spy1 = sinon.spy();
+
+  before(function (done) {
         var eventName = "testMessage";
 
         socket.on('notAuthorized', function (data) {
@@ -45,17 +59,7 @@ describe("end-to-end-work one user", function () {
         });
 
         socket.on('authorized', function () {
-            request.post('http://localhost:9000/socket/emit')
-                .send({"data": "123", "eventName": eventName, "mode": "All"})
-                .set('app', 'ionic1')
-                .end(function (err, res) {
-                    if (res.ok) {
-                        console.log('yay got ' + JSON.stringify(res.body));
-                    } else {
-                        console.log('Oh no! error ' + res.text);
-                    }
-
-                })
+            sendEventToServer(eventName);
         });
 
         socket.emit('login',
@@ -126,4 +130,33 @@ describe("end-to-end-work two users", function () {
         })
 
     })
+});
+
+describe("send message to server", function(){
+
+  it('test All', function(done){
+    sendEventToServer({"data": "test all", "eventName": "action1", "mode": "All"});
+    done();
+  });
+
+  it('test user exists', function(done){
+    sendEventToServer({"data": "test user itay", "eventName": "action2", "mode": "Users", users:["itay@backand.com","dev1@backand.com"]});
+    done();
+  });
+
+  it('test user does not exists', function(done){
+    sendEventToServer({"data": "test user itay", "eventName": "action3", "mode": "Users", users:["itay111@backand.com","dev111@backand.com"]});
+    done();
+  });
+
+  it('Test Role True', function(done){
+    sendEventToServer({"data": "test Admin", "eventName": "action1", "mode": "Role", role:"Admin"});
+    done();
+  });
+
+  it('Test Role False', function(done){
+    sendEventToServer({"data": "test User", "eventName": "action1", "mode": "Role", role:"User"});
+    done();
+  });
+
 });
