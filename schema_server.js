@@ -8,7 +8,7 @@ var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 var socket = require('socket.io-client')('http://localhost:4000');
-var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
+//var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
@@ -176,9 +176,9 @@ router.map(function () {
                 res.send(500, { error: err }, null);
             }
             else{
-                transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function(err, result){
+                /*transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function(err, result){
                     res.send(200, { error: err }, result);
-                });
+                });*/
             }
         });
 
@@ -193,10 +193,37 @@ router.map(function () {
     });
 
     //use for the socket.io
+    /*
+        data.mode can heve 4 modes.
+        "All", "Role", "Users", "Others"
 
+        All - send to all users of the App.
+
+        Role - a specific role should be specified at "role"
+
+        Users - an array of users should be specified at "users"
+
+        Others - send to others that sender.
+     */
     this.post('/socket/emit').bind(function (req, res, data) {
         console.log("action server:" + data.eventName);
-        socket.emit("internal", { "data" : data.data, "appName": req.headers.app, "eventName": data.eventName });
+        console.log(data)
+
+        if(data.mode == "All"){
+            socket.emit("internalAll", { "data" : data.data,  "appName": req.headers.app, "eventName": data.eventName });
+        }
+        else if(data.mode == "Role" && data.role !== null){
+            socket.emit("internalRole", { "data" : data.data, "role" : data.role,  "appName": req.headers.app, "eventName": data.eventName });
+        }
+        else if(data.mode == "Users" && data.users !== null){
+            socket.emit("internalUsers", { "data" : data.data, "users" : data.users,  "appName": req.headers.app, "eventName": data.eventName });
+        }
+        else if(data.mode == "Others"){
+            socket.emit("internalOthers", { "data" : data.data,  "appName": req.headers.app, "eventName": data.eventName });
+        }
+        else { // don't understand mode, log error
+            console.log("Can't find valid mode for: ", data);
+        }
         res.send(200, {}, {});
     });
 
