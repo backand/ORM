@@ -7,7 +7,7 @@ var async = require('async');
 
 var redisPort = 10938;
 var redisHostname = 'pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com';
-var option = {"auth_pass" : "bell1234"};
+var option = {"auth_pass": "bell1234"};
 //var option = {};
 
 
@@ -18,7 +18,7 @@ var redis = require('redis'),
     client = redis.createClient(redisPort, redisHostname, option);
 var redisInterface = redis.createClient(redisPort, redisHostname, option);
 
-redisInterface.on('connect', function() {
+redisInterface.on('connect', function () {
     runSocket();
 });
 
@@ -51,7 +51,6 @@ function runSocket() {
         subClient: sub,
         redisClient: client
     }));
-
 
 
 // socket server
@@ -147,14 +146,20 @@ var redisBl = {
                 object.push(JSON.parse(str));
             });
 
-            callback(err, object);
+            if (typeof(callback) == "function") {
+                callback(err, object);
+            }
+
         });
     },
 
     getAllUsersByRole: function (appName, role, callback) {
         this.getAllUsers(appName, function (err, object) {
             var filtered = _.where(object, {"role": role});
-            callback(err, filtered);
+
+            if (typeof(callback) == "function") {
+                callback(err, filtered);
+            }
         })
     },
 
@@ -166,7 +171,9 @@ var redisBl = {
                 return _.contains(userList, user.username);
             });
 
-            callback(err, filtered);
+            if (typeof(callback) == "function") {
+                callback(err, filtered);
+            }
         })
     },
 
@@ -193,7 +200,9 @@ var redisBl = {
                 }
 
                 redisInterface.lrem(self.createKey(appName), -1, JSON.stringify(found), function (err, data) {
-                    callback(err, data);
+                    if (typeof(callback) == "function") {
+                        callback(err, data);
+                    }
                 });
             });
 
@@ -208,8 +217,8 @@ var redisBl = {
             role: role,
         };
 
-        redisInterface.rpush([this.createKey(appName), JSON.stringify(user)], callback);
         redisInterface.set(socketId, appName);
+        redisInterface.rpush([this.createKey(appName), JSON.stringify(user)], callback);
     },
 
     login: function (socket, appName, username, role) {
@@ -228,7 +237,9 @@ var redisBl = {
                     client.del(key)
                 },
                 function (err) {
-                    callback()
+                    if(typeof (callback) == 'function') {
+                        callback();
+                    }
                 });
         });
     },
