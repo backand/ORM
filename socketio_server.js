@@ -5,10 +5,10 @@ var _ = require('underscore');
 var getUserDetails = require('./backand_to_object').getUserDetails;
 var async = require('async');
 
-var redisPort = 6379;
-var redisHostname = 'localhost';
-//var option = {"auth_pass" : ""};
-var option = {};
+var redisPort = 10938;
+var redisHostname = 'pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com';
+var option = {"auth_pass" : "bell1234"};
+//var option = {};
 
 
 var redis = require('redis'),
@@ -16,18 +16,11 @@ var redis = require('redis'),
     pub = redis.createClient(redisPort, redisHostname, option),
     sub = redis.createClient(redisPort, redisHostname, option),
     client = redis.createClient(redisPort, redisHostname, option);
-
-
-io.adapter(new RedisStore({
-    redisPub: pub,
-    redisSub: sub,
-    redisClient: client
-}));
-
 var redisInterface = redis.createClient(redisPort, redisHostname, option);
 
-
-// socket server
+redisInterface.on('connect', function() {
+    runSocket();
+});
 
 httpd.listen(4000);
 
@@ -50,80 +43,95 @@ function handler(req, res) {
 
 }
 
-function userIsInRoom(appName, id) {
-    return io.sockets.adapter.rooms[appName][id];
-}
+
+function runSocket() {
+
+    io.adapter(new RedisStore({
+        pubClient: pub,
+        subClient: sub,
+        redisClient: client
+    }));
 
 
-io.sockets.on('connection', function (socket) {
-    function sendMultiple(socket, users, event, message) {
-        if (users === null || users.length == 0) {
-            return;
-        }
 
-        _.each(users, function (u) {
-            io.to(u.socketId).emit(event, message);
-        })
+// socket server
+
+    function userIsInRoom(appName, id) {
+        return io.sockets.adapter.rooms[appName][id];
     }
 
-    console.log("received connection");
 
-    socket.on('login', function (token, anonymousToken, appName) {
-        getUserDetails(token, anonymousToken, appName, function (err, details) {
-            if (!err) {
-                redisBl.login(socket, appName, details.username, details.role);
+    io.sockets.on('connection', function (socket) {
+        function sendMultiple(socket, users, event, message) {
+            if (users === null || users.length == 0) {
+                return;
             }
-            else {
-                socket.emit("notAuthorized");
-            }
+
+            _.each(users, function (u) {
+                io.to(u.socketId).emit(event, message);
+            })
+        }
+
+        console.log("received connection");
+
+        socket.on('login', function (token, anonymousToken, appName) {
+            getUserDetails(token, anonymousToken, appName, function (err, details) {
+                if (!err) {
+                    redisBl.login(socket, appName, details.username, details.role);
+                }
+                else {
+                    socket.emit("notAuthorized");
+                }
+            })
+        });
+
+        socket.on('disconnect', function () {
+            var id = socket.id;
+
+            redisBl.removeSocket(id);
+
         })
-    });
 
-    socket.on('disconnect', function () {
-        var id = socket.id;
-
-        redisBl.removeSocket(id);
-
-    })
-
-    socket.on('internalAll', function (internal) {
-        var appName = internal.appName;
-        var eventName = internal.eventName;
-        io.to(appName).emit(eventName, internal.data);
-    });
-
-    socket.on('internalRole', function (internal) {
-        var appName = internal.appName;
-        var eventName = internal.eventName;
-        var role = internal.role;
-        var data = internal.data;
-
-        if (!appName || !eventName || !role || !eventName) {
-            return;
-        }
-
-        redisBl.getAllUsersByRole(appName, role, function (err, users) {
-            sendMultiple(appName, users, eventName, data);
+        socket.on('internalAll', function (internal) {
+            var appName = internal.appName;
+            var eventName = internal.eventName;
+            io.to(appName).emit(eventName, internal.data);
         });
-    });
 
-    socket.on('internalUsers', function (internal) {
-        var appName = internal.appName;
-        var eventName = internal.eventName;
-        var users = internal.users;
-        var data = internal.data;
+        socket.on('internalRole', function (internal) {
+            var appName = internal.appName;
+            var eventName = internal.eventName;
+            var role = internal.role;
+            var data = internal.data;
 
-        if (!appName || !eventName || !users || !eventName) {
-            return;
-        }
+            if (!appName || !eventName || !role || !eventName) {
+                return;
+            }
 
-        redisBl.getUserByList(appName, users, function (err, users) {
-            sendMultiple(appName, users, eventName, data);
+            redisBl.getAllUsersByRole(appName, role, function (err, users) {
+                sendMultiple(appName, users, eventName, data);
+            });
         });
+
+        socket.on('internalUsers', function (internal) {
+            var appName = internal.appName;
+            var eventName = internal.eventName;
+            var users = internal.users;
+            var data = internal.data;
+
+            if (!appName || !eventName || !users || !eventName) {
+                return;
+            }
+
+            redisBl.getUserByList(appName, users, function (err, users) {
+                sendMultiple(appName, users, eventName, data);
+            });
+        });
+
+
     });
 
-
-});
+}
 
 var redisBl = {
     createKey: function (appName) {
@@ -164,8 +172,8 @@ var redisBl = {
 
     removeSocket: function (id, callback) {
         var self = this;
-        redisInterface.get(id, function(err, data){
-            if(err || data === null){
+        redisInterface.get(id, function (err, data) {
+            if (err || data === null) {
                 return;
             }
 
@@ -174,15 +182,17 @@ var redisBl = {
             // value exist in redis
             var appName = data;
 
-            self.getAllUsers(appName, function(err, list){
-                    var found = _.find(list, function(d) { return d.socketId == id});
+            self.getAllUsers(appName, function (err, list) {
+                var found = _.find(list, function (d) {
+                    return d.socketId == id
+                });
 
                 // socket doesn't exist in app Set
-                if(found === undefined){
+                if (found === undefined) {
                     return;
                 }
 
-                redisInterface.lrem(self.createKey(appName) ,-1,  JSON.stringify(found), function(err, data){
+                redisInterface.lrem(self.createKey(appName), -1, JSON.stringify(found), function (err, data) {
                     callback(err, data);
                 });
             });
@@ -214,12 +224,15 @@ var redisBl = {
     cleanUp: function (callback) {
         client.keys("*", function (err, keys) {
             async.map(keys,
-                function(key){ client.del(key)},
-                function(err){
-                    callback()});
+                function (key) {
+                    client.del(key)
+                },
+                function (err) {
+                    callback()
+                });
         });
     },
-    self : this
+    self: this
 }
 
 module.exports.BusinessLogic = redisBl;
