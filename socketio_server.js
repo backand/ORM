@@ -7,7 +7,7 @@ var async = require('async');
 
 var redisPort = 6379;
 var redisHostname = 'localhost';
-//var option = {"auth_pass" : ""};
+var option = {"auth_pass" : ""};
 
 var redis = require('redis'),
     RedisStore = require('socket.io-redis'),
