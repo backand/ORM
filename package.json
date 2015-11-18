@@ -1,7 +1,11 @@
+
 {
   "name": "schema_transformation",
   "version": "0.0.0",
   "private": true,
+  "scripts":{
+    "test" : "./node_modules/mocha/bin/mocha"
+  },
   "dependencies": {
     "knex": "latest",
     "mysql": "latest",
@@ -15,7 +19,12 @@
     "socket.io-client": "latest",
     "redis": "latest",
     "socket.io-redis": "latest",
-    "async" : "latest"
-
+    "async" : "latest",
+    "mocha": "latest",
+    "chai": "latest",
+    "sinon" : "latest",
+    "sinon-chai": "latest",
+    "superagent" : "latest",
+    "aws-sdk" : "latest"
   }
 }
