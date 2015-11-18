@@ -25,10 +25,10 @@ var login = function (email, password, appName, callback) {
 
 
 describe("redis insert", function () {
+    this.timeout(10000);
     // clean data
     before(function (done) {
-        bl.cleanUp();
-        done();
+        bl.cleanUp(done);
     })
 
     it("after insert data exist in Redis", function (done) {
@@ -46,10 +46,10 @@ describe("redis insert", function () {
     })
 
     it('second user is added and not delete first', function (done) {
-        bl.saveUser('appName', 'aaa', 'username2', 'user', function (err, res) {
+        bl.saveUser('appName', 'bbb', 'username2', 'user', function (err, res) {
             bl.getAllUsers('appName', function (err, data) {
                 console.log(data);
-                expect(data).not.to.be.null;
+                expect(data).not.to.be.undefined;
                 assert.lengthOf(data, 2);
                 expect(data[0].username).to.equal("username");
                 expect(data[1].username).to.equal("username2");
@@ -89,6 +89,28 @@ describe("redis insert", function () {
             assert.lengthOf(data, 1);
             expect(data[0].username).to.equal("username2");
             done();
+        })
+    })
+
+    it('can be deleted after disconnect', function(done){
+        bl.removeSocket('aaa', function(){
+            bl.getAllUsers('appName', function (err, data) {
+                assert.lengthOf(data, 1);
+                done();
+
+            })
+        })
+    })
+
+    it("can't be deleted twice", function(){
+
+        // try to remove again, socketId we delete before
+        bl.removeSocket('aaa', function(){
+            bl.getAllUsers('appName', function (err, data) {
+                assert.lengthOf(data, 1);
+                done();
+
+            })
         })
     })
 });

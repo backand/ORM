@@ -5,6 +5,10 @@
   "author": "Yoram Kornatzky",
   "dependencies": {
   	"mocha": "latest",
-    "chai": "latest"
+    "chai": "latest",
+    "sinon" : "latest",
+    "sinon-chai": "latest",
+    "superagent" : "latest",
+    "underscore" : "latest"
   }
 }
