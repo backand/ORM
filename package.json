@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts":{
-    "test" : "./node_modules/mocha/bin/mocha"
+    "test" : "./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
     "knex": "latest",
