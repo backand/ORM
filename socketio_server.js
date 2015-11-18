@@ -5,11 +5,11 @@ var _ = require('underscore');
 var getUserDetails = require('./backand_to_object').getUserDetails;
 var async = require('async');
 
-var redisPort = 10938;
-var redisHostname = 'pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com';
-var option = {"auth_pass": "bell1234"};
-//var option = {};
+var redisConfig = require('./config').redis;
 
+var redisPort = redisConfig.port;
+var redisHostname = redisConfig.hostname;
+var option = redisConfig.option;
 
 var redis = require('redis'),
     RedisStore = require('socket.io-redis'),
