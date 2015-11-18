@@ -15,7 +15,7 @@
     "socket.io-client": "latest",
     "redis": "latest",
     "socket.io-redis": "latest",
-    "async" : "latest",
+    "async" : "latest"
 
   }
 }
