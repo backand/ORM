@@ -1,8 +1,36 @@
 {
   "name": "gulp-backand-s3-sync",
   "version": "1.0.0",
-  "private": false,
   "description": "Sync a source folder to a folder in AWS S3 Backand bucket",
+  "keywords": [
+    "gulpplugin"
+  ],
+  "homepage": "http://www.backand.com",
+  "author": {
+    "name": "Yoram Kornatzky"
+  },
+  "main": "./index.js",
+  "files": [
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/backand"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=0.10.0",
+    "npm": ">=1.2.10"
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "private": false,
   "dependencies": {
     "aws-sdk": "latest",
     "del": "latest",
@@ -14,12 +42,12 @@
     "jsonfile": "^2.2.3",
     "minimist": "latest",
     "underscore": "latest",
-    "uuid": "latest"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Yoram Kornatzky",
-  "license": "ISC"
+    "uuid": "latest",
+    "gulp-downloader": "latest",
+    "gulp-json-editor": "latest",
+    "through2": "latest",
+    "gulp-util": "latest",
+    "lazypipe": "latest",
+    "concurrent-transform": "latest"
+  }
 }
