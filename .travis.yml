@@ -1,8 +1,4 @@
+# .travis.yml
 language: node_js
 node_js:
-  - "0.10"
-
-# whitelist
-  branches:
-    only:
-      - tests
+  - 0.10
