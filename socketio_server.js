@@ -24,7 +24,6 @@ redisInterface.on('connect', function () {
 
 httpd.listen(4000);
 
-
 function handler(req, res) {
 
     console.log(req.url);
@@ -42,7 +41,6 @@ function handler(req, res) {
     );
 
 }
-
 
 function runSocket() {
 
