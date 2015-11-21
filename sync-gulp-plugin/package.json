@@ -48,6 +48,9 @@
     "through2": "latest",
     "gulp-util": "latest",
     "lazypipe": "latest",
-    "concurrent-transform": "latest"
+    "concurrent-transform": "latest",
+    "async": "latest",
+    "gulp-async-func-runner": "latest",
+    "request": "latest"
   }
 }
