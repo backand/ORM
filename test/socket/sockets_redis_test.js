@@ -5,8 +5,19 @@ var request = require('superagent');
 var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
-var bl = require("../../socketio_server").BusinessLogic;
+var redisBl = require("../../web_sockets/redis_bl");
 
+var redisConfig = require('./../../config').redis;
+
+var redisPort = redisConfig.port;
+var redisHostname = redisConfig.hostname;
+var option = redisConfig.option;
+var redis = require('redis');
+var redisInterface = redis.createClient(redisPort, redisHostname, option);
+
+
+
+var bl = new redisBl.BusinessLogic(redisInterface);
 chai.should();
 chai.use(sinonChai);
 
@@ -25,7 +36,7 @@ var login = function (email, password, appName, callback) {
 
 
 describe("redis insert", function () {
-    this.timeout(10000);
+    this.timeout(15000);
     // clean data
     before(function (done) {
         bl.cleanUp(done);

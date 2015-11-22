@@ -1,15 +1,22 @@
-var httpd = require('http').createServer(handler);
-var io = require('socket.io').listen(httpd);
+
 var fs = require('fs');
+var socketBl  = require('./web_sockets/redis_bl')
+
+var options = {
+    pfx: fs.readFileSync('/Users/backand/Desktop/api.backand.com.elb2.pfx'),
+    passphrase: '123456'
+};
+
+var httpd = require('https').createServer(options, handler);
+var io = require('socket.io').listen(httpd);
 var _ = require('underscore');
 var getUserDetails = require('./backand_to_object').getUserDetails;
-var async = require('async');
 
-var redisPort = 10938;
-var redisHostname = 'pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com';
-var option = {"auth_pass": "bell1234"};
-//var option = {};
+var redisConfig = require('./config').redis;
 
+var redisPort = redisConfig.port;
+var redisHostname = redisConfig.hostname;
+var option = redisConfig.option;
 
 var redis = require('redis'),
     RedisStore = require('socket.io-redis'),
@@ -43,6 +50,8 @@ function handler(req, res) {
 }
 
 function runSocket() {
+
+    var redisBl = new socketBl.BusinessLogic(redisInterface);
 
     io.adapter(new RedisStore({
         pubClient: pub,
@@ -90,9 +99,11 @@ function runSocket() {
         })
 
         socket.on('internalAll', function (internal) {
+            console.log('here');
             var appName = internal.appName;
             var eventName = internal.eventName;
             io.to(appName).emit(eventName, internal.data);
+            console.log(eventName, internal.data);
         });
 
         socket.on('internalRole', function (internal) {
@@ -130,118 +141,3 @@ function runSocket() {
 
 }
 
-var redisBl = {
-    createKey: function (appName) {
-        return "|" + appName.toLowerCase();
-    },
-
-    getAllUsers: function (appName, callback) {
-        client.lrange(this.createKey(appName), 0, -1, function (err, reply) {
-            object = [];
-
-            // we have to serialize again all users
-            _.each(reply, function (str) {
-                object.push(JSON.parse(str));
-            });
-
-            if (typeof(callback) == "function") {
-                callback(err, object);
-            }
-
-        });
-    },
-
-    getAllUsersByRole: function (appName, role, callback) {
-        this.getAllUsers(appName, function (err, object) {
-            var filtered = _.where(object, {"role": role});
-
-            if (typeof(callback) == "function") {
-                callback(err, filtered);
-            }
-        })
-    },
-
-    getUserByList: function (appName, userList, callback) {
-        this.getAllUsers(appName, function (err, object) {
-
-            // create intersection between userList and users from store
-            var filtered = _.filter(object, function (user) {
-                return _.contains(userList, user.username);
-            });
-
-            if (typeof(callback) == "function") {
-                callback(err, filtered);
-            }
-        })
-    },
-
-    removeSocket: function (id, callback) {
-        var self = this;
-        redisInterface.get(id, function (err, data) {
-            if (err || data === null) {
-                return;
-            }
-
-            redisInterface.del(id);
-
-            // value exist in redis
-            var appName = data;
-
-            self.getAllUsers(appName, function (err, list) {
-                var found = _.find(list, function (d) {
-                    return d.socketId == id
-                });
-
-                // socket doesn't exist in app Set
-                if (found === undefined) {
-                    return;
-                }
-
-                redisInterface.lrem(self.createKey(appName), -1, JSON.stringify(found), function (err, data) {
-                    if (typeof(callback) == "function") {
-                        callback(err, data);
-                    }
-                });
-            });
-
-        });
-
-    },
-
-    saveUser: function (appName, socketId, username, role, callback) {
-        var user = {
-            socketId: socketId,
-            username: username,
-            role: role,
-        };
-
-        redisInterface.set(socketId, appName);
-        redisInterface.rpush([this.createKey(appName), JSON.stringify(user)], callback);
-    },
-
-    login: function (socket, appName, username, role) {
-        this.saveUser(appName, socket.id, username, role);
-        socket.join(appName);
-        socket.room = appName;
-        socket.emit("authorized");
-        console.log("authorized");
-    },
-
-
-    cleanUp: function (callback) {
-        client.keys("*", function (err, keys) {
-            async.map(keys,
-                function (key) {
-                    client.del(key)
-                },
-                function (err) {
-                    if(typeof (callback) == 'function') {
-                        callback();
-                    }
-                });
-        });
-    },
-    self: this
-}
-
-module.exports.BusinessLogic = redisBl;
