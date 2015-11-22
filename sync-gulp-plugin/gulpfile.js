@@ -2,29 +2,30 @@ var gulp = require('gulp');
 var request = require('request');
 var fs = require('fs');
 var upload = require('./index');
-var sts_url = require('./config').sts_url;
-var temporaryCredentialsFile = 'temporary-credentials.json';
 
+var localFolder = './test';
 
-var username = '1a1c664c-a3e5-4db8-bf89-1ed79a78950e';
-var password = '2b626399-8650-11e5-b5b9-12da56281408';
-var url = "http://" + username + ":" + password + "@" +   sts_url.replace(/http(s)?:\/\//, '');
-
-gulp.task('dist', function() {
-	var dist = upload('dist', './src', username, password);
+gulp.task('dist',['clean'], function() {
+	var dist = upload(localFolder);
 	console.log(dist);
-	return gulp.src('./src')
-        .pipe(dist());
+	return gulp.src(localFolder)
+    .pipe(dist());
 });
 
 gulp.task('clean', function() {
-    console.log('clean');
-	return gulp.src('./src/**/*.*')
-        .pipe(upload('clean'));
+  console.log('clean');
+  //TODO: Add return del(['./.awspublish*']);
+	//return gulp.src(localFolder + '/**/*.*')
+   // .pipe(upload('clean'));
 });
 
 gulp.task('sts', function(){
-	return request.post(url).pipe(fs.createWriteStream(temporaryCredentialsFile));
+
+  var username = '1a1c664c-a3e5-4db8-bf89-1ed79a78950e';
+  var password = '2b626399-8650-11e5-b5b9-12da56281408';
+
+  var url = "http://" + username + ":" + password + "@" + "api.backand.co:8099/1/hosting";
+	return request.post(url).pipe(fs.createWriteStream('temporary-credentials.json'));
 });
 
 gulp.task('default', ['dist']);
