@@ -14,23 +14,21 @@ var del = require('del');
 var awspublishRouter = require("gulp-awspublish-router");
 var minimist = require('minimist');
 var rename = require("gulp-rename");
-
+var async = require('async');
 var parallelize = require("concurrent-transform");
+var asyncPipe = require('gulp-async-func-runner');
 
-var actions = require('./lazy-index');
 
 // Consts
 const PLUGIN_NAME = 'gulp-backand-s3-sync';
 
 var sts_url = require('./config').sts_url;
 var temporaryCredentialsFile = 'temporary-credentials.json';
-var contentType = "text/plain";
-var options = {};
 
-var contentType = "text/plain";
 
 function sts(user, pass){
 
+  console.log("sts", user, pass);
 
     var username = user;
     var password = pass;
@@ -52,11 +50,6 @@ function sts(user, pass){
                     secretAccessKey: json.Credentials.SecretAccessKey,
                     sessionToken: json.Credentials.SessionToken
                 };
-                //get bucket and folder of S3 //--b hosting.backand.net --d qa08111
-                options.b = json.Info.Bucket;
-                options.d = json.Info.Dir;
-                console.log("immediate", options);
-
                 return r;
             }
         );
@@ -66,161 +59,149 @@ function sts(user, pass){
         .pipe(gulp.dest('.'));
 }
 
-function dist(folder, bucket, dir) {
 
-    // get credentials
-    var credentials = JSON.parse(fs.readFileSync(temporaryCredentialsFile, 'utf8'));
+function dist(dir, publisher) {
 
-    // create a new publisher using S3 options 
-    // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#constructor-property 
-    var publisherOptions = _.extend(credentials,   
-      {
-        params: {
-          Bucket: bucket,
-          // ACL: "public-read"
-        },
-        logger: process.stdout
-      }
-    );
+    console.log("dist", dir, publisher);
 
-
-    var publisher = awspublish.create(publisherOptions);
- 
     // this will publish and sync bucket files with the one in your public directory 
-    return layzpipe()
+    var l = lazypipe()
 
         // rename extensions to lower case
-        .pipe(rename(function (path) {
+        .pipe(rename, function (path) {
+          console.log("rename", path);
             path.extname = path.extname.toLowerCase();
-        }))
+        })
 
-        // set content type
-        .pipe(awspublishRouter({
-            routes: {
+        .pipe(function(){
+          console.log("create router");
+          return awspublishRouter({
+                routes: {
 
-                "[\\w/\-\\s\.]*\\.css$": {
-                    headers: {
-                        "Content-Type": "text/css"
+                    "[\\w/\-\\s\.]*\\.css$": {
+                        headers: {
+                            "Content-Type": "text/css"
+                        },
+                        key: dir + "/" + "$&"
                     },
-                    key: dir + "/" + "$&"
-                },
 
-                "[\\w/\-\\s\.]*\\.js$": {
-                    headers: {
-                        "Content-Type": "application/javascript"
+                    "[\\w/\-\\s\.]*\\.js$": {
+                        headers: {
+                            "Content-Type": "application/javascript"
+                        },
+                        key: dir + "/" + "$&"
                     },
-                    key: dir + "/" + "$&"
-                },
 
-                "[\\w/\-\\s\.]*\\.jpg$": {
-                    headers: {
-                        "Content-Type": "image/jpg"
+                    "[\\w/\-\\s\.]*\\.jpg$": {
+                        headers: {
+                            "Content-Type": "image/jpg"
+                        },
+                        key: dir + "/" + "$&"
                     },
-                    key: dir + "/" + "$&"
-                },
 
-                "[\\w/\-\\s\.]*\\.ico$": {
-                  headers: {
-                    "Content-Type": "image/x-icon"
-                  },
-                  key: dir + "/" + "$&"
-                },
-
-                "[\\w/\-\\s\.]*\\.jpeg$": {
-                    headers: {
-                        "Content-Type": "image/jpg"
+                    "[\\w/\-\\s\.]*\\.ico$": {
+                      headers: {
+                        "Content-Type": "image/x-icon"
+                      },
+                      key: dir + "/" + "$&"
                     },
-                    key: dir + "/" + "$&"
-                },
 
-                "[\\w/\-\\s\.]*\\.gif$": {
-                    headers: {
-                        "Content-Type": "image/gif"
+                    "[\\w/\-\\s\.]*\\.jpeg$": {
+                        headers: {
+                            "Content-Type": "image/jpg"
+                        },
+                        key: dir + "/" + "$&"
                     },
-                    key: dir + "/" + "$&"
-                },
 
-                "[\\w/\-\\s\.]*\\.png$": {
-                    headers: {
-                        "Content-Type": "image/png"
+                    "[\\w/\-\\s\.]*\\.gif$": {
+                        headers: {
+                            "Content-Type": "image/gif"
+                        },
+                        key: dir + "/" + "$&"
                     },
-                    key: dir + "/" + "$&"
-                },
 
-                "[\\w/\-\\s\.]*\\.html": {
-                  headers: {
-                    "Content-Type": "text/html"
-                  },
-                  key: dir + "/" + "$&"
-                },
-
-                "^.+$": {
-                    headers: {
-                        "Content-Type": "text/plain"
+                    "[\\w/\-\\s\.]*\\.png$": {
+                        headers: {
+                            "Content-Type": "image/png"
+                        },
+                        key: dir + "/" + "$&"
                     },
-                    key: dir + "/" + "$&"
-                },
 
-            }
-        }))
+                    "[\\w/\-\\s\.]*\\.html": {
+                      headers: {
+                        "Content-Type": "text/html"
+                      },
+                      key: dir + "/" + "$&"
+                    },
+
+                    "^.+$": {
+                        headers: {
+                            "Content-Type": "text/plain"
+                        },
+                        key: dir + "/" + "$&"
+                    },
+
+                }
+          });
+        })
+
+        .pipe(function(){
+          console.log("myParallelize");
+          return parallelize(publisher.publish(), 10);
+        })
         
-        // publisher will add Content-Length, Content-Type and headers specified above 
-        // If not specified it will set x-amz-acl to public-read by default 
-        //.pipe(publisher.publish())
-        .pipe(parallelize(publisher.publish(), 10))
-        
-        .pipe(publisher.sync(dir + "/"))
+        .pipe(function(){
+          console.log("mySync");
+          return publisher.sync(dir + "/");
+        })
         
         // create a cache file to speed up consecutive uploads 
-        .pipe(publisher.cache())
+        .pipe(publisher.cache)
     
         // print upload updates to console     
-        .pipe(awspublish.reporter());
+        .pipe(awspublish.reporter);
+
+    console.log(l);
+    return l;
 
 }
 
+
 // Plugin level function(dealing with files)
-function gulpUploader(action, folder, bucket, dir, user, pass) {
+function gulpUploader(action, folder, user, pass) {
 
   if (action == "dist"){
     if (!user || !pass) {
       throw new PluginError(PLUGIN_NAME, 'Missing username and password!');
     }
     else{
-      console.log('sts');
-      sts(user,pass);
-      console.log("delayed", options);
+      var text = fs.readFileSync(temporaryCredentialsFile,'utf8');
+      var json = JSON.parse(text);
+      
+      var credentials = { 
+          accessKeyId: json.Credentials.AccessKeyId,
+          secretAccessKey: json.Credentials.SecretAccessKey,
+          sessionToken: json.Credentials.SessionToken
+      };
+ 
+      var publisherOptions = _.extend(credentials,   
+        {
+          params: {
+            Bucket: json.Info.Bucket,
+            // ACL: "public-read"
+          },
+          logger: process.stdout
+        }
+      );
+
+      var publisher = awspublish.create(publisherOptions);
+      return dist(folder, publisher);
     }
   }
-  // else if (action == "clean"){
-  //   return del(['./.awspublish*']);
-  // }
 
-  // Creating a stream through which each file will pass
-  return through.obj(function(file, enc, cb) {
-    if (file.isNull()) {
-      // return empty file
-      return cb(null, file);
-    }
-    // if (file.isBuffer()) {
-    //   file.contents = Buffer.concat([prefixText, file.contents]);
-    // }
-    // if (file.isStream()) {
-    //   file.contents = file.contents.pipe(prefixStream(prefixText));
-    // }
-
-    cb(null, doSomethingWithTheFile(file, folder, bucket, dir));
-
-  });
-
+  
 }
 
-
-
-function doSomethingWithTheFile(file){
-  // return actions.dist(folder, bucket, dir); 
-  return dist(file, options.b, options.d);
-}
 
 // Exporting the plugin main function
 module.exports = gulpUploader;

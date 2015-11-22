@@ -31,3 +31,4 @@ hosting/dist
 sync-gulp-plugin/node_modules
 sync-gulp-plugin/temporary-credentials.json
 sync-gulp-plugin/src
+myApp
