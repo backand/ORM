@@ -22,42 +22,41 @@ var asyncPipe = require('gulp-async-func-runner');
 // Consts
 const PLUGIN_NAME = 'gulp-backand-s3-sync';
 
-var sts_url = require('./config').sts_url;
-var temporaryCredentialsFile = 'temporary-credentials.json';
-
-
-function sts(user, pass){
-
-  console.log("sts", user, pass);
-
-    var username = user;
-    var password = pass;
-
-    var downloadOptions = {
-      url: "http://" + username + ":" + password + "@" +   sts_url.replace(/http(s)?:\/\//, ''),
-      method: 'POST'
-    };
-    var d = {
-      fileName: temporaryCredentialsFile,
-      request: downloadOptions
-    };
-    var mylazyPipe = lazypipe()
-        .pipe(jeditor, 
-            function(json) {   // must return JSON object.   
-                console.log(json);
-                var r = { 
-                    accessKeyId: json.Credentials.AccessKeyId,
-                    secretAccessKey: json.Credentials.SecretAccessKey,
-                    sessionToken: json.Credentials.SessionToken
-                };
-                return r;
-            }
-        );
-        
-    return download(d)
-        .pipe(mylazyPipe())
-        .pipe(gulp.dest('.'));
-}
+//var sts_url = require('./config').sts_url;
+//
+//
+//function sts(user, pass){
+//
+//  console.log("sts", user, pass);
+//
+//    var username = user;
+//    var password = pass;
+//
+//    var downloadOptions = {
+//      url: "http://" + username + ":" + password + "@" +   sts_url.replace(/http(s)?:\/\//, ''),
+//      method: 'POST'
+//    };
+//    var d = {
+//      fileName: temporaryCredentialsFile,
+//      request: downloadOptions
+//    };
+//    var mylazyPipe = lazypipe()
+//        .pipe(jeditor,
+//            function(json) {   // must return JSON object.
+//                console.log(json);
+//                var r = {
+//                    accessKeyId: json.Credentials.AccessKeyId,
+//                    secretAccessKey: json.Credentials.SecretAccessKey,
+//                    sessionToken: json.Credentials.SessionToken
+//                };
+//                return r;
+//            }
+//        );
+//
+//    return download(d)
+//        .pipe(mylazyPipe())
+//        .pipe(gulp.dest('.'));
+//}
 
 
 function dist(dir, publisher) {
@@ -172,7 +171,7 @@ function dist(dir, publisher) {
 // Plugin level function(dealing with files)
 function gulpUploader(folder) {
 
-    var text = fs.readFileSync(temporaryCredentialsFile,'utf8');
+    var text = fs.readFileSync('temporary-credentials.json','utf8');
     var json = JSON.parse(text);
 
     var credentials = {
