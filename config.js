@@ -8,5 +8,11 @@ var redis = {
   "option": {"auth_pass": "bell1234"}
 };
 
+var httpsServerConfig = {
+  "useCertificate" : false,
+  "pfxPath" : ''
+}
+
+module.exports.httpsConfig = httpsServerConfig;
 module.exports.api_url = api_url;
 module.exports.redis = redis;

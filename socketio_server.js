@@ -1,11 +1,19 @@
 
 var fs = require('fs');
 var socketBl  = require('./web_sockets/redis_bl')
+var config = require('./config');
+var redisConfig = config.redis;
+var httpsConfig = config.httpsConfig;
 
-var options = {
-    pfx: fs.readFileSync('/Users/backand/Desktop/api.backand.com.elb2.pfx'),
-    passphrase: '123456'
-};
+var options = {};
+
+if(httpsConfig.useCertificate){
+
+    var options = {
+        pfx: fs.readFileSync(httpsConfig.pfxPath),
+        passphrase: '123456'
+    };
+}
 
 var httpd = require('https').createServer(options, handler);
 var io = require('socket.io').listen(httpd);
