@@ -22,47 +22,46 @@ var asyncPipe = require('gulp-async-func-runner');
 // Consts
 const PLUGIN_NAME = 'gulp-backand-s3-sync';
 
-var sts_url = require('./config').sts_url;
-var temporaryCredentialsFile = 'temporary-credentials.json';
-
-
-function sts(user, pass){
-
-  console.log("sts", user, pass);
-
-    var username = user;
-    var password = pass;
-
-    var downloadOptions = {
-      url: "http://" + username + ":" + password + "@" +   sts_url.replace(/http(s)?:\/\//, ''),
-      method: 'POST'
-    };
-    var d = {
-      fileName: temporaryCredentialsFile,
-      request: downloadOptions
-    };
-    var mylazyPipe = lazypipe()
-        .pipe(jeditor, 
-            function(json) {   // must return JSON object.   
-                console.log(json);
-                var r = { 
-                    accessKeyId: json.Credentials.AccessKeyId,
-                    secretAccessKey: json.Credentials.SecretAccessKey,
-                    sessionToken: json.Credentials.SessionToken
-                };
-                return r;
-            }
-        );
-        
-    return download(d)
-        .pipe(mylazyPipe())
-        .pipe(gulp.dest('.'));
-}
+//var sts_url = require('./config').sts_url;
+//
+//
+//function sts(user, pass){
+//
+//  console.log("sts", user, pass);
+//
+//    var username = user;
+//    var password = pass;
+//
+//    var downloadOptions = {
+//      url: "http://" + username + ":" + password + "@" +   sts_url.replace(/http(s)?:\/\//, ''),
+//      method: 'POST'
+//    };
+//    var d = {
+//      fileName: temporaryCredentialsFile,
+//      request: downloadOptions
+//    };
+//    var mylazyPipe = lazypipe()
+//        .pipe(jeditor,
+//            function(json) {   // must return JSON object.
+//                console.log(json);
+//                var r = {
+//                    accessKeyId: json.Credentials.AccessKeyId,
+//                    secretAccessKey: json.Credentials.SecretAccessKey,
+//                    sessionToken: json.Credentials.SessionToken
+//                };
+//                return r;
+//            }
+//        );
+//
+//    return download(d)
+//        .pipe(mylazyPipe())
+//        .pipe(gulp.dest('.'));
+//}
 
 
 function dist(dir, publisher) {
 
-    console.log("dist", dir, publisher);
+    // console.log("dist", dir, publisher);
 
     // this will publish and sync bucket files with the one in your public directory 
   var l;
@@ -74,88 +73,80 @@ function dist(dir, publisher) {
         path.extname = path.extname.toLowerCase();
       })
 
-      .pipe(function () {
-        console.log("create router");
-        return awspublishRouter({
-          routes: {
+      .pipe(awspublishRouter, {
+        
+        routes: {
 
-            "[\\w/\-\\s\.]*\\.css$": {
-              headers: {
-                "Content-Type": "text/css"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.css$": {
+            headers: {
+              "Content-Type": "text/css"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "[\\w/\-\\s\.]*\\.js$": {
-              headers: {
-                "Content-Type": "application/javascript"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.js$": {
+            headers: {
+              "Content-Type": "application/javascript"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "[\\w/\-\\s\.]*\\.jpg$": {
-              headers: {
-                "Content-Type": "image/jpg"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.jpg$": {
+            headers: {
+              "Content-Type": "image/jpg"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "[\\w/\-\\s\.]*\\.ico$": {
-              headers: {
-                "Content-Type": "image/x-icon"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.ico$": {
+            headers: {
+              "Content-Type": "image/x-icon"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "[\\w/\-\\s\.]*\\.jpeg$": {
-              headers: {
-                "Content-Type": "image/jpg"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.jpeg$": {
+            headers: {
+              "Content-Type": "image/jpg"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "[\\w/\-\\s\.]*\\.gif$": {
-              headers: {
-                "Content-Type": "image/gif"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.gif$": {
+            headers: {
+              "Content-Type": "image/gif"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "[\\w/\-\\s\.]*\\.png$": {
-              headers: {
-                "Content-Type": "image/png"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.png$": {
+            headers: {
+              "Content-Type": "image/png"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "[\\w/\-\\s\.]*\\.html": {
-              headers: {
-                "Content-Type": "text/html"
-              },
-              key: dir + "/" + "$&"
+          "[\\w/\-\\s\.]*\\.html": {
+            headers: {
+              "Content-Type": "text/html"
             },
+            key: dir + "/" + "$&"
+          },
 
-            "^.+$": {
-              headers: {
-                "Content-Type": "text/plain"
-              },
-              key: dir + "/" + "$&"
+          "^.+$": {
+            headers: {
+              "Content-Type": "text/plain"
             },
+            key: dir + "/" + "$&"
+          },
 
-          }
-        });
+        }
+
       })
 
-      .pipe(function () {
-        console.log("myParallelize");
-        //return parallelize(publisher.publish(), 10);
-        return publisher.publish();
-      })
+      .pipe(parallelize, publisher.publish(), 10)
 
-      .pipe(function () {
-        console.log("mySync");
-        return publisher.sync(dir + "/");
-      })
+      .pipe(publisher.sync, dir + "/")
 
       // create a cache file to speed up consecutive uploads
       .pipe(publisher.cache)
@@ -168,11 +159,10 @@ function dist(dir, publisher) {
 
 }
 
-
 // Plugin level function(dealing with files)
-function gulpUploader(folder) {
+function gulpUploader() {
 
-    var text = fs.readFileSync(temporaryCredentialsFile,'utf8');
+    var text = fs.readFileSync('temporary-credentials.json','utf8');
     var json = JSON.parse(text);
 
     var credentials = {
@@ -190,9 +180,11 @@ function gulpUploader(folder) {
         logger: process.stdout
       }
     );
+    var dir = json.Info.dir;
 
     var publisher = awspublish.create(publisherOptions);
-    return dist(folder, publisher);
+    return dist(json.Info.Dir, publisher);
+
 }
 
 
