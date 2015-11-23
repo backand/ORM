@@ -3,11 +3,12 @@ var request = require('request');
 var fs = require('fs');
 var upload = require('./index');
 
-var localFolder = './test';
+var localFolder = './src';
 
-gulp.task('dist',['clean'], function() {
-	var dist = upload(localFolder);
-	console.log(dist);
+gulp.task('dist', function() {
+
+	var dist = upload();
+	// console.log(dist);
 	return gulp.src(localFolder)
     .pipe(dist());
 });
