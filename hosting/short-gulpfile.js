@@ -1,5 +1,5 @@
 var gulp = require('gulp');
-var backandSync = require('backand-sync-s3');
+var backandSync = require('backand-hosting-s3');
 
 
 gulp.task('sts', function(){
@@ -7,8 +7,6 @@ gulp.task('sts', function(){
     var password = "2b626399-8650-11e5-b5b9-12da56281408";
     return backandSync.sts(username, password);
 });
-
-
 
 // erase deleted files. upload new and changes only
 gulp.task('dist', function() {   

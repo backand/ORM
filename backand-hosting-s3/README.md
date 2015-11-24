@@ -6,8 +6,8 @@
 2. Set credentials. Credentials will be stored in file `temporary-credentials.json`
 
 	gulp.task('sts', function(){
-	    var masterToken = "1a1c664c-a3e5-4db8-bf89-1ed79a78950e"; // master Backand token
-	    var userToken = "2b626399-8650-11e5-b5b9-12da56281408"; // user Backand token
+	    var masterToken = "your master backand token";
+	    var userToken = "your user backand token"; 
 	    return backandSync.sts(masterToken, userToken);
 	});
 
