@@ -8,10 +8,10 @@ var knex = require('knex')({
 
 // var s = knex.schema.createTable('users', function (table) {
 //   table.increments();
-//   var column = table.string('name');
-//   // console.log(column);
-// //  column.notNullable(); 
-//   // table.timestamps();
+//   var column = table.string('name').unique().defaultTo('yoram');
+//   console.log(column);
+//   column.notNullable(); 
+//   table.timestamps();
 //   column.references("nom").inTable("students");
 //   column.onDelete("cascade");
 //   column.onUpdate("cascade");
@@ -162,6 +162,48 @@ var mapToKnexTypes =
 	"date": "date"
 };
 
+
+// var r = transform(
+
+// 	[{
+// 		"name": "R",
+
+// 		"fields" : {
+// 			"name": {
+// 				"type": "string"
+// 			},
+
+// 			"dpt": {
+// 				"type": "float",
+// 				"unique": true,
+// 				"required": true
+// 			}
+// 		}
+
+
+// 	}], 
+
+// [{
+// 		"name": "R",
+
+// 		"fields" : {
+// 			"name": {
+// 				"type": "string"
+// 			},
+
+// 			"dpt": {
+// 				"type": "float",
+				
+// 				"required": true
+// 			}
+// 		}
+
+
+// 	}], 
+
+
+
+// 	 0);
 // console.log("statements");
 // _.each(r.alter, function(s){
 // 	console.log(s + ";");
@@ -276,8 +318,10 @@ function compareRelationSchemes(oldRelation, newRelation){
 	_.each(existingColumnNames, function(column){
 		var typeHasChanged = oldRelation.fields[column].type != newRelation.fields[column].type;
 		var requiredHasChanged =  oldRelation.fields[column].required ? !newRelation.fields[column].required : newRelation.fields[column].required;
+		var uniqueHasChanged = oldRelation.fields[column].unique ? !newRelation.fields[column].unique : newRelation.fields[column].unique;
+	
 		var defaultHasChanged = oldRelation.fields[column].defaultValue != newRelation.fields[column].defaultValue;
-		if (typeHasChanged || requiredHasChanged || defaultHasChanged){
+		if (typeHasChanged || requiredHasChanged || defaultHasChanged || uniqueHasChanged){
 			modifiedColumns.push(column);
 		}
 	});
@@ -490,11 +534,17 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
+			  			if (description.unique){
+			  				col.unique();
+			  			}
 			  		break;
 			  		case "text":
 			  			var col = table.text(name);
 			  			if (description.required){
 			  				col.notNullable();
+			  			}
+			  			if (description.unique){
+			  				col.unique();
 			  			}
 			  		break;
 			  		case "integer":
@@ -502,11 +552,17 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
+			  			if (description.unique){
+			  				col.unique();
+			  			}
 			  		break;
 			  		case "float":
 			  			var col = table.float(name);
 			  			if (description.required){
 			  				col.notNullable();
+			  			}
+			  			if (description.unique){
+			  				col.unique();
 			  			}
 			  		break;
 			  		case "date":
@@ -514,11 +570,17 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
+			  			if (description.unique){
+			  				col.unique();
+			  			}
 			  		break;
 			  		case "time":
 			  			var col = table.time(name);
 			  			if (description.required){
 			  				col.notNullable();
+			  			}
+			  			if (description.unique){
+			  				col.unique();
 			  			}
 			  		break;
 			  		case "datetime":
@@ -526,17 +588,26 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
+			  			if (description.unique){
+			  				col.unique();
+			  			}
 			  		break;
 			  		case "boolean":
 			  			var col = table.specificType(name, "Bit(1)"); 
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
+			  			if (description.unique){
+			  				col.unique();
+			  			}
 			  		break;
 			  		case "binary":
 			  			var col = table.binary(name);
 			  			if (description.required){
 			  				col.notNullable();
+			  			}
+			  			if (description.unique){
+			  				col.unique();
 			  			}
 			  		break;
 			  	}
@@ -634,6 +705,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+				  			if (description.unique){
+				  				col.unique();
+				  			}
 							break;
 				  		case "text":
 				  			var col = table.text(d);
@@ -643,6 +717,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+				  			if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  		case "integer":
 				  			var col = table.integer(d);
@@ -652,6 +729,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+							if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  		case "float":
 				  			var col = table.float(d);
@@ -661,6 +741,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+							if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  		case "date":
 							var col = table.date(d);
@@ -670,6 +753,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+							if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  		case "time":
 							var col = table.time(d);
@@ -679,6 +765,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+							if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  		case "datetime":
 							var col = table.dateTime(d);
@@ -688,6 +777,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+							if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  		case "boolean":
 							var col = table.boolean(d);
@@ -697,6 +789,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+							if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  		case "binary":
 							var col = table.text(d);
@@ -706,6 +801,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							else {
 								col.nullable();
 							}
+							if (description.unique){
+			  					col.unique();
+			  				}
 							break;
 				  	}
 				  	if (!_.isUndefined(description.defaultValue)){
@@ -713,9 +811,9 @@ function createStatements(oldSchema, newSchema, modifications){
 			  		}
 				}
 				else if (description.object){ // 1 side of 1:n relationship
-			  		console.log("description.object");
+		
 			  		var searchPattern = { oneRelation: tableName, oneAttribute: name };
-			  		console.log(searchPattern);
+			  		
 			  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
 			  		var alreadyCreatedRelationship = _.findWhere(relationships, searchPattern);
 			  		
@@ -769,14 +867,40 @@ function createStatements(oldSchema, newSchema, modifications){
 		});
 
 		_.each(m.modified, function(d){
+	
 			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).fields[d];
 			var newAttributeDescription = tableDescription.fields[d];
 			var oldTableDescription = _.findWhere(oldSchema, { "name" : tableName });
-			var typeClause = "alter table " + tableName + " modify " + d + " " + mapToKnexTypes[newAttributeDescription.type];
-			var requiredClause = newAttributeDescription.required ? " not null " : " null ";
-			var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + getDefaultValueSql(newAttributeDescription) : " ";
-			var statement = typeClause + requiredClause + defaultClause;
-			statements.push(statement);
+		
+			
+			var oldAttributeDescription = oldTableDescription.fields[d];
+			var typeHasChanged = oldAttributeDescription.type != newAttributeDescription.type;
+			var requiredHasChanged =  oldAttributeDescription.required ? !newAttributeDescription.required : newAttributeDescription.required;
+			var uniqueHasChanged = oldAttributeDescription.unique ? !newAttributeDescription.unique : newAttributeDescription.unique;		
+			var defaultHasChanged = oldAttributeDescription.defaultValue != newAttributeDescription.defaultValue;
+
+
+			if (typeHasChanged || requiredHasChanged || defaultHasChanged){
+				var typeClause = "alter table " + tableName + " modify " + d + " " + mapToKnexTypes[newAttributeDescription.type];
+				var requiredClause = newAttributeDescription.required ? " not null " : " null ";
+				var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + getDefaultValueSql(newAttributeDescription) : " ";
+				var statement = typeClause + requiredClause + defaultClause;
+				statements.push(statement);
+			}
+
+			if (uniqueHasChanged){
+				if (oldAttributeDescription.unique && !newAttributeDescription.unique){
+					var uniqueStatement = "alter table " + tableName + " drop consraint " + tableName.toLowerCase() + "_" + d + "_unique"
+					statements.push(uniqueStatement);
+
+				}
+				else if (!oldAttributeDescription.unique && newAttributeDescription.unique){
+					var uniqueStatement = "alter table " + tableName + " add unique " + tableName.toLowerCase() + "_" + d + "_unique(" + d + ")"
+					statements.push(uniqueStatement);
+				}
+			}
+			
+			
 		});
 	});
 
