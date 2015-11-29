@@ -6,6 +6,12 @@ var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 
 var api_url = require('../../config').api_url;
+var api_url = require('../../config').api_url;
+
+var config = require('../../config');
+var socketServerAddress = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
+
+
 var tokenUrl = api_url + "/token";
 
 chai.should();
@@ -25,25 +31,35 @@ var login = function (email, password, appName, callback) {
         });
 };
 
-var socket = require('socket.io-client')('https://localhost:4000');
-var socket2 = require('socket.io-client')('https://localhost:4000');
-
-function sendEventToServer(sendData) {
-  request.post('http://localhost:9000/socket/emit')
-      .send(sendData)
-      .set('app', appName)
-      .end(function (err, res) {
-        if (res.ok) {
-          console.log('yay got ' + JSON.stringify(res.body));
-        } else {
-          console.log('Oh no! error ' + res.text);
-        }
-
-      })
+var anonymousLogin = function (token, callback) {
+    request.get(api_url + '/api/account/profile')
+        .set('AnonymousToken', token)
+        .end(function (err, res) {
+            console.log(res);
+            callback(err, res.body);
+        });
 };
 
+function sendEventToServer(sendData) {
+    request.post('http://localhost:9000/socket/emit')
+        .send(sendData)
+        .set('app', appName)
+        .end(function (err, res) {
+            if (res.ok) {
+                console.log('yay got ' + JSON.stringify(res.body));
+            } else {
+                console.log('Oh no! error ' + res.text);
+            }
+
+        })
+};
+
+var socket = require('socket.io-client')(socketServerAddress);
+
+var socket2 = require('socket.io-client')(socketServerAddress);
+
 describe("end-to-end-work one user", function () {
-    this.timeout(5000);
+    this.timeout(8000);
 
     var spy1 = sinon.spy();
 
@@ -62,13 +78,14 @@ describe("end-to-end-work one user", function () {
         });
 
         socket.on('authorized', function () {
+            console.log('authorized');
             sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"});
         });
 
       login("ygalbel@gmail.com", "bell1234", "ionic1", function(err,token) {
           socket.emit('login',
               token,
-              'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
+              '',
               'ionic1'
           );
       });
@@ -83,7 +100,7 @@ describe("end-to-end-work one user", function () {
 
 describe("end-to-end-work two users", function () {
     it("all users get notification", function (done) {
-        this.timeout(5000);
+        this.timeout(30000);
 
         var eventName = "testMessage";
 
@@ -137,6 +154,87 @@ describe("end-to-end-work two users", function () {
 
     })
 });
+
+describe("user with anonymous token can get messages", function(){
+    this.timeout(5000);
+
+    var spy1 = sinon.spy();
+
+    before(function (done) {
+        var eventName = "testMessage3";
+
+        socket.on('notAuthorized', function (data) {
+            console.log('not authorized');
+            throw new Error("fail");
+        });
+
+        socket.on(eventName, function (data) {
+            console.log("Here");
+            spy1();
+            done();
+        });
+
+        socket.on('authorized', function () {
+            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"});
+        });
+
+        anonymousLogin('f0a0f62f-65ea-457e-93e8-ea7d21c07abf', function(err, token){
+            socket.emit('login',
+                null,
+                'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
+                null
+            );
+        });
+
+
+    })
+
+    it('message arrived', function(done){
+        spy1.should.have.been.called;
+        done();
+    })
+});
+
+describe("user with anonymous token can get messages by role", function(){
+    this.timeout(5000);
+
+    var spy1 = sinon.spy();
+
+    before(function (done) {
+        var eventName = "testMessage3";
+
+        socket.on('notAuthorized', function (data) {
+            console.log('not authorized');
+            throw new Error("fail");
+        });
+
+        socket.on(eventName, function (data) {
+            console.log("Here");
+            spy1();
+            done();
+        });
+
+        socket.on('authorized', function () {
+            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "role", "Role" : "User"});
+        });
+
+        anonymousLogin('f0a0f62f-65ea-457e-93e8-ea7d21c07abf', function(err, token){
+            socket.emit('login',
+                null,
+                'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
+                null
+            );
+        });
+
+
+    })
+
+    it('message arrived', function(done){
+        spy1.should.have.been.called;
+        done();
+    })
+});
+
 //
 //describe("send message to server", function(){
 //

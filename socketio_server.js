@@ -1,21 +1,47 @@
+/*jslint node: true */
 
 var fs = require('fs');
 var socketBl  = require('./web_sockets/redis_bl')
 var config = require('./config');
 var redisConfig = config.redis;
-var httpsConfig = config.httpsConfig;
+var httpsConfig = config.socketConfig;
 
 var options = {};
+var serverAddress = httpsConfig.serverAddress;
+var serverPort = httpsConfig.serverPort;
 
-if(httpsConfig.useCertificate){
+function handler(req, res) {
+    fs.readFile(__dirname + req.url,
+        function (err, data) {
+            if (err) {
+                res.writeHead(500);
+                return res.end('Error loading index.html');
+            }
 
+            res.writeHead(200);
+            res.end(data);
+        }
+    );
+    console.log(req.url);
+}
+
+if (httpsConfig.useCertificate) {
+    console.log('user certificate');
     var options = {
         pfx: fs.readFileSync(httpsConfig.pfxPath),
         passphrase: '123456'
     };
 }
+var httpd;
 
-var httpd = require('https').createServer(options, handler);
+if (serverAddress.indexOf('https') > -1) { // https
+    console.log('start https server with addres ', serverAddress, ':', serverPort )
+    var httpd = require('https').createServer(options, handler);
+} else { // http
+    console.log('start http server with addres ', serverAddress, ':', serverPort )
+    var httpd = require('http').createServer(handler);
+}
+
 var io = require('socket.io').listen(httpd);
 var _ = require('underscore');
 var getUserDetails = require('./backand_to_object').getUserDetails;
@@ -34,28 +60,12 @@ var redis = require('redis'),
 var redisInterface = redis.createClient(redisPort, redisHostname, option);
 
 redisInterface.on('connect', function () {
+    console.log('redis is connected');
     runSocket();
 });
 
-httpd.listen(4000);
+httpd.listen(serverPort);
 
-function handler(req, res) {
-
-    console.log(req.url);
-
-    fs.readFile(__dirname + req.url,
-        function (err, data) {
-            if (err) {
-                res.writeHead(500);
-                return res.end('Error loading index.html');
-            }
-
-            res.writeHead(200);
-            res.end(data);
-        }
-    );
-
-}
 
 function runSocket() {
 
@@ -67,14 +77,6 @@ function runSocket() {
         redisClient: client
     }));
 
-
-// socket server
-
-    function userIsInRoom(appName, id) {
-        return io.sockets.adapter.rooms[appName][id];
-    }
-
-
     io.sockets.on('connection', function (socket) {
         function sendMultiple(socket, users, event, message) {
             if (users === null || users.length == 0) {
@@ -83,25 +85,25 @@ function runSocket() {
 
             _.each(users, function (u) {
                 io.to(u.socketId).emit(event, message);
-            })
+            });
         }
 
         console.log("received connection");
 
         socket.on('login', function (token, anonymousToken, appName) {
+            console.log('login', token, anonymousToken, appName);
             getUserDetails(token, anonymousToken, appName, function (err, details) {
                 if (!err) {
+                    console.log('auth');
                     redisBl.login(socket, appName, details.username, details.role);
-                }
-                else {
+                } else {
                     socket.emit("notAuthorized");
                 }
-            })
+            });
         });
 
         socket.on('disconnect', function () {
             var id = socket.id;
-
             redisBl.removeSocket(id);
 
         })
@@ -115,10 +117,10 @@ function runSocket() {
         });
 
         socket.on('internalRole', function (internal) {
-            var appName = internal.appName;
-            var eventName = internal.eventName;
-            var role = internal.role;
-            var data = internal.data;
+            var appName = internal.appName,
+                eventName = internal.eventName,
+                role = internal.role,
+                data = internal.data;
 
             if (!appName || !eventName || !role || !eventName) {
                 return;

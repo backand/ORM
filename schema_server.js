@@ -7,7 +7,11 @@ var transformer = require('./transform').transformer;
 var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
-var socket = require('socket.io-client')('https://localhost:4000');
+
+var config = require('./config');
+var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
+
+var socket = require('socket.io-client')(socketConfig);
 //var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;

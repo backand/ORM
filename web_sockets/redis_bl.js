@@ -106,16 +106,25 @@ function redisBl(redisInterface){
 
         cleanUp: function (callback) {
             redisInterface.keys("*", function (err, keys) {
-                async.map(keys,
-                    function (key) {
-                        redisInterface.del(key)
-                    },
-                    function (err) {
-                        if (typeof (callback) == 'function') {
-                            callback();
-                            console.log('done');
-                        }
-                    });
+
+                var ind = keys.length;
+
+                _.each(keys, function(k){
+                    redisInterface.del(k);
+                    ind--;
+                });
+
+
+                // block everything!
+                while(ind > 0){
+
+                }
+
+                if (typeof (callback) == 'function') {
+                    console.log('done');
+                    callback();
+                }
+
             });
         },
         self: this

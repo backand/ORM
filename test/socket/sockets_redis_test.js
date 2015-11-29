@@ -36,7 +36,7 @@ var login = function (email, password, appName, callback) {
 
 
 describe("redis insert", function () {
-    this.timeout(15000);
+    this.timeout(30000);
     // clean data
     before(function (done) {
         bl.cleanUp(done);
