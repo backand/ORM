@@ -5,10 +5,10 @@ var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 
-var api_url = require('../../config').api_url;
-var api_url = require('../../config').api_url;
+var api_url = require('../../../config').api_url;
+var api_url = require('../../../config').api_url;
 
-var config = require('../../config');
+var config = require('../../../config');
 var socketServerAddress = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 

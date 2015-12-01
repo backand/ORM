@@ -3,12 +3,12 @@ var expect = require("chai").expect;
 var request = require('request');
 var _ = require('underscore');
 
-var validator = require("../validate_schema.js").validator;
-var transformer = require("../transform.js").transformer;
-var connectionInfo = require("../get_connection_info"); 
-var fetchTables = require("../backand_to_object").fetchTables; 
+var validator = require("../../validate_schema.js").validator;
+var transformer = require("../../transform.js").transformer;
+var connectionInfo = require("../../get_connection_info");
+var fetchTables = require("../../backand_to_object").fetchTables;
 
-var api_url = require('../config').api_url;
+var api_url = require('../../config').api_url;
 var tokenUrl = api_url + "/token";
 
 describe("validate", function(){

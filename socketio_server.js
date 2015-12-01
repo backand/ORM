@@ -103,6 +103,7 @@ function runSocket() {
         });
 
         socket.on('disconnect', function () {
+            console.log()
             var id = socket.id;
             redisBl.removeSocket(id);
 
