@@ -15,8 +15,6 @@ var option = redisConfig.option;
 var redis = require('redis');
 var redisInterface = redis.createClient(redisPort, redisHostname, option);
 
-
-
 var bl = new redisBl.BusinessLogic(redisInterface);
 chai.should();
 chai.use(sinonChai);
@@ -33,7 +31,6 @@ var login = function (email, password, appName, callback) {
             callback(err, res.body.access_token);
         });
 };
-
 
 describe("redis insert", function () {
     this.timeout(30000);
@@ -84,8 +81,8 @@ describe("redis insert", function () {
         });
     })
 
-    it('can fetch by user list all', function(done){
-        bl.getUserByList('appName', ["username", "username2"], function(err,data){
+    it('can fetch by user list all', function (done) {
+        bl.getUserByList('appName', ["username", "username2"], function (err, data) {
             expect(data).not.to.be.null;
             assert.lengthOf(data, 2);
             expect(data[0].username).to.equal("username");
@@ -94,8 +91,8 @@ describe("redis insert", function () {
         })
     })
 
-    it('can fetch by user list only second', function(done){
-        bl.getUserByList('appName', ["username2"], function(err,data){
+    it('can fetch by user list only second', function (done) {
+        bl.getUserByList('appName', ["username2"], function (err, data) {
             expect(data).not.to.be.null;
             assert.lengthOf(data, 1);
             expect(data[0].username).to.equal("username2");
@@ -103,8 +100,8 @@ describe("redis insert", function () {
         })
     })
 
-    it('can be deleted after disconnect', function(done){
-        bl.removeSocket('aaa', function(){
+    it('can be deleted after disconnect', function (done) {
+        bl.removeSocket('aaa', function () {
             bl.getAllUsers('appName', function (err, data) {
                 assert.lengthOf(data, 1);
                 done();
@@ -113,15 +110,40 @@ describe("redis insert", function () {
         })
     })
 
-    it("can't be deleted twice", function(){
+    it("can't be deleted twice", function () {
 
         // try to remove again, socketId we delete before
-        bl.removeSocket('aaa', function(){
+        bl.removeSocket('aaa', function () {
             bl.getAllUsers('appName', function (err, data) {
                 assert.lengthOf(data, 1);
                 done();
 
             })
         })
+    })
+});
+
+describe('mutliple users with same token', function() {
+    var appName = 'appName2';
+    it('can save two users with same token', function (done) {
+        bl.saveUser(appName, 1, 'username', 'role', function (err, res) {
+            bl.saveUser(appName, 2, 'username', 'role', function (err, res) {
+                bl.getAllUsers(appName, function (err, data) {
+                    console.log(data);
+                    expect(data).not.to.be.null;
+                    assert.lengthOf(data, 2);
+                    done();
+                })
+            })
+        })
+    })
+
+    it('all users can be found by user', function(done){
+        bl.getAllUsersByRole(appName, 'role', function (err, data) {
+            console.log(data);
+            expect(data).not.to.be.null;
+            assert.lengthOf(data, 2);
+            done();
+        });
     })
 });

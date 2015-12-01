@@ -42,6 +42,8 @@
   "dependencies": {},
   "description": "Higher-order functions and common patterns for asynchronous code",
   "devDependencies": {
+    "log4js": "*",
+    "log4js-logstash" : "*",
     "lodash": ">=2.4.1",
     "nodelint": ">0.0.0",
     "nodeunit": ">0.0.0",

@@ -128,7 +128,7 @@ function redisBl(redisInterface){
             });
         },
         self: this
-    }
-}
+    };
+};
 
 module.exports.BusinessLogic = redisBl;

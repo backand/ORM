@@ -1,0 +1,26 @@
+{
+  "appenders": [
+    {
+      "debug" : true,
+      "type": "log4js-logstash",
+      "host": "ec2-52-3-33-37.compute-1.amazonaws.com",
+      "port": 10520,
+      "batch": {
+        "batchTimeout" : 5
+      },
+      "fields": {
+        "instance": "MyAwsInstance",
+        "source": "myApp",
+        "environment": "development"
+      }
+    },
+    {
+      "type": "console"
+    }
+  ],
+  "levels": {
+    "tests": "DEBUG"
+  }
+}
+
+

@@ -8,8 +8,8 @@ var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 
-var config = require('./config');
-var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
+    var config = require('./config');
+    var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 var socket = require('socket.io-client')(socketConfig);
 //var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
