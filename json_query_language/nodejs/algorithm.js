@@ -12,7 +12,7 @@ var tokenUrl = api_url + "/token";
 var fetchTables = require("../../backand_to_object").fetchTables; 
 var validTypes = require("../../validate_schema").validTypes;
 
-var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like"];
+var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like", "$within"];
 var aggregationOperators = ["$max", "$min", "$sum", "$count", "$concat", "$avg"];
 
 var mysqlOperator = {
@@ -32,7 +32,8 @@ var mysqlOperator = {
 	"$sum": "SUM", 
 	"$count": "COUNT", 
 	"$concat": "GROUP_CONCAT",
-	"$avg": "AVG"
+	"$avg": "AVG",
+	"$within": "ST_Distance"
 };
 
 var leftEncloseVariable = "{{";
@@ -53,7 +54,8 @@ var valuesArray =[];
 // 	{ 
 //    "object": "items",
 //    "q": {
-//        "name": { "$eq" : "kuku" } 
+//        "name": { "$eq" : "kuku" },
+//        "p": { "$within": [[32.0638130, 34.7745390], 50000] }
 //    }  
 // },
 
@@ -303,6 +305,9 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 //     "fields": {
 //       "name": {
 //         "type": "string"
+//       },
+//       "p": {
+//       	"type": "point"
 //       },
 //       "description": {
 //         "type": "text"
@@ -785,7 +790,11 @@ function generateKeyValueExp(kv, table){
 				throw "attribute " + column + " does not exist in the object " + table.name;
 			}
 			else{
-				return relateColumnWithTable(realTableName, column) + " " + generateQueryConditional(kv[column], table, column);
+				var qc = generateQueryConditional(kv[column], table, column);
+				if (qc.indexOf("SPATIALCOLUMNBACKAND") > -1){
+					return qc.replace(/SPATIALCOLUMNBACKAND/, relateColumnWithTable(realTableName, column));
+				}
+				return relateColumnWithTable(realTableName, column) + " " + qc;
 			}
 			
 		}
@@ -809,6 +818,9 @@ function generateQueryConditional(qc, table, column){
 	else if (comparisonOperator == "$like" && (table.fields[column].type != "string" && table.fields[column].type != "text")){
 		throw "$like is not valid for column " + column + " of table " + table.name + " because it is not a string or text column";
 	}
+	else if (comparisonOperator == "$within" && table.fields[column].type != "point"){
+		throw "$within is not valid for column " + column + " of table " + table.name + " because it is not a point column";
+	}	
 	else if (isConstant(comparand)){
 		// constant value
 		var t = getType(table, column);
@@ -827,7 +839,12 @@ function generateQueryConditional(qc, table, column){
 
 	if (comparisonOperator == "$in")
 		return mysqlOperator[comparisonOperator] + " ( " + generatedComparand + " ) ";
-	else
+	else if (comparisonOperator == "$within"){
+		return mysqlOperator[comparisonOperator] + " ( SPATIALCOLUMNBACKAND, " +  
+			"ST_GeomFromText('POINT( " + generatedComparand[0][0] + " " + generatedComparand[0][1] + " )')" +
+			" ) <= " + generatedComparand[1]/(1609.344 * 69);
+	}
+	else 
 		return mysqlOperator[comparisonOperator] + " " + generatedComparand;
 }
 

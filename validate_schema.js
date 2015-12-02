@@ -3,7 +3,7 @@ module.exports.validator = validateSchema;
 
 var _ = require('underscore');
 
-var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ "datetime", "boolean", "binary"];
+var validTypes = ["string",	"text", /*"integer",*/ "float", /*"date", "time",*/ "datetime", "boolean", "binary", "point"];
 
 module.exports.validTypes = validTypes;
 
@@ -12,6 +12,22 @@ module.exports.validTypes = validTypes;
 // return object with fields
 // valid - boolean
 // warnings - array of strings
+
+// var v = validateSchema([
+// {
+// 	"name": "r",
+// 	"fields": {
+// 		"name": {
+// 			"type": "string"
+// 		},
+// 		"location": {
+// 			"type": "point",
+// 			"defaultValue": [34.0, 3]
+// 		}
+// 	}
+// }
+// ]);
+// console.log(v);
 
 function validateSchema(schema){
 
@@ -210,6 +226,12 @@ function validRelation(relation){
 							valid = false;
 							warnings.push("column default value should be a boolean:" + relationName + " " + key);
 						}
+					break;
+					case "point":
+						if (!_.isArray(value.defaultValue) || value.defaultValue.length != 2 || !_.every(value.defaultValue, function(n){ return _.isNumber(n) && !_.isNaN(n); })){
+							valid = false;
+							warnings.push("column default value should be a [float, float]:" + relationName + " " + key);
+						}	
 					break;
 					default:
 					break;
