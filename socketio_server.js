@@ -1,4 +1,7 @@
 /*jslint node: true */
+/*
+    Build Version: #build_version#
+ */
 
 var fs = require('fs');
 var socketBl  = require('./web_sockets/redis_bl')
