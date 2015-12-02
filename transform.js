@@ -85,6 +85,7 @@ var validTransformDegree = TAFFY([
 	{ from: "float", to: "datetime", degree: "never"},
 	{ from: "float", to: "boolean", degree: "never"},
 	{ from: "float", to: "binary", degree: "always"},
+	{ from: "float", to: "point", degree: "never"},
 
 	{ from: "date", to: "string", degree: "always"},
 	{ from: "date", to: "text", degree: "always"},
@@ -95,6 +96,7 @@ var validTransformDegree = TAFFY([
 	{ from: "date", to: "datetime", degree: "always"},
 	{ from: "date", to: "boolean", degree: "never"},
 	{ from: "date", to: "binary", degree: "never"},
+	{ from: "date", to: "point", degree: "never"},
 
 	// { from: "time", to: "string", degree: ""},
 	// { from: "time", to: "text", degree: ""},
@@ -115,6 +117,7 @@ var validTransformDegree = TAFFY([
 	{ from: "datetime", to: "datetime", degree: "always"},
 	{ from: "datetime", to: "boolean", degree: "never"},
 	{ from: "datetime", to: "binary", degree: "never"},
+	{ from: "datetime", to: "point", degree: "never"},
 
 	{ from: "boolean", to: "string", degree: "always"},
 	{ from: "boolean", to: "text", degree: "always"},
@@ -125,6 +128,7 @@ var validTransformDegree = TAFFY([
 	{ from: "boolean", to: "datetime", degree: "never"},
 	{ from: "boolean", to: "boolean", degree: "always"},
 	{ from: "boolean", to: "binary", degree: "always"},
+	{ from: "boolean", to: "point", degree: "always"},
 
 	{ from: "binary", to: "string", degree: "never"},
 	{ from: "binary", to: "text", degree: "never"},
@@ -134,7 +138,7 @@ var validTransformDegree = TAFFY([
 	// { from: "binary", to: "time", degree: "never"},
 	{ from: "binary", to: "datetime", degree: "never"},
 	{ from: "binary", to: "boolean", degree: "never"},
-	{ from: "binary", to: "binary", degree: "never"}
+	{ from: "binary", to: "point", degree: "never"}
 ]);
 
 
@@ -159,7 +163,8 @@ var mapToKnexTypes =
 	"text": "text",
 	"binary": "blob",
 	"datetime": "datetime",
-	"date": "date"
+	"date": "date",
+	"point": "point"
 };
 
 
@@ -204,6 +209,25 @@ var mapToKnexTypes =
 
 
 // 	 0);
+// var r = transform(
+// [],
+
+// [
+// 	{
+// 		"name": "r",
+// 		"fields": {
+// 			"name": {
+// 				"type": "string"
+// 			},
+// 			"location": {
+// 				"type": "point",
+// 				"defaultValue": [34.0, 3]
+// 			}
+// 		}
+// 	}
+// ]
+
+// , 0);
 // console.log("statements");
 // _.each(r.alter, function(s){
 // 	console.log(s + ";");
@@ -221,6 +245,7 @@ function transform(oldSchema, newSchema, severity){
 		// Determine validity 
 		var validity = isValidTransformation(oldSchema, newSchema, modifications);
 		// console.log(validity);
+
 
 
 		if (severity == 0 && validity.valid != "always"){
@@ -244,10 +269,9 @@ function transform(oldSchema, newSchema, severity){
 	            });
 	    }
 
-
 		// Construct an array of the required changes between schemes
 		var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
-
+		
 		// remove created at and updated at columns
 		alterStatementsArray = _.map(alterStatementsArray, function(s){
 			return s.replace(/, `created_at` datetime/g,"").replace(/, `updated_at` datetime/g,"").replace(/;/g, "");
@@ -610,13 +634,25 @@ function createStatements(oldSchema, newSchema, modifications){
 			  				col.unique();
 			  			}
 			  		break;
+			  		case "point":
+			  			var col = table.specificType(name, "point");
+			  			if (description.required){
+			  				col.notNullable();
+			  			}
+			  			if (description.unique){
+			  				col.unique();
+			  			} 
+			  		break;
 			  	}
 			  	if (!_.isUndefined(description.defaultValue)){
-			  		if (description.type != "boolean"){
-			  			col.defaultTo(description.defaultValue); 
+			  		if (description.type == "boolean"){
+			  			col.defaultTo(description.defaultValue ? 1 : 0);
 			  		}
-			  		else{
-			  			col.defaultTo(description.defaultValue ? 1 : 0); 
+			  		else if (description.type == "point"){
+			  			col.defaultTo("GeomFromText('POINT(" + description.defaultValue[0] + " " + description.defaultValue[1] + ")')");
+			  		}			  		
+			  		else{	  			
+			  			col.defaultTo(description.defaultValue);  
 			  		}
 			  		
 			  	}

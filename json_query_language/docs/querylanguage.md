@@ -57,6 +57,10 @@ To retrieve all fields of employees under the age of 25,
 
     { object: "employees", q: { age : { $lt : 25 } }  } 
 
+To retrieve all cities within `25km` (`25000m`) from a given `[latitude, longitude]`, e.g. `[32.0638130, 34.7745390]`, 
+
+    { object: "city", q: { location : { $within : [[32.0638130, 34.7745390], 25000] } } }
+
 # Expressions
 
 More generally, an expression can be either an AND expression or an OR expression or a UNION query
@@ -111,7 +115,7 @@ To find all departments having more than 30 employees, or located in "Los Angele
 Generally, a condition on a field is a predicate can can do one of the following:
 
 1. Test equality of field to a constant value, e.g.  `{ A: 6 }`. Is `A` equal to 6?
-2. Comparison of a field using a comparison operator, e.g. `{ A: { $gt: 8 }}`. Is `A` greater than 8? The set of comparison operators is quite extensive and includes: `$lte, $lt, $gte, $gt, $eq, $neq, $not`
+2. Comparison of a field using a comparison operator, e.g. `{ A: { $gt: 8 }}`. Is `A` greater than 8? The set of comparison operators is quite extensive and includes: `$lte, $lt, $gte, $gt, $eq, $neq, $not, $within`
 3. Test if the value of the field is IN  or NOT IN the result of a subquery.
 4. Test for the negation of a comparison. For example, to test if the location field is not Boston, we can do:
 
