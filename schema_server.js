@@ -12,7 +12,7 @@ var config = require('./config');
 var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 var socket = require('socket.io-client')(socketConfig);
-//var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
+var transformJson = require('./json_query_language/nodejs/algorithm').transformJson;
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
@@ -180,9 +180,9 @@ router.map(function () {
                 res.send(500, { error: err }, null);
             }
             else{
-                /*transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function(err, result){
+                transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function(err, result){
                     res.send(200, { error: err }, result);
-                });*/
+                });
             }
         });
 
