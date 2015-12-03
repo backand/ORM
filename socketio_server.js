@@ -1,13 +1,15 @@
 /*jslint node: true */
 /*
-    Build Version: #build_version#
+ Build Version: #build_version#
  */
 
 var fs = require('fs');
-var socketBl  = require('./web_sockets/redis_bl')
+var socketBl = require('./web_sockets/redis_bl')
 var config = require('./config');
 var redisConfig = config.redis;
 var httpsConfig = config.socketConfig;
+var logger = require('./logging/logger').logger;
+
 
 var options = {};
 var serverAddress = httpsConfig.serverAddress;
@@ -38,10 +40,10 @@ if (httpsConfig.useCertificate) {
 var httpd;
 
 if (serverAddress.indexOf('https') > -1) { // https
-    console.log('start https server with addres ', serverAddress, ':', serverPort )
+    console.log('start https server with addres ', serverAddress, ':', serverPort)
     var httpd = require('https').createServer(options, handler);
 } else { // http
-    console.log('start http server with addres ', serverAddress, ':', serverPort )
+    console.log('start http server with addres ', serverAddress, ':', serverPort)
     var httpd = require('http').createServer(handler);
 }
 
@@ -82,42 +84,54 @@ function runSocket() {
 
     io.sockets.on('connection', function (socket) {
         function sendMultiple(socket, users, event, message) {
-            if (users === null || users.length == 0) {
+            if (users === null || users.length === 0) {
                 return;
             }
 
             _.each(users, function (u) {
                 io.to(u.socketId).emit(event, message);
             });
+
+            logger.verbose('sendMultiple',users, event, message);
+
         }
 
         console.log("received connection");
 
         socket.on('login', function (token, anonymousToken, appName) {
-            console.log('login', token, anonymousToken, appName);
+            logger.info('login', token, anonymousToken, appName);
             getUserDetails(token, anonymousToken, appName, function (err, details) {
-                if (!err) {
-                    console.log('auth');
-                    redisBl.login(socket, appName, details.username, details.role);
-                } else {
+
+                if (err) {
                     socket.emit("notAuthorized");
+                    return;
                 }
+
+                // handle anonymous case
+                if (appName === null) {
+                    appName = details.appName;
+                }
+
+                logger.info('success login to ' + appName + ' with user' + details.username + ' and role ' + details.role);
+
+
+                console.log('auth');
+                redisBl.login(socket, appName, details.username, details.role);
             });
         });
 
         socket.on('disconnect', function () {
-            console.log()
             var id = socket.id;
             redisBl.removeSocket(id);
+            logger.info('success disconnect to id ' + id) ;
 
         })
 
         socket.on('internalAll', function (internal) {
-            console.log('here');
-            var appName = internal.appName;
             var eventName = internal.eventName;
+            var appName = internal.appName;
             io.to(appName).emit(eventName, internal.data);
-            console.log(eventName, internal.data);
+            logger.info('internalAll', eventName, internal.data);
         });
 
         socket.on('internalRole', function (internal) {
@@ -133,6 +147,9 @@ function runSocket() {
             redisBl.getAllUsersByRole(appName, role, function (err, users) {
                 sendMultiple(appName, users, eventName, data);
             });
+
+            logger.info('internalRole', eventName, internal.data);
+
         });
 
         socket.on('internalUsers', function (internal) {
@@ -148,6 +165,9 @@ function runSocket() {
             redisBl.getUserByList(appName, users, function (err, users) {
                 sendMultiple(appName, users, eventName, data);
             });
+
+            logger.info('internalUsers', eventName, internal.data);
+
         });
 
 
