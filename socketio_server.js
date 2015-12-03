@@ -3,14 +3,15 @@
  Build Version: #build_version#
  */
 
+process.chdir(__dirname);
+
 var fs = require('fs');
 var socketBl = require('./web_sockets/redis_bl')
 var config = require('./config');
 var redisConfig = config.redis;
 var httpsConfig = config.socketConfig;
+var logger = require('./logging/logger').logger;
 
-var configLogger = fs.readFile('./logging/config.json');
-var logger = require('./logging/logger').logger(configLogger);
 
 var options = {};
 var serverAddress = httpsConfig.serverAddress;

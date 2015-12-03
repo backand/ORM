@@ -3,10 +3,8 @@
  */
 
 var log4js = require('log4js');
+log4js.configure('./logging/config.json', {});
+var logger = log4js.getLogger();
 
-module.exports.logger = function(json) {
-    log4js.configure(json, {});
-    var logger = log4js.getLogger();
 
-    return logger;
-}
+module.exports.logger = logger;
