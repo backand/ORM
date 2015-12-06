@@ -5,9 +5,9 @@ var request = require('superagent');
 var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
-var redisBl = require("../../web_sockets/redis_bl");
+var redisBl = require("../../../web_sockets/redis_bl");
 
-var redisConfig = require('./../../config').redis;
+var redisConfig = require('./../../../config').redis;
 
 var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;

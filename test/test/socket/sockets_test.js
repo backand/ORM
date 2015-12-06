@@ -5,10 +5,10 @@ var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 
-var api_url = require('../../config').api_url;
-var api_url = require('../../config').api_url;
+var api_url = require('../../../config').api_url;
+var api_url = require('../../../config').api_url;
 
-var config = require('../../config');
+var config = require('../../../config');
 var socketServerAddress = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 
@@ -59,7 +59,7 @@ var socket = require('socket.io-client')(socketServerAddress);
 var socket2 = require('socket.io-client')(socketServerAddress);
 
 describe("end-to-end-work one user", function () {
-    this.timeout(8000);
+    this.timeout(30000);
 
     var spy1 = sinon.spy();
 
@@ -82,7 +82,7 @@ describe("end-to-end-work one user", function () {
             sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"});
         });
 
-      login("ygalbel@gmail.com", "bell1234", "ionic1", function(err,token) {
+      login("ygalbel@gmail.com", "bell1234", "ionic1", function( err, token) {
           socket.emit('login',
               token,
               '',
@@ -196,7 +196,7 @@ describe("user with anonymous token can get messages", function(){
 });
 
 describe("user with anonymous token can get messages by role", function(){
-    this.timeout(5000);
+    this.timeout(30000);
 
     var spy1 = sinon.spy();
 

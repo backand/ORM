@@ -14,14 +14,14 @@ function redisBl(redisInterface){
 
         getAllUsers: function (appName, callback) {
             redisInterface.lrange(this.createKey(appName), 0, -1, function (err, reply) {
-                object = [];
+                var object = [];
 
                 // we have to serialize again all users
                 _.each(reply, function (str) {
                     object.push(JSON.parse(str));
                 });
 
-                if (typeof(callback) == "function") {
+                if (typeof(callback) === "function") {
                     callback(err, object);
                 }
 

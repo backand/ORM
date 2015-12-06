@@ -13,8 +13,8 @@ var redis = {
 var httpsServerConfig = {
     "serverAddress" : 'http://localhost',
     "serverPort" : '4000',
-  "useCertificate" : false,
-  "pfxPath" : ''
+    "useCertificate" : false,
+    "pfxPath" : ''
 }
 
 module.exports.socketConfig = httpsServerConfig;
