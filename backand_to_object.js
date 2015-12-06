@@ -20,7 +20,8 @@ var backandToJsonType = {
 	"Binary": "binary",
 	"DateTime": "datetime",
 	"SingleSelect": "SingleSelect",
-	"MultiSelect": "MultiSelect"
+	"MultiSelect": "MultiSelect",
+	"Point": "point"
 };
 
 function getUserDetails(accessToken, anonymousToken, appName, callback){
@@ -100,6 +101,9 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 
 		    				if (item.advancedLayout.required)
 		    					description.required = true;
+		    				if (item.advancedLayout.unique)
+		    					description.unique = true;
+
 		    				// if (_.has(item, "minValue"))
 		    				// 	description.minValue = item.minValue;
 		    				// if (_.has(item, "maxValue"))
