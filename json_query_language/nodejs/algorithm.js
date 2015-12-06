@@ -36,6 +36,8 @@ var mysqlOperator = {
 	"$within": "ST_Distance"
 };
 
+var mySQLAggregateOperators = ["MAX", "MIN", "SUM", "COUNT", "GROUP_CONCAT", "AVG"];
+
 var leftEncloseVariable = "{{";
 var rightEncloseVariable = "}}";
 var leftEncloseObject = "`";
@@ -51,6 +53,20 @@ var valuesArray =[];
 
 // transformJsonIntoSQL(email, password, appName, 
 
+// 	{
+// 		"object": "scores",
+// 		"q": {
+// 		    "location" : "us"
+// 		},
+// 		"fields": ["userId","score"],
+// 		"groupBy": ["userId"],
+// 		"aggregate": {
+// 		   "score": "$max"
+// 		}
+//     },
+// 
+// 
+// 
 // 	{ 
 //    "object": "items",
 //    "q": {
@@ -300,6 +316,21 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	try { 
 
 // var sqlSchema = [
+// 	{ 
+// 		"name": "scores",
+// 		"fields": {
+// 			"userId": {
+// 				"type": "float"
+// 			},
+// 			"location": {
+// 				"type": "string"
+// 			},
+// 			"score": {
+// 				"type": "float"
+// 			}
+// 		}
+// 	}
+// 
 //   {
 //     "name": "items",
 //     "fields": {
@@ -436,7 +467,7 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	// 		},
 	// 		"users":"users"
 	// 	}
-	//   ];
+	  // ];
 	  // parserState.sqlSchema = sqlSchema;
 	  var sqlQuery = generateQuery(json);
 	  result = sqlQuery.sql;
@@ -578,14 +609,16 @@ function generateSingleTableQuery(query){
 			}
 			else{
 				if (_.has(aggregate, f)){
-					return mysqlOperator[aggregate[f]] + "(" + (table.fields[f].dbName ? table.fields[f].dbName : f) + ")";
+					return mysqlOperator[aggregate[f]] + "(" + (table.fields[f].dbName ? table.fields[f].dbName : f) + ") AS " + (table.fields[f].dbName ? table.fields[f].dbName : f);
 				}
 				else{
 					return table.fields[f].dbName ? table.fields[f].dbName : f;
 				}
 			}
 		});
+		console.log("realQueryFields", realQueryFields);
 		var selectClause = "SELECT " + _.map(realQueryFields, function(f) { return relateColumnWithTable(realTableName, f); }).join(",");	
+		console.log("selectClause", selectClause);
 	}
 	else{
 		var selectClause = "SELECT " + "*";
@@ -984,6 +1017,19 @@ function escapeVariableOfType(value, type){
 }
 
 /** @function
+ * @name includesAggregate
+ * @description test if result column is an aggregate column
+ * @param {string} o - column name
+ * @returns {boolean} 
+ */
+function includesAggregate(c){
+	return _.find(mySQLAggregateOperators, function(o){
+		return c.indexOf(o) > -1;
+	})
+}
+
+
+/** @function
  * @name encloseObject
  * @description enclose column or table name in characters so that if the name
  * contains spaces it will be valid in SQL.
@@ -992,7 +1038,12 @@ function escapeVariableOfType(value, type){
  * @returns {string} - enclosed value
  */
 function encloseObject(o){ 
-	return leftEncloseObject + o + rightEncloseObject;
+	if (!includesAggregate(o))
+		return leftEncloseObject + o + rightEncloseObject;
+	else{
+		var partsAggregate = o.split('AS');
+		return leftEncloseObject + partsAggregate[0].trim() + rightEncloseObject + " AS " + leftEncloseObject + partsAggregate[1].trim() + rightEncloseObject;
+	}
 }
 
 /** @function
