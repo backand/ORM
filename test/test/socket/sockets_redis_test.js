@@ -124,6 +124,8 @@ describe("redis insert", function () {
 });
 
 describe('mutliple users with same token', function() {
+    this.timeout(30000);
+
     var appName = 'appName2';
     it('can save two users with same token', function (done) {
         bl.saveUser(appName, 1, 'username', 'role', function (err, res) {

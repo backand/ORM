@@ -45,10 +45,11 @@ function sendEventToServer(sendData) {
         .send(sendData)
         .set('app', appName)
         .end(function (err, res) {
-            if (res.ok) {
+
+            if (!err) {
                 console.log('yay got ' + JSON.stringify(res.body));
             } else {
-                console.log('Oh no! error ' + res.text);
+                console.log('Oh no! error ' + err);
             }
 
         })
@@ -82,11 +83,11 @@ describe("end-to-end-work one user", function () {
             sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"});
         });
 
-      login("ygalbel@gmail.com", "bell1234", "ionic1", function( err, token) {
+      login("ygalbel@gmail.com", "bell1234", "ionic1", function(err, token) {
           socket.emit('login',
-              token,
-              '',
-              'ionic1'
+                token,
+                '',
+                'ionic1'
           );
       });
 
@@ -142,7 +143,7 @@ describe("end-to-end-work two users", function () {
                     .set('app', 'ionic1')
                     .end(function (err, res) {
                         if (res.ok) {
-                            console.log('yay got ' + JSON.stringify(res.body));
+                            console.log('yay got OK');
                         } else {
                             console.log('Oh no! error ' + res.text);
                         }
