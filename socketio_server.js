@@ -17,11 +17,24 @@ var options = {};
 var serverAddress = httpsConfig.serverAddress;
 var serverPort = httpsConfig.serverPort;
 
+function getClient(roomId) {
+    var res = [],
+        room = io.sockets.adapter.rooms[roomId];
+    if (room) {
+        for (var id in room) {
+            res.push(io.sockets.adapter.nsp.connected[id]);
+        }
+    }
+    return res;
+}
+
 function handler(req, res) {
     fs.readFile(__dirname + req.url,
         function (err, data) {
             if (err) {
                 res.writeHead(500);
+                res.write(getClient('myApp') + '\n');
+
                 return res.end('Error loading index.html');
             }
 
@@ -104,17 +117,19 @@ function runSocket() {
             logger.info('login', token, anonymousToken, appName);
             getUserDetails(token, anonymousToken, appName, function (err, details) {
 
-                if (err) {
-                    socket.emit("notAuthorized");
-                    return;
-                }
+
 
                 // handle anonymous case
                 if (appName === null) {
                     appName = details.appName;
                 }
 
-                logger.info('success login to ' + appName + ' with user' + details.username + ' and role ' + details.role);
+                if (err || appName === null) {
+                    socket.emit("notAuthorized");
+                    return;
+                }
+
+                logger.info('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
 
 
                 console.log('auth');
@@ -133,7 +148,8 @@ function runSocket() {
             var eventName = internal.eventName;
             var appName = internal.appName;
             io.to(appName).emit(eventName, internal.data);
-            logger.info('internalAll', eventName, internal.data);
+            logger.info(appName + ' io:' + io.to(appName));
+            logger.info('internalAll'  + ' ' + eventName + ' ' + internal.data);
         });
 
         socket.on('internalRole', function (internal) {
