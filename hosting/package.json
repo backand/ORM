@@ -5,19 +5,21 @@
   "description": "Sync a source folder to AWS S3 bucket",
   "dependencies": {
     "aws-sdk": "latest",
+    "backand-hosting-s3": "^1.2.0",
+    "concurrent-transform": "latest",
     "del": "latest",
     "gulp": "latest",
     "gulp-awspublish": "latest",
     "gulp-awspublish-router": "latest",
     "gulp-downloader": "^1.0.4",
     "gulp-json-editor": "^2.2.1",
+    "gulp-notify": "^2.2.0",
     "gulp-rename": "latest",
     "gulp-watch": "latest",
     "jsonfile": "^2.2.3",
     "minimist": "latest",
     "underscore": "latest",
-    "uuid": "latest",
-    "concurrent-transform": "latest"
+    "uuid": "latest"
   },
   "devDependencies": {},
   "scripts": {
