@@ -167,9 +167,7 @@ var mapToKnexTypes =
 	"point": "point"
 };
 
-
 // var r = transform(
-
 // 	[{
 // 		"name": "R",
 
@@ -208,7 +206,7 @@ var mapToKnexTypes =
 
 
 
-// 	 0);
+	 // 0);
 // var r = transform(
 // [],
 
@@ -443,10 +441,8 @@ function getDefaultValueSql(description){
 	if (_.has(description, "type")){
 		switch(description.type){
 			case "string":
-				sql = "'" + sql + "'";
 				break;
 			case "text":
-				sql = "'" + sql + "'";
 				break;
 			case "integer":
 				break;
@@ -467,6 +463,8 @@ function getDefaultValueSql(description){
 				}
 				break;
 			case "binary":
+				break;
+			default:
 				break;
 		}
 	}
@@ -645,14 +643,14 @@ function createStatements(oldSchema, newSchema, modifications){
 			  		break;
 			  	}
 			  	if (!_.isUndefined(description.defaultValue)){
-			  		if (description.type == "boolean"){
-			  			col.defaultTo(description.defaultValue ? 1 : 0);
-			  		}
-			  		else if (description.type == "point"){
+			  		if (description.type == "point"){
 			  			col.defaultTo("GeomFromText('POINT(" + description.defaultValue[0] + " " + description.defaultValue[1] + ")')");
+			  		}
+			  		else if (description.type == "string"){	
+			  			col.defaultTo(getDefaultValueSql(description));  
 			  		}			  		
-			  		else{	  			
-			  			col.defaultTo(description.defaultValue);  
+			  		else{				
+			  			col.defaultTo(getDefaultValueSql(description));  
 			  		}
 			  		
 			  	}
@@ -674,8 +672,6 @@ function createStatements(oldSchema, newSchema, modifications){
 		    
 		});
 		var statementString = statement.toString();
-		
-		statementString = statementString.replace(/\'/g, "");
 		_.each(relationships, function(r){
 			var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign';
 			var replacement = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute;
