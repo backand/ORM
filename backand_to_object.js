@@ -170,6 +170,7 @@ function fetchTables(accessToken, tokenType, appName, withDbName, withIdColumn, 
             method: 'GET',
 
             qs: {
+                pageSize:200,
                 filter: '[{fieldName:"SystemView", operator:"equals", value: false}]',
                 sort: '[{fieldName:"order", order:"asc"}]'
             }
