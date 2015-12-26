@@ -120,7 +120,7 @@ function runSocket() {
 
 
                 // handle anonymous case
-                if (appName === null) {
+                if (appName === null && details !== null) {
                     appName = details.appName;
                 }
 
