@@ -476,8 +476,6 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 		err = exp;
 	}
 	finally{
-		console.log(err);
-		console.log(result);
 		callback(err, result);
 	}
 }
@@ -616,9 +614,7 @@ function generateSingleTableQuery(query){
 				}
 			}
 		});
-		console.log("realQueryFields", realQueryFields);
 		var selectClause = "SELECT " + _.map(realQueryFields, function(f) { return relateColumnWithTable(realTableName, f); }).join(",");	
-		console.log("selectClause", selectClause);
 	}
 	else{
 		var selectClause = "SELECT " + "*";

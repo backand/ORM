@@ -34,3 +34,5 @@ sync-gulp-plugin/src
 myApp
 hosting/npm-debug.log
 hosting/.backand-credentials.json
+orm.sublime-project
+orm.sublime-workspace

@@ -3,12 +3,12 @@ var expect = require("chai").expect;
 var request = require('request');
 var _ = require('underscore');
 
-var validator = require("../../validate_schema.js").validator;
-var transformer = require("../../transform.js").transformer;
-var connectionInfo = require("../../get_connection_info");
-var fetchTables = require("../../backand_to_object").fetchTables;
+var validator = require("../validate_schema.js").validator;
+var transformer = require("../transform.js").transformer;
+var connectionInfo = require("../get_connection_info");
+var fetchTables = require("../backand_to_object").fetchTables;
 
-var api_url = require('../../config').api_url;
+var api_url = require('../config').api_url;
 var tokenUrl = api_url + "/token";
 
 describe("validate", function(){
@@ -545,7 +545,7 @@ describe("transform", function(){
 		);
 		expect(r).to.deep.equal(
 			{ 
-				"alter": ["create table `R` (`id` int unsigned not null auto_increment primary key, `A` float(8, 2) default 20, `B` varchar(255) not null)"],
+				"alter": ["create table `R` (`id` int unsigned not null auto_increment primary key, `A` float(8, 2) default '20', `B` varchar(255) not null)"],
 
 				"notifications": {},
 		        "order": {
@@ -699,6 +699,7 @@ describe("transform", function(){
 			{ 
 				"alter": [
       				"alter table `R` drop `a`",
+      				"alter table U drop foreign key U_owner_foreign",
       			    "alter table `U` drop `owner`"		   
 				],
 
@@ -929,9 +930,10 @@ describe("transform", function(){
 		expect(v).to.deep.equal(
 			{ 
 				"alter": [
+					"alter table task drop foreign key users_owner_bkname_task",
 			        "alter table `task` add `created_by` int unsigned",
-			        "alter table `task` drop `owner`;",
-			        "alter table `task` add constraint task_created_by_foreign foreign key (`created_by`) references `users` (`id`) on update cascade on delete cascade"
+			        "alter table `task` drop `owner`",
+                    "alter table `task` add constraint users_created_by_bkname_task foreign key (`created_by`) references `users` (`id`) on update cascade on delete cascade"
 			    ],
 
 			    "notifications": {
@@ -1015,7 +1017,7 @@ describe("transform", function(){
 				"alter": [
 				    "create table `task` (`id` int unsigned not null auto_increment primary key, `createdBy` int unsigned, `description` varchar(255), `completed` Bit(1))",
       			    "create table `users` (`id` int unsigned not null auto_increment primary key, `email` varchar(255), `name` varchar(255), `role` varchar(255))",
-          			"alter table `task` add constraint task_createdby_foreign foreign key (`createdBy`) references `users` (`id`) on update cascade on delete cascade"
+          			"alter table `task` add constraint users_createdby_bkname_task foreign key (`createdBy`) references `users` (`id`) on update cascade on delete cascade"
 			   	],
 
 			    "notifications": {
@@ -1243,6 +1245,7 @@ describe("transform", function(){
 				
 				      
         "alter": [
+          "alter table friend_request drop foreign key users_user_bkname_friend_requests",
           "alter table `friend_request` drop `user`",
           "alter table friend_request modify init_user undefined null  "
         ],
@@ -1371,8 +1374,8 @@ describe("transform", function(){
 				
 				      
         "alter":[
-        	"alter table categorization drop foreign key categorization_task_id_foreign",
-			"alter table categorization drop foreign key categorization_tag_id_foreign",
+        	"alter table categorization drop foreign key task_task_id_bkname_categorization",
+            "alter table categorization drop foreign key tag_tag_id_bkname_categorization",
 			"drop table `categorization`",
 			"drop table `tag`",
 			"drop table `task`"
@@ -1419,11 +1422,11 @@ describe("get connection info", function(){
 			}, 
 
 			function(error, response, body){
-	
 			    if(!error && response.statusCode == 200) {
 			    	var b = JSON.parse(body)
 			    	var accessToken = b["access_token"];
 			    	var tokenType = b["token_type"];
+
 			    	connectionInfo.getConnectionInfo(accessToken, tokenType, appName, function(err, result){
 			    		expect(result).to.deep.equal(
 			    			{ 
@@ -1489,7 +1492,7 @@ describe("get connection info", function(){
 	});
 });
 
-describe("backand to object", function(){
+describe.only("backand to object", function(){
 	it("fetch tables and columns", function(done){
 		this.timeout(4000);
 
@@ -1497,6 +1500,7 @@ describe("backand to object", function(){
 		var password = "secret";
 		var appName = "testsql";
 		var withDbName = true;
+		var withIdColumn = false;
 
 		// get token
 		request(
@@ -1522,15 +1526,24 @@ describe("backand to object", function(){
 			    	var b = JSON.parse(body)
 			    	var accessToken = b["access_token"];
 			    	var tokenType = b["token_type"];
-			    	fetchTables(accessToken, tokenType, appName, withDbName, function(err, result){
+			    	fetchTables(accessToken, tokenType, appName, withDbName, withIdColumn, function(err, result){
 			    		expect(err).to.equal(null);
 			    		expect(result).to.deep.equal(
 			    			[
 				    			{ 
 				    				name: 'items',
+				    				dbName: "items",
 	    							fields: 
-	    						{ name: { type: 'string' }, description: { type: 'string' } },
-	   								items: 'items' 
+	    							{ 
+	    								name: { 
+	    									type: 'string',
+	    									"dbName": "name"
+	    								}, 
+	    								description: { 
+	    									type: 'string',
+	    									"dbName": "description"
+	    								} 
+	    							}
 	   							}
    							]
    						);
