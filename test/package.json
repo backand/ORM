@@ -10,6 +10,7 @@
     "sinon-chai": "latest",
     "superagent" : "latest",
     "underscore" : "latest",
-    "request": "latest"
+    "request": "latest",
+    "backand": "latest"
   }
 }
