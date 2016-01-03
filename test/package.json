@@ -11,6 +11,7 @@
     "superagent" : "latest",
     "underscore" : "latest",
     "request": "latest",
-    "backand": "latest"
+    "backand": "latest",
+    "request-json": "latest"
   }
 }

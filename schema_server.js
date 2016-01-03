@@ -1,6 +1,11 @@
 var journey = require('journey');
 var async = require('async');
 var _ = require('underscore');
+var AWS = require('aws-sdk')
+AWS.config.loadFromPath('./hosting/kornatzky-credentials.json');
+var s3 = new AWS.S3();
+
+
 
 var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
@@ -240,6 +245,94 @@ router.map(function () {
                 res.send(200, {}, data);
             }
         });
+    });
+
+    this.post('/uploadFile').bind(function (req, res, data) {
+        var s = data.fileName.toLowerCase();
+        var extPosition = s.lastIndexOf('.');
+        if (extPosition > -1){
+            ext = s.substr(extPosition + 1);
+        }
+        else{
+            ext = '';
+        }
+        var contentType = data.fileType;
+        if (!contentType){
+            switch (true) {
+                case /css/.test(ext):
+                    contentType = "text/css";
+                break;
+                case /js/.test(ext):
+                    contentType = "text/js";
+                break;
+                case /jpg/.test(ext):
+                    contentType = "image/jpg";
+                break;
+                case /ico/.test(ext):
+                    contentType = "image/x-icon";
+                break;
+                case /jpeg/.test(ext):
+                    contentType = "image/jpg";
+                break;
+                case /gif/.test(ext):
+                    contentType = "image/gif";
+                break;
+                case /png/.test(ext):
+                    contentType = "image/png";
+                break;
+                case /html/.test(ext):
+                    contentType = "text/html";
+                break;
+                default:
+                    contentType = "text/plain";
+                break;
+            }
+        }
+        
+        var buffer = new Buffer(data.file, 'base64');
+        var params = {
+            Bucket: data.bucket,
+              Key: data.dir + "/" + data.fileName,
+              ACL: 'public-read',
+              Body: buffer,
+              // CacheControl: 'STRING_VALUE',
+              // ContentDisposition: 'STRING_VALUE',
+              // ContentEncoding: 'STRING_VALUE',
+              // ContentLanguage: 'STRING_VALUE',
+              // ContentLength: 0,
+              // ContentMD5: 'STRING_VALUE',
+              ContentType: contentType,
+              Expires: new Date,// || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
+              // GrantFullControl: 'STRING_VALUE',
+              // GrantRead: 'STRING_VALUE',
+              // GrantReadACP: 'STRING_VALUE',
+              // GrantWriteACP: 'STRING_VALUE',
+              // Metadata: {
+              //   someKey: 'STRING_VALUE',
+              //   /* anotherKey: ... */
+              // },
+              // RequestPayer: 'requester',
+              // SSECustomerAlgorithm: 'STRING_VALUE',
+              // SSECustomerKey: new Buffer('...') || 'STRING_VALUE',
+              // SSECustomerKeyMD5: 'STRING_VALUE',
+              // SSEKMSKeyId: 'STRING_VALUE',
+              // ServerSideEncryption: 'AES256 | aws:kms',
+              // StorageClass: 'STANDARD | REDUCED_REDUNDANCY | STANDARD_IA',
+              // WebsiteRedirectLocation: 'STRING_VALUE'
+        };
+        console.log("before putObject");
+        s3.putObject(params, function(err, data) {
+            // if (err) console.log(err, err.stack); // an error occurred
+            // else     console.log(data);           // successful response
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        });
+
+
     });
 
     // send push messages 
