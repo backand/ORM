@@ -288,7 +288,7 @@ router.map(function () {
                 break;
             }
         }
-        
+
         var buffer = new Buffer(data.file, 'base64');
         var params = {
             Bucket: data.bucket,
@@ -320,18 +320,37 @@ router.map(function () {
               // StorageClass: 'STANDARD | REDUCED_REDUNDANCY | STANDARD_IA',
               // WebsiteRedirectLocation: 'STRING_VALUE'
         };
-        console.log("before putObject");
-        s3.putObject(params, function(err, data) {
+        s3.putObject(params, function(err, awsData) {
             // if (err) console.log(err, err.stack); // an error occurred
             // else     console.log(data);           // successful response
             if (err){
                 res.send(500, { error: err }, {});
             }
             else{
-                res.send(200, {}, data);
+                res.send(200, {}, { link: "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName });
             }
         });
 
+
+    });
+
+    this.post('/deleteFile').bind(function (req, res, data) {
+
+        var params = {
+            Bucket: data.bucket, /* required */
+            Key:  data.dir + "/" + data.fileName/* required */
+        };
+        console.log(params);
+        s3.deleteObject(params, function(err, data) {
+            // if (err) console.log(err, err.stack); // an error occurred
+            // else     console.log(data);           // successful response
+           if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, {  });
+            }
+        });
 
     });
 
