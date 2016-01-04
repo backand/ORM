@@ -5,6 +5,10 @@
 
 process.chdir(__dirname);
 
+
+// for after build change
+var version = 'build_version';
+
 var fs = require('fs');
 var socketBl = require('./web_sockets/redis_bl')
 var config = require('./config');
@@ -37,7 +41,7 @@ function handler(req, res) {
 
                 return res.end('Error loading index.html');
             }
-
+            res.write(version);
             res.writeHead(200);
             res.end(data);
         }
