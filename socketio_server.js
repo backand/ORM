@@ -38,10 +38,10 @@ function handler(req, res) {
             if (err) {
                 res.writeHead(500);
                 res.write(getClient('myApp') + '\n');
-
+                res.write(version);
                 return res.end('Error loading index.html');
             }
-            res.write(version);
+
             res.writeHead(200);
             res.end(data);
         }
