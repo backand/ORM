@@ -22,6 +22,13 @@ var substitute = require('./json_query_language/nodejs/substitution').substitute
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
 
+process.chdir(__dirname);
+
+fs.watchFile(__filename, function(curr,prev) {
+    console.log("close process for update");
+    process.exit();
+});
+
 //
 // Create a Router
 //
