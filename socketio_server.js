@@ -36,10 +36,8 @@ function handler(req, res) {
     fs.readFile(__dirname + req.url,
         function (err, data) {
             if (err) {
-                res.writeHead(500);
-                res.write(getClient('myApp') + '\n');
-                res.write(version);
-                return res.end('Error loading index.html');
+                res.writeHead(200);
+                return res.end(version);
             }
 
             res.writeHead(200);
