@@ -61,10 +61,10 @@ if (httpsConfig.useCertificate) {
 var httpd;
 
 if (serverAddress.indexOf('https') > -1) { // https
-    console.log('start https server with addres ', serverAddress, ':', serverPort)
+    logger.info('start https server with address ' + serverAddress + ':' + serverPort)
     var httpd = require('https').createServer(options, handler);
 } else { // http
-    console.log('start http server with addres ', serverAddress, ':', serverPort)
+    logger.info('start http server with address '+ serverAddress+ ':'+ serverPort)
     var httpd = require('http').createServer(handler);
 }
 
