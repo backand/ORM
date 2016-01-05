@@ -157,7 +157,7 @@ var escalationTable = TAFFY([
 
 var mapToKnexTypes = 
 {
-	"float": "float(8, 2)",
+	"float": "float(50, 2)",
 	"string": "varchar(255)",
 	"boolean": "bit(1)",
 	"text": "text",
@@ -208,7 +208,7 @@ var mapToKnexTypes =
 
 	 // 0);
 // var r = transform(
-// [],
+// // [],
 
 // [
 // 	{
@@ -216,6 +216,27 @@ var mapToKnexTypes =
 // 		"fields": {
 // 			"name": {
 // 				"type": "string"
+// 			},
+// 			"amount": {
+// 				"type": "string"
+// 			},
+// 			"location": {
+// 				"type": "point",
+// 				"defaultValue": [34.0, 3]
+// 			}
+// 		}
+// 	}
+// ],
+
+// [
+// 	{
+// 		"name": "r",
+// 		"fields": {
+// 			"name": {
+// 				"type": "string"
+// 			},
+// 			"amount": {
+// 				"type": "float"
 // 			},
 // 			"location": {
 // 				"type": "point",
@@ -225,8 +246,9 @@ var mapToKnexTypes =
 // 	}
 // ]
 
-// , 0);
+// , 1);
 // console.log("statements");
+// console.log(r);
 // _.each(r.alter, function(s){
 // 	console.log(s + ";");
 // });
@@ -385,12 +407,12 @@ function isValidTransformation(oldSchema, newSchema, modifications){
 					switch(conformityDegree)
 					{
 						case "never":
-							warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
+							warnings.push({ kind: columnTypeConflict, object: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
 							invalid = escalateValidity(invalid, "never");
 						break;
 
 						case "data":
-							warnings.push({ kind: columnTypeConflict, relation: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
+							warnings.push({ kind: columnTypeConflict, object: relationName, column: column, oldType: oldColumnType, newType: newColumnType });
 							invalid = escalateValidity(invalid, "data");
 						break;
 
@@ -579,7 +601,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			}
 			  		break;
 			  		case "float":
-			  			var col = table.float(name);
+			  			var col = table.float(name, 50, 2);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
@@ -766,7 +788,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			  				}
 							break;
 				  		case "float":
-				  			var col = table.float(d);
+				  			var col = table.float(d, 50, 2);
 							if (description.required){
 								col.notNullable();
 							}
