@@ -4,7 +4,7 @@
 var replace = require('replace-in-file');
 
 var buildNumber = process.argv[2] || '1.8';
-
+console.log(__dirname);
 replace({
     "files" : [
         './socketio_server.js',
