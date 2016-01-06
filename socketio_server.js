@@ -16,6 +16,8 @@ var redisConfig = config.redis;
 var httpsConfig = config.socketConfig;
 var logger = require('./logging/logger').logger;
 
+require('./logging/metrics').monitor();
+
 fs.watchFile(__filename, function(curr,prev) {
     logger.info("close process for update");
     process.exit();

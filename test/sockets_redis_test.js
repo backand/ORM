@@ -9,14 +9,14 @@ var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 var redisBl = require(path + "web_sockets/redis_bl");
-
 var redisConfig = require( path + 'config').redis;
-
 var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;
 var option = redisConfig.option;
 var redis = require('redis');
 var redisInterface = redis.createClient(redisPort, redisHostname, option);
+
+
 
 var bl = new redisBl.BusinessLogic(redisInterface);
 chai.should();
