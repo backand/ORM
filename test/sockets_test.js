@@ -1,3 +1,6 @@
+process.chdir(__dirname);
+var path = '';
+
 var chai = require("chai");
 var expect = chai.expect;
 var request = require('superagent');
@@ -5,10 +8,10 @@ var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 
-var api_url = require('../../../config').api_url;
-var api_url = require('../../../config').api_url;
+var api_url = require(path + 'config').api_url;
+var api_url = require(path 'config').api_url;
 
-var config = require('../../../config');
+var config = require(path + 'config');
 var socketServerAddress = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 
