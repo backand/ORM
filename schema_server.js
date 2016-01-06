@@ -22,7 +22,7 @@ var transformJson = require('./json_query_language/nodejs/algorithm').transformJ
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
-
+var fs = require('fs');
 process.chdir(__dirname);
 
 fs.watchFile(__filename, function(curr,prev) {
