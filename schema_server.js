@@ -1,3 +1,4 @@
+process.chdir(__dirname);
 var journey = require('journey');
 var async = require('async');
 var _ = require('underscore');
