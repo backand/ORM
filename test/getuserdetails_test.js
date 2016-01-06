@@ -6,7 +6,7 @@ var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 
-var getUserDetails = require('./backand_to_object').getUserDetails;
+var getUserDetails = require('backand_to_object').getUserDetails;
 
 chai.should();
 chai.use(sinonChai);
