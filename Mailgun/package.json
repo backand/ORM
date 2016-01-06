@@ -1,8 +1,0 @@
-{
-  "name": "mailgun_interface",
-  "version": "0.0.0",
-  "private": true,
-  "dependencies": {
-    "mailgun": "latest"
-  }
-}
