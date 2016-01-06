@@ -1,3 +1,6 @@
+process.chdir(__dirname);
+var path = '';
+
 var chai = require("chai");
 var expect = chai.expect;
 var assert = chai.assert;
@@ -6,7 +9,7 @@ var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 
-var getUserDetails = require('backand_to_object').getUserDetails;
+var getUserDetails = require(path + 'backand_to_object').getUserDetails;
 
 chai.should();
 chai.use(sinonChai);

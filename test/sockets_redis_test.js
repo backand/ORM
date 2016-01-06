@@ -1,3 +1,6 @@
+process.chdir(__dirname);
+var path = '';
+
 var chai = require("chai");
 var expect = chai.expect;
 var assert = chai.assert;
@@ -5,9 +8,9 @@ var request = require('superagent');
 var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
-var redisBl = require("../../../web_sockets/redis_bl");
+var redisBl = require(path + "web_sockets/redis_bl");
 
-var redisConfig = require('./../../../config').redis;
+var redisConfig = require( path + 'config').redis;
 
 var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;
