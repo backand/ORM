@@ -7,7 +7,7 @@ process.chdir(__dirname);
 
 
 // for after build change
-var version = 'build_version';
+var version = require('./version').version;
 
 var fs = require('fs');
 var socketBl = require('./web_sockets/redis_bl')
@@ -61,10 +61,10 @@ if (httpsConfig.useCertificate) {
 var httpd;
 
 if (serverAddress.indexOf('https') > -1) { // https
-    logger.info('start https server with address ' + serverAddress + ':' + serverPort)
+    logger.info('start https server with address ' + serverAddress + ':' + serverPort + " version " + version)
     var httpd = require('https').createServer(options, handler);
 } else { // http
-    logger.info('start http server with address '+ serverAddress+ ':'+ serverPort)
+    logger.info('start http server with address '+ serverAddress+ ':'+ serverPort + " version " + version);
     var httpd = require('http').createServer(handler);
 }
 

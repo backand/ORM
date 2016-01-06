@@ -1,18 +1,23 @@
 /**
  * Created by backand on 12/2/15.
  */
-var replace = require('replace-in-file');
+
 
 var buildNumber = process.argv[2] || '1.8';
 console.log(__dirname);
-replace({
-    "files" : [
-        './socketio_server.js',
-        './schema_server.js',
-    ],
-    "replace" : "build_version",
-    "with" : buildNumber
-}, function(err, detail){
-    console.log(err, detail);
+
+var fs = require('fs');
+
+var pattern = "var version = '##';  module.exports.version = version;";
+
+var formatted = pattern.replace('##', buildNumber);
+fs.writeFile("./version.js", formatted, function(err) {
+    if(err) {
+        return console.log(err);
+    }
+
+    console.log("The file was saved!");
 });
+
+
 
