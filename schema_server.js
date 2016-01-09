@@ -22,6 +22,11 @@ var transformJson = require('./json_query_language/nodejs/algorithm').transformJ
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
+
+var createLambda = require('./lambda/create_lambda_function').createLambdaFunctionFromS3;
+var updateLambda = require('./lambda/update_lambda_function').updateLambdaFunctionFromS3;
+var deleteLambda = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
+
 var fs = require('fs');
 process.chdir(__dirname);
 
@@ -361,6 +366,42 @@ router.map(function () {
         });
 
     });
+
+    this.get('/createLambda').bind(function (req, res, data) {
+        createLambda(data.bucket, data.folder, data.fileName, data.functionName, data.handlerName, data.callFunctionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.get('/updateLambda').bind(function (req, res, data) {
+        updateLambdaFunctionFromS3(data.bucket, data.folder, data.fileName, data.functionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+
+    this.delete('/deleteLambda').bind(function (req, res, data) {
+        deleteLambdaFunctionFromS3(data.folder, data.functionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+
 
     // send push messages 
     // data has fields: 

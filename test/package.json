@@ -12,6 +12,7 @@
     "underscore" : "latest",
     "request": "latest",
     "backand": "latest",
-    "request-json": "latest"
+    "request-json": "latest",
+    "aws-sdk": "latest"
   }
 }

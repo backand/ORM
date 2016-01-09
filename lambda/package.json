@@ -1,0 +1,14 @@
+{
+  "name": "backand-lambda",
+  "version": "1.0.0",
+  "description": "Upload to lambda and invoke lambda",
+  "main": "test_call_lambda.js",
+  "scripts": {
+    "test": "node test_call_lambda.js"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC",
+  "dependencies": {
+  	"aws-sdk": "latest"
+  }
+}

@@ -40,3 +40,5 @@ orm.sublime-workspace
 test/.awspublish*
 test/.backand-credentials.json
 test/src
+lambda/*.zip
+lambda/src-*/node_modules/
