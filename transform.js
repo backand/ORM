@@ -208,25 +208,6 @@ var mapToKnexTypes =
 
 	 // 0);
 // var r = transform(
-// // [],
-
-// [
-// 	{
-// 		"name": "r",
-// 		"fields": {
-// 			"name": {
-// 				"type": "string"
-// 			},
-// 			"amount": {
-// 				"type": "string"
-// 			},
-// 			"location": {
-// 				"type": "point",
-// 				"defaultValue": [34.0, 3]
-// 			}
-// 		}
-// 	}
-// ],
 
 // [
 // 	{
@@ -255,7 +236,6 @@ var mapToKnexTypes =
 
 
 function transform(oldSchema, newSchema, severity){
-	// console.log(oldSchema, newSchema, severity);
 
 	try{
 
@@ -288,7 +268,6 @@ function transform(oldSchema, newSchema, severity){
 	                    });
 	            });
 	    }
-
 		// Construct an array of the required changes between schemes
 		var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
 		
@@ -347,7 +326,6 @@ function compareSchemes(oldSchema, newSchema) {
 }
 
 function compareRelationSchemes(oldRelation, newRelation){
-	// console.log("compareRelationSchemes", oldRelation, newRelation);
 
 	// For the same relation R, in the two schemes, compare the set of column names
 	// Obtain set of column add and column drop changes
@@ -859,6 +837,19 @@ function createStatements(oldSchema, newSchema, modifications){
 			  					col.unique();
 			  				}
 							break;
+						case "point":
+				  			var col = table.specificType(name, "point");
+				  			if (description.required){
+				  				col.notNullable();
+				  			}
+				  			else {
+								col.nullable();
+							}
+				  			if (description.unique){
+				  				col.unique();
+				  			} 
+				  			break;
+
 				  	}
 				  	if (!_.isUndefined(description.defaultValue)){
 			  			col.defaultTo(description.defaultValue); 
