@@ -14,7 +14,7 @@ var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 
-var config = require('./config');
+var config = require('./configFactory').getConfig();
 var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 var socket = require('socket.io-client')(socketConfig);

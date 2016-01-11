@@ -11,10 +11,12 @@ var version = require('./version').version;
 
 var fs = require('fs');
 var socketBl = require('./web_sockets/redis_bl')
-var config = require('./config');
+var config = require('./configFactory').getConfig();
 var redisConfig = config.redis;
 var httpsConfig = config.socketConfig;
 var logger = require('./logging/logger').logger;
+
+logger.info("start with config " + config.env);
 
 require('./logging/metrics').monitor();
 
@@ -74,7 +76,7 @@ var io = require('socket.io').listen(httpd);
 var _ = require('underscore');
 var getUserDetails = require('./backand_to_object').getUserDetails;
 
-var redisConfig = require('./config').redis;
+var redisConfig = require('./configFactory').getConfig().redis;
 
 var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;

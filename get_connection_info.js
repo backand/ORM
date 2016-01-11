@@ -4,7 +4,7 @@ var request = require('request');
 var async = require('async');
 var _ = require('underscore');
 
-var api_url = require('./config').api_url;
+var api_url = require('./configFactory').getConfig().api_url;
 
 var connectionInfoUrl = "https://api.backand.com:8079/admin/myApps/";
 // https://api.backand.com:8079/admin/myApps/testsql?deep=true

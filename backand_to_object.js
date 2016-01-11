@@ -1,3 +1,4 @@
+process.chdir(__dirname);
 module.exports.fetchTables = fetchTables;
 module.exports.getUserDetails = getUserDetails;
 
@@ -6,7 +7,7 @@ var async = require('async');
 var _ = require('underscore');
 
 
-var api_url = require('./config').api_url;
+var api_url = require('./configFactory').getConfig().api_url;
 var tokenUrl = api_url + "/token";
 var tableUrl = api_url + "/1/table/config/";
 var columnsUrl = api_url + "/1/table/config/";

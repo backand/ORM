@@ -1,5 +1,5 @@
 process.chdir(__dirname);
-var path = '';
+var path = process.env.TESTPATH || '../';
 
 var chai = require("chai");
 var expect = chai.expect;

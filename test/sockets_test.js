@@ -1,5 +1,5 @@
 process.chdir(__dirname);
-var path = '';
+var path = process.env.TESTPATH || '../';
 
 var chai = require("chai");
 var expect = chai.expect;
@@ -8,10 +8,9 @@ var _ = require('underscore');
 var sinon = require("sinon");
 var sinonChai = require("sinon-chai");
 
-var api_url = require(path + 'config').api_url;
-var api_url = require(path + 'config').api_url;
+var api_url = require(path + 'configFactory').getConfig().api_url;
 
-var config = require(path + 'config');
+var config = require(path + 'configFactory').getConfig();
 var socketServerAddress = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 

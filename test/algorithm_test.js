@@ -1,3 +1,4 @@
+process.chdir(__dirname);
 var expect = require("chai").expect;
 var transformJson = require("../json_query_language/nodejs/algorithm").transformJson;
 

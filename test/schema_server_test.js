@@ -8,7 +8,7 @@ var transformer = require("../transform.js").transformer;
 var connectionInfo = require("../get_connection_info");
 var fetchTables = require("../backand_to_object").fetchTables;
 
-var api_url = require('../config').api_url;
+var api_url = require('../configFactory').getConfig().api_url;
 var tokenUrl = api_url + "/token";
 
 describe("validate", function(){
@@ -1396,8 +1396,6 @@ describe("transform", function(){
 
 });
 
-
-
 describe("get connection info", function(){
 	it("get connection info with correct credentials", function(done){
 		this.timeout(4000);
@@ -1492,7 +1490,7 @@ describe("get connection info", function(){
 	});
 });
 
-describe.only("backand to object", function(){
+describe("backand to object", function(){
 	it("fetch tables and columns", function(done){
 		this.timeout(4000);
 
