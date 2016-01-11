@@ -18,7 +18,7 @@ var logger = require('./logging/logger').logger;
 
 logger.info("start with config " + config.env);
 
-require('./logging/metrics').monitor();
+//require('./logging/metrics').monitor();
 
 fs.watchFile(__filename, function(curr,prev) {
     logger.info("close process for update");
