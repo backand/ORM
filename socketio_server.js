@@ -14,7 +14,7 @@ var socketBl = require('./web_sockets/redis_bl')
 var config = require('./configFactory').getConfig();
 var redisConfig = config.redis;
 var httpsConfig = config.socketConfig;
-var logger = require('./logging/logger').logger;
+var logger = require('./logging/logger').getLogger("socketio_" + config.env);
 
 logger.info("start with config " + config.env);
 
