@@ -185,7 +185,6 @@ var mapToKnexTypes =
 
 
 // 	}], 
-
 // [{
 // 		"name": "R",
 
@@ -934,6 +933,7 @@ function createStatements(oldSchema, newSchema, modifications){
 
 			if (uniqueHasChanged){
 				if (oldAttributeDescription.unique && !newAttributeDescription.unique){
+					var uniqueStatement = "alter table " + tableName + " drop index " + tableName.toLowerCase() + "_" + d + "_unique"
 					statements.push(uniqueStatement);
 
 				}
