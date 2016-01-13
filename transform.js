@@ -185,7 +185,6 @@ var mapToKnexTypes =
 
 
 // 	}], 
-
 // [{
 // 		"name": "R",
 
@@ -881,7 +880,6 @@ function createStatements(oldSchema, newSchema, modifications){
 				}		
 			});	
 		});
-        
 		var sArray = statement.toString().replace(";", "").split("\n");
 		_.each(sArray, function(a){
 			if(a != ""){
@@ -935,7 +933,7 @@ function createStatements(oldSchema, newSchema, modifications){
 
 			if (uniqueHasChanged){
 				if (oldAttributeDescription.unique && !newAttributeDescription.unique){
-					var uniqueStatement = "alter table " + tableName + " drop consraint " + tableName.toLowerCase() + "_" + d + "_unique"
+					var uniqueStatement = "alter table " + tableName + " drop index " + tableName.toLowerCase() + "_" + d + "_unique"
 					statements.push(uniqueStatement);
 
 				}
