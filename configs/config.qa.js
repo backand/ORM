@@ -1,4 +1,4 @@
-var api_url = "http://api.backand.co";
+var api_url = "http://localhost:8099";
 //var api_url = "http://10.53.109.128:4110";
 
 // for testing
