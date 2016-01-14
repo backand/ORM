@@ -14,7 +14,8 @@ var httpsServerConfig = {
     "serverAddress" : 'http://localhost',
     "serverPort" : '4000',
     "useCertificate" : false,
-    "pfxPath" : ''
+    "pfxPath" : '',
+    "proxyIp" : '10.0.5.92'
 }
 
 module.exports.socketConfig = httpsServerConfig;
