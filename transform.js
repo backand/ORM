@@ -455,10 +455,10 @@ function getDefaultValueSql(description){
 				break;
 			case "boolean":
 				if (sql == true || sql == "true"){
-					sql = "1";
+					sql = "b'1'";
 				}
 				else{
-					sql = "0";
+					sql = "b'0'";
 				}
 				break;
 			case "binary":
@@ -614,7 +614,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			  			}
 			  		break;
 			  		case "boolean":
-			  			var col = table.specificType(name, "Bit(1)"); 
+			  			var col = table.specificType(name, mapToKnexTypes['boolean']); 
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
@@ -648,7 +648,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			  		else if (description.type == "string"){	
 			  			col.defaultTo(getDefaultValueSql(description));  
 			  		}			  		
-			  		else{				
+			  		else{			
 			  			col.defaultTo(getDefaultValueSql(description));  
 			  		}
 			  		
@@ -670,7 +670,7 @@ function createStatements(oldSchema, newSchema, modifications){
 		  });
 		    
 		});
-		var statementString = statement.toString();
+		var statementString = statement.toString().replace(/('b'0'')/, "b'0'").replace(/('b'1'')/, "b'1'");
 		_.each(relationships, function(r){
 			var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign';
 			var replacement = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute;
@@ -813,7 +813,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			  				}
 							break;
 				  		case "boolean":
-							var col = table.boolean(d);
+							var col = table.specificType(d, mapToKnexTypes['boolean']); 
 							if (description.required){
 								col.notNullable();
 							}
@@ -851,7 +851,7 @@ function createStatements(oldSchema, newSchema, modifications){
 
 				  	}
 				  	if (!_.isUndefined(description.defaultValue)){
-			  			col.defaultTo(description.defaultValue); 
+			  			col.defaultTo(getDefaultValueSql(description)); 
 			  		}
 				}
 				else if (description.object){ // 1 side of 1:n relationship
@@ -880,7 +880,7 @@ function createStatements(oldSchema, newSchema, modifications){
 				}		
 			});	
 		});
-		var sArray = statement.toString().replace(";", "").split("\n");
+		var sArray = statement.toString().replace(/('b'0'')/, "b'0'").replace(/('b'1'')/, "b'1'").replace(";", "").split("\n");
 		_.each(sArray, function(a){
 			if(a != ""){
 			    var statementString = a.toString();
