@@ -21,16 +21,24 @@ var proxy = new httpProxy.createProxyServer({
 
 // for production
 /*
- var proxy = new httpProxy.createProxyServer({
-    ssl: {
-        fx: fs.readFileSync(httpsConfig.pfxPath),
-        passphrase: '123456'
-    },
-    target: {
-        host: otherServerAddress,
-        port: config.socketConfig.serverPort
-        }
- });
+ var http = require('https'),
+ fs = require('fs'),
+ httpProxy = require('http-proxy');
+ var config = require('./configFactory').getConfig();
+
+ var otherServerAddress = config.socketConfig.proxyIp;
+
+
+ httpProxy.createServer({
+ ssl: {
+ pfx: fs.readFileSync(config.socketConfig.pfxPath),
+ passphrase: ''
+ },
+ ws : true,
+ target: 'https://'+ otherServerAddress +':4000',
+ secure: false // Depends on your needs, could be false.
+ }).listen(4000);
+
  */
 
 
