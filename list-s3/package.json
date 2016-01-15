@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "s3": "latest",
-    "lodash": "latest"
+    "lodash": "latest",
+    "redis": "latest"
   }
 }

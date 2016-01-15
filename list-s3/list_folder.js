@@ -1,6 +1,9 @@
 var s3 = require('s3');
 var fs = require('fs');
 var _ = require('lodash');
+var redis = require('redis');
+var config = require('../config');
+redisClient = redis.createClient(config.redis);
 
 var credentials = JSON.parse(fs.readFileSync('../hosting/kornatzky-credentials.json', 'utf8'));
 
@@ -62,11 +65,7 @@ function listFolder(bucket, folder, pathInFolder, callback){
 		callback(err, rawData);
 	})
 	.on('data', function(data){
-		var prefixLength = prefix.length + 1;
-		var a = _.map(data.Contents, function(file){
-			return { file: file, index: file.Key.lastIndexOf("/") }
-		});
-		
+		var prefixLength = prefix.length + 1;		
 		_.each(data.Contents, function(file){
 			if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
 				rawData.push(file);
@@ -86,10 +85,100 @@ function listFolder(bucket, folder, pathInFolder, callback){
 	.on('progress', function(){
 		// console.log('progress', emitter.objectsFound, emitter.dirsFound, emitter.progressAmount);
 	});
-
 }
 
-module.exports = listFolder;
+function storeFolder(bucket, folder, callback){
+	var prefix = folder;
+	var params = { 
+		s3Params: {
+			  Bucket: bucket, /* required */
+			//  Delimiter: 'dir1',
+			  EncodingType: 'url',
+			  // Marker: 'STRING_VALUE',
+			  MaxKeys: 10000000,
+			  Prefix: prefix
+		}, 
+		recursive: true
+	};
+	var emitter = client.listObjects(params)
+	.on('end', function(){
+		// console.log('end');
+		// console.log(emitter.objectsFound);
+		// console.log(emitter.dirsFound);
+		callback(null);
+	})
+	.on('error', function(err){
+		// console.log('error');
+		// console.log(err);
+		callback(err);
+	})
+	.on('data', function(data){
+		redisClient.set(bucket + "/" + folder, JSON.stringify(data.Contents));
+		redisClient.expire(bucket + "/" + folder, 3600);
+		// var prefixLength = prefix.length + 1;
+		// var a = _.map(data.Contents, function(file){
+		// 	return { file: file, index: file.Key.lastIndexOf("/") }
+		// });
+		
+		// _.each(data.Contents, function(file){
+		// 	if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
+		// 		rawData.push(file);
+		// 	}
+		// 	else { // folders in folder
+		// 		var indexOfFolder = file.Key.indexOf("/", prefixLength);
+		// 		var folderName = file.Key.substr(0, indexOfFolder);
+		// 		if (rawData.length == 0) 
+		// 			rawData.push({ Key: folderName });
+		// 		var lastElement = _.last(rawData);
+		// 		if (lastElement.Key != folderName){
+		// 			rawData.push({ Key: folderName });
+		// 		}
+		// 	}
+		// });
+	})
+	.on('progress', function(){
+		// console.log('progress', emitter.objectsFound, emitter.dirsFound, emitter.progressAmount);
+	});
+}
+
+function filterFiles(bucket, folder, pathInFolder, callback){
+	redisClient.get(bucket + "/" + folder, function(err, reply){
+		if (err){
+			callback(err);
+		}
+		else if (reply){ // we visited this path before
+			var data = JSON.parse(reply);
+			var prefix = folder + "/" + pathInFolder;
+			var prefixLength = prefix.length + 1;
+			var rawData = [];
+			_.each(data, function(file){
+				if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
+					rawData.push(file);
+				}
+				else { // folders in folder
+					var indexOfFolder = file.Key.indexOf("/", prefixLength);
+					var folderName = file.Key.substr(0, indexOfFolder);
+					if (rawData.length == 0) 
+						rawData.push({ Key: folderName });
+					var lastElement = _.last(rawData);
+					if (lastElement.Key != folderName){
+						rawData.push({ Key: folderName });
+					}
+				}
+			});
+			callback(null, rawData);
+		}
+		else{
+			callback("not stored")
+		}
+		
+	});
+}
+
+
+module.exports.listFolder = listFolder;
+module.exports.storeFolder = storeFolder;
+module.exports.filterFiles = filterFiles;
 
 // listFolder('backandhosting', 'k2', 'assets', function(err, data){
 // 	console.log("--------");
@@ -98,3 +187,16 @@ module.exports = listFolder;
 // 	process.exit(0);
 // });
 
+// storeFolder('backandhosting', 'kffff2', function(err, data){
+// 	console.log("--------");
+// 	console.log(err);
+// 	console.log(data);
+// 	process.exit(0);
+// });
+
+// filterFiles('backandhosting', 'k2', 'assets', function(err, data){
+// 	console.log("--------");
+// 	console.log(err);
+// 	console.log(data);
+// 	process.exit(0);
+// });
