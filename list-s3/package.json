@@ -8,5 +8,8 @@
   },
   "author": "Yoram Kornatzky",
   "license": "ISC",
-  "dependencies": "s3"
+  "dependencies": {
+    "s3": "latest",
+    "lodash": "latest"
+  }
 }

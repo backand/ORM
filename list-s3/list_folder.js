@@ -1,5 +1,6 @@
 var s3 = require('s3');
 var fs = require('fs');
+var _ = require('lodash');
 
 var credentials = JSON.parse(fs.readFileSync('../hosting/kornatzky-credentials.json', 'utf8'));
 
@@ -18,34 +19,82 @@ var client = s3.createClient({
   },
 });
 
-var params = { 
-	s3Params: {
-		  Bucket: 'backandhosting', /* required */
-		//  Delimiter: 'dir1',
-		  EncodingType: 'url',
-		  // Marker: 'STRING_VALUE',
-		  MaxKeys: 10000000,
-		  Prefix: 'k2'
-	}, 
-	recursive: true 
-};
-var emitter = client.listObjects(params);
-emitter
-.on('end', function(){
-	console.log('end');
-	console.log(emitter.objectsFound);
-	console.log(emitter.dirsFound);
-	process.exit(1);
-})
-.on('error', function(err){
-	console.log('error');
-	console.log(err);
-	process.exit(1);
-})
-.on('data', function(data){
-	console.log('data', data);
-})
-.on('progress', function(){
-	console.log('progress', emitter.objectsFound, emitter.dirsFound, emitter.progressAmount);
-})
-;
+
+/**
+ * lists a folder within bucket of AWS S3
+ * @param  {string}   bucket       
+ * @param  {string}   folder      appName
+ * @param  {string}   pathInFolder path to folder under appName
+ * @param  {Function} callback     function(err, data) data is an array with two types of values { Key: 'subfolder' } 
+ * or { Key: 'k2/assets/x.txt',
+    LastModified: Fri Jan 15 2016 17:05:10 GMT+0200 (IST),
+    ETag: '"6de9439834c9147569741d3c9c9fc010"',
+    Size: 4,
+    StorageClass: 'STANDARD',
+    Owner: 
+     { DisplayName: 'yariv-backand',
+       ID: 'cedd39045561647da87994789e8886ef86a95514ea501013cdb4f8b496f9be2f' } } 
+ */
+function listFolder(bucket, folder, pathInFolder, callback){
+	var rawData = [];
+	var prefix = folder + "/" + pathInFolder;
+	var params = { 
+		s3Params: {
+			  Bucket: bucket, /* required */
+			//  Delimiter: 'dir1',
+			  EncodingType: 'url',
+			  // Marker: 'STRING_VALUE',
+			  MaxKeys: 10000000,
+			  Prefix: prefix
+		}, 
+		recursive: true 
+	};
+	var emitter = client.listObjects(params)
+	.on('end', function(){
+		// console.log('end');
+		// console.log(emitter.objectsFound);
+		// console.log(emitter.dirsFound);
+		callback(null, rawData);
+	})
+	.on('error', function(err){
+		// console.log('error');
+		// console.log(err);
+		callback(err, rawData);
+	})
+	.on('data', function(data){
+		var prefixLength = prefix.length + 1;
+		var a = _.map(data.Contents, function(file){
+			return { file: file, index: file.Key.lastIndexOf("/") }
+		});
+		
+		_.each(data.Contents, function(file){
+			if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
+				rawData.push(file);
+			}
+			else { // folders in folder
+				var indexOfFolder = file.Key.indexOf("/", prefixLength);
+				var folderName = file.Key.substr(0, indexOfFolder);
+				if (rawData.length == 0) 
+					rawData.push({ Key: folderName });
+				var lastElement = _.last(rawData);
+				if (lastElement.Key != folderName){
+					rawData.push({ Key: folderName });
+				}
+			}
+		});
+	})
+	.on('progress', function(){
+		// console.log('progress', emitter.objectsFound, emitter.dirsFound, emitter.progressAmount);
+	});
+
+}
+
+module.exports = listFolder;
+
+// listFolder('backandhosting', 'k2', 'assets', function(err, data){
+// 	console.log("--------");
+// 	console.log(err);
+// 	console.log(data);
+// 	process.exit(0);
+// });
+

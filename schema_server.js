@@ -22,6 +22,9 @@ var transformJson = require('./json_query_language/nodejs/algorithm').transformJ
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
+
+var listFolder = require('./list-s3/list_folder');
+
 var fs = require('fs');
 process.chdir(__dirname);
 
@@ -361,6 +364,17 @@ router.map(function () {
         });
 
     });
+
+    this.post('/listFolder').bind(function (req, res, data) {
+        listFolder(data.bucket, data.folder, data.pathInFolder, function(err, data) {
+           if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+    });
+
 
     // send push messages 
     // data has fields: 
