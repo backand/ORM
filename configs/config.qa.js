@@ -5,9 +5,8 @@ var api_url = "http://localhost:8099";
 // "http://ec2-52-5-45-182.compute-1.amazonaws.com:8099";
 
 var redis = {
-  "port": 10938,
-  "hostname": "pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com",
-  "option": {"auth_pass": "bell1234"}
+  "port": 6379,
+  "hostname": "qa-socket.tv1udw.ng.0001.use1.cache.amazonaws.com"
 };
 
 var httpsServerConfig = {
