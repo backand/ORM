@@ -2,10 +2,11 @@ var s3 = require('s3');
 var fs = require('fs');
 var _ = require('lodash');
 var redis = require('redis');
-var config = require('./configFactory').getConfig();
-redisClient = redis.createClient(config.redis);
+var config = require('../configFactory').getConfig();
+redisClient = redis.createClient(config.redis.port, config.redis.hostname, config.redis.option);
 
-var credentials = JSON.parse(fs.readFileSync('../hosting/kornatzky-credentials.json', 'utf8'));
+//var credentials = JSON.parse(fs.readFileSync('../hosting/kornatzky-credentials.json', 'utf8'));
+var credentials = require('../hosting/credentials').credentials;
 
 var client = s3.createClient({
   maxAsyncS3: 20,     // this is the default
