@@ -373,6 +373,7 @@ router.map(function () {
             else{
                 res.send(200, {}, data);
             }
+        });
     });
 
     this.post('/smartListFolder').bind(function (req, res, data) {
@@ -402,6 +403,7 @@ router.map(function () {
             else{
                 res.send(200, {}, data);
             }
+        });
     });
 
     // send push messages 
