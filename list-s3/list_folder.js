@@ -2,7 +2,7 @@ var s3 = require('s3');
 var fs = require('fs');
 var _ = require('lodash');
 var redis = require('redis');
-var config = require('../config');
+var config = r require('./configFactory').getConfig();
 redisClient = redis.createClient(config.redis);
 
 var credentials = JSON.parse(fs.readFileSync('../hosting/kornatzky-credentials.json', 'utf8'));
