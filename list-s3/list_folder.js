@@ -3,7 +3,7 @@ var fs = require('fs');
 var _ = require('lodash');
 var redis = require('redis');
 var config = require('../configFactory').getConfig();
-redisClient = redis.createClient(config.redis);
+redisClient = redis.createClient(config.redis.port, config.redis.hostname, config.redis.option);
 
 //var credentials = JSON.parse(fs.readFileSync('../hosting/kornatzky-credentials.json', 'utf8'));
 var credentials = require('../hosting/credentials').credentials;
