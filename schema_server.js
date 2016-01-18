@@ -419,7 +419,7 @@ router.map(function () {
             }
             else {
                 //var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
-                var link = "http://" + data.bucket + "/" + data.dir + "/" + data.fileName;
+                var link = config.storageConfig.serverProtocol + '://' + data.bucket + "/" + data.dir + "/" + data.fileName;
                 logger.info("uploadFile OK " + link);
                 res.send(200, {}, {link: link});
             }
