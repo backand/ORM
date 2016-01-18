@@ -27,6 +27,9 @@ var transformJson = require('./json_query_language/nodejs/algorithm').transformJ
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
+
+var s3Folders = require('./list-s3/list_folder');
+
 var fs = require('fs');
 
 fs.watchFile(__filename, function (curr, prev) {
@@ -448,6 +451,47 @@ router.map(function () {
             }
         });
 
+    });
+
+    this.post('/listFolder').bind(function (req, res, data) {
+        s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, data) {
+           if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        });
+    });
+
+    this.post('/smartListFolder').bind(function (req, res, data) {
+        s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, data) {
+           if (err){
+                if (err != "not stored"){
+                    res.send(500, { error: err }, {});
+                }
+                else{
+                    s3Folders.storeFolder(data.bucket, data.folder, function(err){ // fetch and store the whole bucket
+                        if (err){
+                            res.send(500, { error: err }, {});
+                        }
+                        else{ // fetch our path
+                            s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, data){
+                                if (err){
+                                   res.send(500, { error: err }, {}); 
+                                }
+                                else{
+                                   res.send(200, {}, data); 
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        });
     });
 
     // send push messages 
