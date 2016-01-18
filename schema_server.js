@@ -418,10 +418,11 @@ router.map(function () {
             // else     console.log(data);           // successful response
             if (err) {
                 logger.info('uploadFile error ' + err);
-                res.send(500, {error: err}, {});
+                res.send(500, {error:err.message}, err);
             }
             else {
-                var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
+                //var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
+                var link = config.storageConfig.serverProtocol + '://' + data.bucket + "/" + data.dir + "/" + data.fileName;
                 logger.info("uploadFile OK " + link);
                 res.send(200, {}, {link: link});
             }

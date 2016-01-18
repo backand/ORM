@@ -159,7 +159,7 @@ function runSocket() {
             var appName = internal.appName;
             io.to(appName).emit(eventName, internal.data);
             logger.info(appName + ' io:' + io.to(appName));
-            logger.info('internalAll'  + ' ' + eventName + ' ' + internal.data);
+            logger.info('internalAll'  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
         });
 
         socket.on('internalRole', function (internal) {
@@ -176,7 +176,7 @@ function runSocket() {
                 sendMultiple(appName, users, eventName, data);
             });
 
-            logger.info('internalRole', eventName, internal.data);
+            logger.info('internalRole ' +  eventName + JSON.stringify(internal.data));
 
         });
 
@@ -194,7 +194,7 @@ function runSocket() {
                 sendMultiple(appName, users, eventName, data);
             });
 
-            logger.info('internalUsers', eventName, internal.data);
+            logger.info('internalUsers ' +  eventName + JSON.stringify(internal.data));
 
         });
 
