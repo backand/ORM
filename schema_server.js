@@ -418,7 +418,8 @@ router.map(function () {
                 res.send(500, {error:err.message}, err);
             }
             else {
-                var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
+                //var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
+                var link = "http://" + data.bucket + "/" + data.dir + "/" + data.fileName;
                 logger.info("uploadFile OK " + link);
                 res.send(200, {}, {link: link});
             }
