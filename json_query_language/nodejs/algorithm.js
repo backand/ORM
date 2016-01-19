@@ -871,7 +871,7 @@ function generateQueryConditional(qc, table, column){
 	else if (comparisonOperator == "$within"){
 		return mysqlOperator[comparisonOperator] + " ( SPATIALCOLUMNBACKAND, " +  
 			"ST_GeomFromText('POINT( " + generatedComparand[0][0] + " " + generatedComparand[0][1] + " )')" +
-			" ) <= " + generatedComparand[1]/(1609.344 * 69);
+			" ) <= " + generatedComparand[1] + ' /(1609.344 * 69) ';
 	}
 	else 
 		return mysqlOperator[comparisonOperator] + " " + generatedComparand;
