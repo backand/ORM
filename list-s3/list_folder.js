@@ -153,19 +153,22 @@ function filterFiles(bucket, folder, pathInFolder, callback){
 			var prefixLength = prefix.length + 1;
 			var rawData = [];
 			_.each(data, function(file){
-				if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
-					rawData.push(file);
-				}
-				else { // folders in folder
-					var indexOfFolder = file.Key.indexOf("/", prefixLength);
-					var folderName = file.Key.substr(0, indexOfFolder);
-					if (rawData.length == 0) 
-						rawData.push({ Key: folderName });
-					var lastElement = _.last(rawData);
-					if (lastElement.Key != folderName){
-						rawData.push({ Key: folderName });
+				if (_.startsWith(file.Key,prefix)){
+
+					if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
+						rawData.push(file);
 					}
-				}
+					else { // folders in folder
+						var indexOfFolder = file.Key.indexOf("/", prefixLength);
+						var folderName = file.Key.substr(0, indexOfFolder);
+						if (rawData.length == 0) 
+							rawData.push({ Key: folderName });
+						var lastElement = _.last(rawData);
+						if (lastElement.Key != folderName){
+							rawData.push({ Key: folderName });
+						}
+					}
+				}			
 			});
 			callback(null, rawData);
 		}
