@@ -465,7 +465,7 @@ router.map(function () {
     });
 
     this.post('/smartListFolder').bind(function (req, res, data) {
-        s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, data) {
+        s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesOutput) {
            if (err){
                 if (err != "not stored"){
                     res.send(500, { error: err }, {});
@@ -476,12 +476,12 @@ router.map(function () {
                             res.send(500, { error: err }, {});
                         }
                         else{ // fetch our path
-                            s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, data){
+                            s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesAfterStoreFolderOutput){
                                 if (err){
                                    res.send(500, { error: err }, {}); 
                                 }
                                 else{
-                                   res.send(200, {}, data); 
+                                   res.send(200, {}, filterFilesAfterStoreFolderOutput); 
                                 }
                             });
                         }
@@ -489,7 +489,7 @@ router.map(function () {
                 }
             }
             else{
-                res.send(200, {}, data);
+                res.send(200, {}, filterFilesOutput);
             }
         });
     });
