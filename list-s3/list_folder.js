@@ -188,7 +188,7 @@ module.exports.filterFiles = filterFiles;
 // 	process.exit(0);
 // });
 
-// storeFolder('backandhosting', 'kffff2', function(err, data){
+// storeFolder('backandhosting', 'k2', function(err, data){
 // 	console.log("--------");
 // 	console.log(err);
 // 	console.log(data);
