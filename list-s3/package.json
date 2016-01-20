@@ -1,0 +1,16 @@
+{
+  "name": "list-s3",
+  "version": "1.0.0",
+  "description": "list bucket in s3 in pre-order of tree",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC",
+  "dependencies": {
+    "s3": "latest",
+    "lodash": "latest",
+    "redis": "latest"
+  }
+}

@@ -119,7 +119,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 		    				// 	description.minValue = item.minValue;
 		    				// if (_.has(item, "maxValue"))
 		    				// 	description.maxValue = item.maxValue;
-		    				if (_.has(item.advancedLayout, "defaultValue") && item.advancedLayout.defaultValue != "")
+		    				if (_.has(item.advancedLayout, "defaultValue") && item.advancedLayout.defaultValue !== "")
 		    					description.defaultValue = item.advancedLayout.defaultValue;
 		    				if (item.type == "SingleSelect"){
 		    					var collection = description.relatedViewName;

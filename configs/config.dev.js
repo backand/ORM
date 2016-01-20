@@ -17,6 +17,11 @@ var httpsServerConfig = {
     "pfxPath" : ''
 }
 
+var storageConfig = {
+  "serverProtocol" : 'http'
+}
+
 module.exports.socketConfig = httpsServerConfig;
 module.exports.api_url = api_url;
 module.exports.redis = redis;
+module.exports.storageConfig = storageConfig;

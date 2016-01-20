@@ -27,6 +27,9 @@ var transformJson = require('./json_query_language/nodejs/algorithm').transformJ
 var substitute = require('./json_query_language/nodejs/substitution').substitute;
 var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
+
+var s3Folders = require('./list-s3/list_folder');
+
 var fs = require('fs');
 
 fs.watchFile(__filename, function (curr, prev) {
@@ -193,7 +196,7 @@ router.map(function () {
         logger.trace(tokenStructure);
 
         if (tokenStructure) {
-            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, false, function (err, result) {
+            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, true, false, function (err, result) {
 
                 if (err) {
                     logger.info("error in json " + err);
@@ -415,10 +418,11 @@ router.map(function () {
             // else     console.log(data);           // successful response
             if (err) {
                 logger.info('uploadFile error ' + err);
-                res.send(500, {error: err}, {});
+                res.send(500, {error:err.message}, err);
             }
             else {
-                var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
+                //var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
+                var link = config.storageConfig.serverProtocol + '://' + data.bucket + "/" + data.dir + "/" + data.fileName;
                 logger.info("uploadFile OK " + link);
                 res.send(200, {}, {link: link});
             }
@@ -447,6 +451,47 @@ router.map(function () {
             }
         });
 
+    });
+
+    this.post('/listFolder').bind(function (req, res, data) {
+        s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
+           if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, files);
+            }
+        });
+    });
+
+    this.post('/smartListFolder').bind(function (req, res, data) {
+        s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesOutput) {
+           if (err){
+                if (err != "not stored"){
+                    res.send(500, { error: err }, {});
+                }
+                else{
+                    s3Folders.storeFolder(data.bucket, data.folder, function(err){ // fetch and store the whole bucket
+                        if (err){
+                            res.send(500, { error: err }, {});
+                        }
+                        else{ // fetch our path
+                            s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesAfterStoreFolderOutput){
+                                if (err){
+                                   res.send(500, { error: err }, {}); 
+                                }
+                                else{
+                                   res.send(200, {}, filterFilesAfterStoreFolderOutput);
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+            else{
+                res.send(200, {}, filterFilesOutput);
+            }
+        });
     });
 
     // send push messages 
@@ -509,7 +554,7 @@ router.map(function () {
 });
 
 require('http').createServer(function (request, response) {
-    logger.info('start server on port 9000 ' + version);
+    //logger.info('start server on port 9000 ' + version);
     var body = "";
 
     request.addListener('data', function (chunk) {

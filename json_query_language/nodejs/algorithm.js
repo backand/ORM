@@ -12,7 +12,8 @@ var tokenUrl = api_url + "/token";
 var fetchTables = require("../../backand_to_object").fetchTables; 
 var validTypes = require("../../validate_schema").validTypes;
 
-var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like", "$within"];
+var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like", "$within", 
+	"$withinMeters", "$withinKilometers", "$withinMiles", "$withinFeet"];
 var aggregationOperators = ["$max", "$min", "$sum", "$count", "$concat", "$avg"];
 
 var mysqlOperator = {
@@ -33,7 +34,11 @@ var mysqlOperator = {
 	"$count": "COUNT", 
 	"$concat": "GROUP_CONCAT",
 	"$avg": "AVG",
-	"$within": "ST_Distance"
+	"$within": "ST_Distance",
+	"$withinMeters": "ST_Distance",
+	"$withinKilometers": "ST_Distance",
+	"$withinMiles": "ST_Distance",
+	"$withinFeet": "ST_Distance"
 };
 
 var mySQLAggregateOperators = ["MAX", "MIN", "SUM", "COUNT", "GROUP_CONCAT", "AVG"];
@@ -67,14 +72,14 @@ var valuesArray =[];
 // 
 // 
 // 
-// 	{ 
-//    "object": "items",
-//    "q": {
-//        "name": { "$eq" : "kuku" },
-//        "p": { "$within": [[32.0638130, 34.7745390], 50000] }
-//    }  
-// },
-
+//{
+//   "object": "items",
+//   "q": {
+//       // "name": { "$eq" : "kuku" },
+//       "p": { "$withinKilometers": [[32.0638130, 34.7745390], 50000] }
+//   }
+//},
+//
 
 	// {
 	// 	"object":"todo",
@@ -192,16 +197,17 @@ var valuesArray =[];
 	// 		}
 	// 	]
 	// },
-
-// 	false,
-// 	false,
-// 	function(err, sql){
-// 		console.log(err);
-// 		if(!err)
-// 			console.log(sql);
-// 		process.exit(1);
-// 	}
-// );
+//
+//	false,
+//	false,
+//	function(err, sql){
+//		console.log(err);
+//		if(!err)
+//			console.log(sql);
+//		process.exit(1);
+//	}
+//);
+//console.log(r);
 
 function transformJsonIntoSQL(email, password, appName, json, isFilter, shouldGeneralize, callback){
 	getDatabaseInformation(email, password, appName, function(err, sqlSchema){
@@ -847,8 +853,8 @@ function generateQueryConditional(qc, table, column){
 	else if (comparisonOperator == "$like" && (table.fields[column].type != "string" && table.fields[column].type != "text")){
 		throw "$like is not valid for column " + column + " of table " + table.name + " because it is not a string or text column";
 	}
-	else if (comparisonOperator == "$within" && table.fields[column].type != "point"){
-		throw "$within is not valid for column " + column + " of table " + table.name + " because it is not a point column";
+	else if (s.startsWith(comparisonOperator,"$within") && table.fields[column].type != "point"){
+		throw comparisonOperator + " is not valid for column " + column + " of table " + table.name + " because it is not a point column";
 	}	
 	else if (isConstant(comparand)){
 		// constant value
@@ -868,10 +874,25 @@ function generateQueryConditional(qc, table, column){
 
 	if (comparisonOperator == "$in")
 		return mysqlOperator[comparisonOperator] + " ( " + generatedComparand + " ) ";
-	else if (comparisonOperator == "$within"){
+	else if (s.startsWith(comparisonOperator,"$within")){
+		var factor = ' /(1609.344 * 69) ';
+		switch(comparisonOperator)
+		{
+			case '$withinMiles':
+				factor = ' /(69) '
+			break;
+			case '$withinFeet':
+				factor = ' /(5280 * 69) '
+			break;	
+			case '$withinKilometers':
+				factor = ' /(1.609344 * 69) '
+			break;
+			default:
+			break;		
+		}
 		return mysqlOperator[comparisonOperator] + " ( SPATIALCOLUMNBACKAND, " +  
 			"ST_GeomFromText('POINT( " + generatedComparand[0][0] + " " + generatedComparand[0][1] + " )')" +
-			" ) <= " + generatedComparand[1]/(1609.344 * 69);
+			" ) <= " + generatedComparand[1] + factor;
 	}
 	else 
 		return mysqlOperator[comparisonOperator] + " " + generatedComparand;
