@@ -913,6 +913,7 @@ function createStatements(oldSchema, newSchema, modifications){
 	
 			// var oldAttributeDescription = _.first(_.where(newSchema, { name: tableName })).fields[d];
 			var newAttributeDescription = tableDescription.fields[d];
+			var dbColumnName = newAttributeDescription.dbName? newAttributeDescription.dbName : d;
 			var oldTableDescription = _.findWhere(oldSchema, { "name" : tableName });
 		
 			
@@ -924,7 +925,7 @@ function createStatements(oldSchema, newSchema, modifications){
 
 
 			if (typeHasChanged || requiredHasChanged || defaultHasChanged){
-				var typeClause = "alter table " + tableName + " modify " + d + " " + mapToKnexTypes[newAttributeDescription.type];
+				var typeClause = "alter table " + tableName + " modify " + dbColumnName + " " + mapToKnexTypes[newAttributeDescription.type];
 				var requiredClause = newAttributeDescription.required ? " not null " : " null ";
 				var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + getDefaultValueSql(newAttributeDescription) : " ";
 				var statement = typeClause + requiredClause + defaultClause;
@@ -933,12 +934,12 @@ function createStatements(oldSchema, newSchema, modifications){
 
 			if (uniqueHasChanged){
 				if (oldAttributeDescription.unique && !newAttributeDescription.unique){
-					var uniqueStatement = "alter table " + tableName + " drop index " + tableName.toLowerCase() + "_" + d + "_unique"
+					var uniqueStatement = "alter table " + tableName + " drop index " + tableName.toLowerCase() + "_" + d + "_unique";
 					statements.push(uniqueStatement);
 
 				}
 				else if (!oldAttributeDescription.unique && newAttributeDescription.unique){
-					var uniqueStatement = "alter table " + tableName + " add unique " + tableName.toLowerCase() + "_" + d + "_unique(" + d + ")"
+					var uniqueStatement = "alter table " + tableName + " add unique " + tableName.toLowerCase() + "_" + d + "_unique(" + dbColumnName + ")";
 					statements.push(uniqueStatement);
 				}
 			}
