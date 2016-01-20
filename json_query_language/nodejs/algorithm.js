@@ -72,14 +72,14 @@ var valuesArray =[];
 // 
 // 
 // 
-{ 
-   "object": "items",
-   "q": {
-       // "name": { "$eq" : "kuku" },
-       "p": { "$withinKilometers": [[32.0638130, 34.7745390], 50000] }
-   }  
-},
-
+//{
+//   "object": "items",
+//   "q": {
+//       // "name": { "$eq" : "kuku" },
+//       "p": { "$withinKilometers": [[32.0638130, 34.7745390], 50000] }
+//   }
+//},
+//
 
 	// {
 	// 	"object":"todo",
@@ -197,17 +197,17 @@ var valuesArray =[];
 	// 		}
 	// 	]
 	// },
-
-	false,
-	false,
-	function(err, sql){
-		console.log(err);
-		if(!err)
-			console.log(sql);
-		process.exit(1);
-	}
-);
-console.log(r);
+//
+//	false,
+//	false,
+//	function(err, sql){
+//		console.log(err);
+//		if(!err)
+//			console.log(sql);
+//		process.exit(1);
+//	}
+//);
+//console.log(r);
 
 function transformJsonIntoSQL(email, password, appName, json, isFilter, shouldGeneralize, callback){
 	getDatabaseInformation(email, password, appName, function(err, sqlSchema){
