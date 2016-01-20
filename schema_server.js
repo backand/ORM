@@ -196,7 +196,7 @@ router.map(function () {
         logger.trace(tokenStructure);
 
         if (tokenStructure) {
-            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, true, false, function (err, result) {
+            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, false, function (err, result) {
 
                 if (err) {
                     logger.info("error in json " + err);
