@@ -196,7 +196,7 @@ router.map(function () {
         logger.trace(tokenStructure);
 
         if (tokenStructure) {
-            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, false, function (err, result) {
+            fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, true, false, function (err, result) {
 
                 if (err) {
                     logger.info("error in json " + err);
@@ -454,12 +454,12 @@ router.map(function () {
     });
 
     this.post('/listFolder').bind(function (req, res, data) {
-        s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, data) {
+        s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
            if (err){
                 res.send(500, { error: err }, {});
             }
             else{
-                res.send(200, {}, data);
+                res.send(200, {}, files);
             }
         });
     });
@@ -481,7 +481,7 @@ router.map(function () {
                                    res.send(500, { error: err }, {}); 
                                 }
                                 else{
-                                   res.send(200, {}, filterFilesAfterStoreFolderOutput); 
+                                   res.send(200, {}, filterFilesAfterStoreFolderOutput);
                                 }
                             });
                         }

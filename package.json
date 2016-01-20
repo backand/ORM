@@ -27,5 +27,8 @@
     "aws-sdk" : "latest",
     "log4js" : "latest",
     "log4js-logstash" : "latest"
+  },
+  "devDependencies": {
+    "http-console": "latest"
   }
 }
