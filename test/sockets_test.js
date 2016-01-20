@@ -37,7 +37,7 @@ var anonymousLogin = function (token, callback) {
     request.get(api_url + '/api/account/profile')
         .set('AnonymousToken', token)
         .end(function (err, res) {
-            console.log(res);
+            //console.log(res);
             callback(err, res.body);
         });
 };
@@ -49,7 +49,7 @@ function sendEventToServer(sendData) {
         .end(function (err, res) {
 
             if (!err) {
-                console.log('yay got ' + JSON.stringify(res.body));
+                //console.log('yay got ' + JSON.stringify(res.body));
             } else {
                 console.log('Oh no! error ' + err);
             }
@@ -125,11 +125,12 @@ describe("end-to-end-work two users", function () {
             login("ygalbel@gmail.com", "bell1234", "ionic1", function(err,token) {
                 token2 = token;
 
-                socket.emit('login',
-                    token1,
-                    'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
-                    'ionic1'
-                );
+                    socket.emit('login',
+                        token1,
+                        'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
+                        'ionic1'
+                    );
+
 
                 socket2.emit('login',
                     token2,
@@ -141,18 +142,18 @@ describe("end-to-end-work two users", function () {
                 socket2.on(eventName, messageArrived);
 
                 request.post('http://localhost:9000/socket/emit')
-                    .send({"data": "123", "eventName": eventName, "mode" : "All"})
+                    .send({"data": "123", "eventName": eventName, "mode": "All"})
                     .set('app', 'ionic1')
                     .end(function (err, res) {
                         if (res.ok) {
-                            console.log('yay got OK');
+                            //console.log('yay got OK');
                         } else {
                             console.log('Oh no! error ' + res.text);
                         }
 
                     })
-
             });
+
         })
 
     })
@@ -188,8 +189,6 @@ describe("user with anonymous token can get messages", function(){
                 null
             );
         });
-
-
     })
 
     it('message arrived', function(done){
@@ -218,7 +217,7 @@ describe("user with anonymous token can get messages by role", function(){
         });
 
         socket.on('authorized', function () {
-            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "role", "Role" : "User"});
+            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "Role", "Role" : "User"});
         });
 
         anonymousLogin('f0a0f62f-65ea-457e-93e8-ea7d21c07abf', function(err, token){

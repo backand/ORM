@@ -21,7 +21,7 @@ describe("valid config", function () {
     it('can fetch qa', function (done) {
             var config = getConfig("qa");
             expect(config).not.to.be.undefined;
-            expect(config.api_url).to.be.equal("http://api.backand.co");
+            expect(config.api_url).to.be.equal("http://localhost:8099");
             done();
         });
 

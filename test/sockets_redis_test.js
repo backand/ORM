@@ -45,7 +45,7 @@ describe("redis insert", function () {
     it("after insert data exist in Redis", function (done) {
         bl.saveUser('appName', 'aaa', 'username', 'admin', function (err, res) {
             bl.getAllUsers('appName', function (err, data) {
-                console.log(data);
+                //console.log(data);
                 expect(data).not.to.be.null;
                 expect(data[0].username).to.equal("username");
                 expect(data[0].role).to.equal("admin");
@@ -59,7 +59,7 @@ describe("redis insert", function () {
     it('second user is added and not delete first', function (done) {
         bl.saveUser('appName', 'bbb', 'username2', 'user', function (err, res) {
             bl.getAllUsers('appName', function (err, data) {
-                console.log(data);
+                //console.log(data);
                 expect(data).not.to.be.undefined;
                 assert.lengthOf(data, 2);
                 expect(data[0].username).to.equal("username");
@@ -134,7 +134,7 @@ describe('mutliple users with same token', function() {
         bl.saveUser(appName, 1, 'username', 'role', function (err, res) {
             bl.saveUser(appName, 2, 'username', 'role', function (err, res) {
                 bl.getAllUsers(appName, function (err, data) {
-                    console.log(data);
+                    //console.log(data);
                     expect(data).not.to.be.null;
                     assert.lengthOf(data, 2);
                     done();
@@ -145,7 +145,7 @@ describe('mutliple users with same token', function() {
 
     it('all users can be found by user', function(done){
         bl.getAllUsersByRole(appName, 'role', function (err, data) {
-            console.log(data);
+            //console.log(data);
             expect(data).not.to.be.null;
             assert.lengthOf(data, 2);
             done();
