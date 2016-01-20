@@ -554,7 +554,7 @@ router.map(function () {
 });
 
 require('http').createServer(function (request, response) {
-    logger.info('start server on port 9000 ' + version);
+    //logger.info('start server on port 9000 ' + version);
     var body = "";
 
     request.addListener('data', function (chunk) {
