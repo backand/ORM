@@ -114,6 +114,9 @@ function validRelation(relation){
 		valid = false;
 		warnings.push("relation name should be a string");
 	}
+	else if (!(/^\w+$/).test(relation.name)){
+		warnings.push("relation name should contain only alphanumeric characters and underscore");
+	}
 	else{
 		relationName = relation.name;
 		if (relationName.length > 32){
