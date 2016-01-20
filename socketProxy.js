@@ -5,54 +5,58 @@
 // Setup our server to proxy standard HTTP requests
 //
 process.chdir(__dirname);
-var http = require('http'),
+var http = require('https'),
+    fs = require('fs'),
     httpProxy = require('http-proxy');
 var config = require('./configFactory').getConfig();
 
 var otherServerAddress = config.socketConfig.proxyIp;
 
-var proxy = new httpProxy.createProxyServer({
 
-    target: {
-        host: otherServerAddress,
-        port: config.socketConfig.serverPort
-    }
-});
+httpProxy.createServer({
+  ssl: {
+    pfx: fs.readFileSync(config.socketConfig.pfxPath),
+    passphrase: '123456'
+  },
+  ws : true,
+  target: 'https://'+ otherServerAddress +':4000',
+  secure: false // Depends on your needs, could be false.
+}).listen(4000);
 
-// for production
 /*
- var http = require('https'),
- fs = require('fs'),
- httpProxy = require('http-proxy');
- var config = require('./configFactory').getConfig();
+ console.log('start server on port: ' + config.socketConfig.serverPort + ' to ' + otherServerAddress);
+ // for production
 
- var otherServerAddress = config.socketConfig.proxyIp;
-
-
- httpProxy.createServer({
- ssl: {
+ var options = {
  pfx: fs.readFileSync(config.socketConfig.pfxPath),
- passphrase: ''
+ passphrase: '123456'
+ };
+
+ var proxy = new httpProxy.createProxyServer({
+ ssl: {
+ fx: fs.readFileSync(config.socketConfig.pfxPath),
+ passphrase: '123456'
  },
- ws : true,
- target: 'https://'+ otherServerAddress +':4000',
- secure: false // Depends on your needs, could be false.
- }).listen(4000);
+ secure : true,
+ target: {
+ host: otherServerAddress,
+ port: config.socketConfig.serverPort
+ }
+ });
 
- */
 
 
-var proxyServer = http.createServer(function (req, res) {
-    proxy.web(req, res);
-});
+ var proxyServer = http.createServer(options,function (req, res) {
+ proxy.web(req, res);
+ });
 
-//
-// Listen to the `upgrade` event and proxy the
-// WebSocket requests as well.
-//
-proxyServer.on('upgrade', function (req, socket, head) {
-    console.log('upgrade');
-    proxy.ws(req, socket, head);
-});
+ //
+ // Listen to the `upgrade` event and proxy the
+ // WebSocket requests as well.
+ //
+ proxyServer.on('upgrade', function (req, socket, head) {
+ console.log('upgrade');
+ proxy.ws(req, socket, head);
+ });
 
-proxyServer.listen(config.socketConfig.serverPort);
+ proxyServer.listen(config.socketConfig.serverPort);*/
