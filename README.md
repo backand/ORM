@@ -1,10 +1,14 @@
 Installaiton
 =============
 1. npm i
-2. npm install -g node-windows : For the windows service registration
-3. npm link node-windows
-4. open cmd as Administartor
-5. node runSchemaServerAsAService.js - Make sure the path in the file match the location
+2. for each subfolder with code:
+
+    npm install
+
+3. npm install -g node-windows : For the windows service registration
+4. npm link node-windows
+5. open cmd as Administartor
+6. node runSchemaServerAsAService.js - Make sure the path in the file match the location
 
 
 Transform
@@ -60,6 +64,32 @@ To make a POST call:
     { "oldSchema": [], "newSchema": [], "severity": 1 }
 
 Fill the oldSchema and newSchema as desired.
+
+Integration
+===========
+1. use config file:
+
+    var config = require('../configFactory').getConfig();
+
+2. use our logger:
+
+    var logger = require('./logging/logger').getLogger("schema_" + config.env);
+
+add logging statements:
+
+    logger.info("....");
+
+3. AWS IAM Credentials:
+
+    var credentials = require('../hosting/credentials').credentials;
+
+4. Shutdown logging in `logging/config.json`, by changing this line:
+
+    "tests": "DEBUG"
+
+into:
+
+    "tests": "OFF"
 
 
 
