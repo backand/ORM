@@ -115,7 +115,7 @@ function storeFolder(bucket, folder, callback){
 	})
 	.on('data', function(data){
 		redisClient.set(bucket + "/" + folder, JSON.stringify(data.Contents));
-		redisClient.expire(bucket + "/" + folder, 3600);
+		redisClient.expire(bucket + "/" + folder, 1);
 		// var prefixLength = prefix.length + 1;
 		// var a = _.map(data.Contents, function(file){
 		// 	return { file: file, index: file.Key.lastIndexOf("/") }
