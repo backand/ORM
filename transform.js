@@ -930,7 +930,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			if (typeHasChanged || requiredHasChanged || defaultHasChanged){
 				var typeClause = "alter table " + tableName + " modify " + dbColumnName + " " + mapToKnexTypes[newAttributeDescription.type];
 				var requiredClause = newAttributeDescription.required ? " not null " : " null ";
-				var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + getDefaultValueSql(newAttributeDescription) : " ";
+				var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default '" + getDefaultValueSql(newAttributeDescription) + "'" : " ";
 				var statement = typeClause + requiredClause + defaultClause;
 				statements.push(statement);
 			}
