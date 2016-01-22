@@ -60,6 +60,7 @@ router.map(function () {
         res.send("Welcome")
     });
 
+    // validate a json schema
     this.post('/validate').bind(function (req, res, data) {
         logger.info("start validate");
         result = validator(data)
@@ -78,6 +79,7 @@ router.map(function () {
 
     });
 
+    // transform one json schema into another json schema
     this.post('/transform').bind(function (req, res, data) {
         logger.info("start transform");
         var isValidNewSchema = validator(data.newSchema);
@@ -105,6 +107,7 @@ router.map(function () {
         }
     });
 
+    // transform a json schema into antoher schema
     this.post('/transformAuthorized').bind(function (req, res, data) {
         logger.info("start transformAuthorized");
         var tokenStructure = getToken(req.headers);
@@ -166,6 +169,7 @@ router.map(function () {
         }
     });
 
+    // execute an array of sql statements
     this.post('/execute').bind(function (req, res, data) {
         if(data !== undefined) {
             logger.info("start execute " + data.hostname + " " + data.port + " " + data.db + " " + data.username + " " + data.password);
@@ -190,6 +194,7 @@ router.map(function () {
         }
     });
 
+    // obtain the json structure for a schema
     this.post('/json').bind(function (req, res, data) {
         logger.info("start json");
         var tokenStructure = getToken(req.headers);
@@ -216,6 +221,7 @@ router.map(function () {
         }
     });
 
+    // get database connection info for app
     this.post('/connectioninfo').bind(function (req, res, data) {
         logger.info("start connectioninfo");
         var tokenStructure = getToken(req.headers);
@@ -321,6 +327,7 @@ router.map(function () {
         res.send(200, {}, {});
     });
 
+    // get sts credentials for bucket
     this.post('/bucketCredentials').bind(function (req, res, data) {
         logger.info('start bucketCredentials');
         getTemporaryCredentials(data.bucket, data.dir, function (err, data) {
@@ -335,6 +342,7 @@ router.map(function () {
         });
     });
 
+    // upload a content file to S3
     this.post('/uploadFile').bind(function (req, res, data) {
         logger.info('start uploadFile');
         var s = data.fileName.toLowerCase();
@@ -431,6 +439,7 @@ router.map(function () {
 
     });
 
+    // delete a content file from S3
     this.post('/deleteFile').bind(function (req, res, data) {
         logger.info('start deleteFile');
         var params = {
@@ -453,6 +462,7 @@ router.map(function () {
 
     });
 
+    // dumb list of sub folder of app
     this.post('/listFolder').bind(function (req, res, data) {
         s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
            if (err){
@@ -464,6 +474,7 @@ router.map(function () {
         });
     });
 
+    // smart list with caching of sub folder of app
     this.post('/smartListFolder').bind(function (req, res, data) {
         s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesOutput) {
            if (err){
