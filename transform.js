@@ -703,6 +703,7 @@ function createStatements(oldSchema, newSchema, modifications){
             
 			// drop columns
 			_.each(m.dropped, function(d){
+
 				// nothing to drop if this is a relationship column
 				if (oldTableDescription.fields[d] && !_.has(oldTableDescription.fields[d], "collection")){
 					// remove foreign key constraints on column before removing column
@@ -717,7 +718,9 @@ function createStatements(oldSchema, newSchema, modifications){
 							statements.push(statementString);
 						}	
 					}
-					table.dropColumn(d);
+					var columnDescription = oldTableDescription.fields[d];
+					var dbColumnName = columnDescription.dbName? columnDescription.dbName : d;
+					table.dropColumn(dbColumnName);
 				}
 
 			});
@@ -927,7 +930,7 @@ function createStatements(oldSchema, newSchema, modifications){
 			if (typeHasChanged || requiredHasChanged || defaultHasChanged){
 				var typeClause = "alter table " + tableName + " modify " + dbColumnName + " " + mapToKnexTypes[newAttributeDescription.type];
 				var requiredClause = newAttributeDescription.required ? " not null " : " null ";
-				var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default " + getDefaultValueSql(newAttributeDescription) : " ";
+				var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default '" + getDefaultValueSql(newAttributeDescription) + "'" : " ";
 				var statement = typeClause + requiredClause + defaultClause;
 				statements.push(statement);
 			}

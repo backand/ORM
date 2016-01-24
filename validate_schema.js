@@ -141,9 +141,9 @@ function validRelation(relation){
 				valid = false;
 				warnings.push("relation: " + relationName + " column:" + key + " - column name should be no longer than 24 characters");
 			}
-			if (key.indexOf("-") > -1){
+		    if (!(/^\w+$/).test(key)){		
 				valid = false;
-				warnings.push("relation: " + relationName + " column:" + key + " - column name should not contain dash, use undescore instead");				
+				warnings.push("relation: " + relationName + " column:" + key + " - column name should contain only alphanumeric characters and underscore");				
 			}
 
 			if (!_.has(value, "type")){

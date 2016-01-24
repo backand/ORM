@@ -60,8 +60,10 @@ router.map(function () {
         res.send("Welcome")
     });
 
+    // validate a json schema
     this.post('/validate').bind(function (req, res, data) {
         logger.info("start validate");
+        logger.trace("validate input", data);
         result = validator(data)
 
         // todo: check it works without stringify
@@ -78,15 +80,18 @@ router.map(function () {
 
     });
 
+    // transform one json schema into another json schema
     this.post('/transform').bind(function (req, res, data) {
         logger.info("start transform");
+        logger.trace("transform", data.oldSchema, data.newSchema, data.severity);
         var isValidNewSchema = validator(data.newSchema);
+        logger.trace("isValidNewSchema", isValidNewSchema);
         if (isValidNewSchema.error) {
             logger.info("transform error " + isValidNewSchema.error);
             res.send(500, {error: isValidNewSchema.error}, {});
         }
         else if (isValidNewSchema.valid) {
-            result = transformer(data.oldSchema, data.newSchema, data.severity)
+            result = transformer(data.oldSchema, data.newSchema, data.severity);
             logger.trace(result);
 
             if (result.error) {
@@ -105,6 +110,7 @@ router.map(function () {
         }
     });
 
+    // transform a json schema into antoher schema
     this.post('/transformAuthorized').bind(function (req, res, data) {
         logger.info("start transformAuthorized");
         var tokenStructure = getToken(req.headers);
@@ -115,6 +121,7 @@ router.map(function () {
                     res.send(400, {error: err}, null);
                 }
                 else {
+                    logger.trace("transformer", oldSchema, data.newSchema, data.severity)
                     if (data.withoutValidation) {
                         result = transformer(oldSchema, data.newSchema, data.severity)
                         logger.trace(result);
@@ -132,6 +139,7 @@ router.map(function () {
                     else {
                         // test if new schema is valid
                         var isValidNewSchema = validator(data.newSchema);
+                        logger.trace("isValidNewSchema", isValidNewSchema);
                         if (isValidNewSchema.error) {
                             logger.info("error in transformAuthorized schema not valid" + result.error);
                             res.send(500, {error: result.error}, {});
@@ -166,17 +174,18 @@ router.map(function () {
         }
     });
 
+    // execute an array of sql statements
     this.post('/execute').bind(function (req, res, data) {
         if(data !== undefined) {
             logger.info("start execute " + data.hostname + " " + data.port + " " + data.db + " " + data.username + " " + data.password);
         }
 
-        res.send(200, {}, isValidNewSchema);
         if (!data.hostname || !data.port || !data.db || !data.username || !data.password) {
             logger.info("send 400 on execute");
             res.send(400, {}, null);
         }
         else {
+            logger.trace("db details", data.hostname, data.port, data.db, data.username, data.password, data.statementsArray);
             executer(data.hostname, data.port, data.db, data.username, data.password, data.statementsArray, function (err, result) {
                 if (!err) {
                     logger.info("execute result " + err + " " + result);
@@ -190,6 +199,7 @@ router.map(function () {
         }
     });
 
+    // obtain the json structure for a schema
     this.post('/json').bind(function (req, res, data) {
         logger.info("start json");
         var tokenStructure = getToken(req.headers);
@@ -216,6 +226,7 @@ router.map(function () {
         }
     });
 
+    // get database connection info for app
     this.post('/connectioninfo').bind(function (req, res, data) {
         logger.info("start connectioninfo");
         var tokenStructure = getToken(req.headers);
@@ -266,6 +277,7 @@ router.map(function () {
     // req should contain sql - the sql statement, and assignment - variable assignment
     this.post('/substitution').bind(function (req, res, data) {
         logger.info("start substitution");
+        logger.trace(data.sql, data.assignment);
         substitute(data.sql, data.assignment, function (err, result) {
             logger.info("finish substitution");
             logger.trace(result);
@@ -321,6 +333,7 @@ router.map(function () {
         res.send(200, {}, {});
     });
 
+    // get sts credentials for bucket
     this.post('/bucketCredentials').bind(function (req, res, data) {
         logger.info('start bucketCredentials');
         getTemporaryCredentials(data.bucket, data.dir, function (err, data) {
@@ -335,8 +348,10 @@ router.map(function () {
         });
     });
 
+    // upload a content file to S3
     this.post('/uploadFile').bind(function (req, res, data) {
         logger.info('start uploadFile');
+        logger.trace(data.fileName, data.fileType, data.bucket, data.dir);
         var s = data.fileName.toLowerCase();
         var extPosition = s.lastIndexOf('.');
         if (extPosition > -1) {
@@ -431,8 +446,10 @@ router.map(function () {
 
     });
 
+    // delete a content file from S3
     this.post('/deleteFile').bind(function (req, res, data) {
         logger.info('start deleteFile');
+        logger.trace(data.bucket, data.fileName);
         var params = {
             Bucket: data.bucket, /* required */
             Key: data.dir + "/" + data.fileName/* required */
@@ -453,7 +470,10 @@ router.map(function () {
 
     });
 
+    // dumb list of sub folder of app
     this.post('/listFolder').bind(function (req, res, data) {
+        logger.info("start listFolder");
+        logger.trace(data.bucket, data.folder, data.pathInFolder);
         s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
            if (err){
                 res.send(500, { error: err }, {});
@@ -464,13 +484,17 @@ router.map(function () {
         });
     });
 
+    // smart list with caching of sub folder of app
     this.post('/smartListFolder').bind(function (req, res, data) {
+        logger.info("start smartListFolder");
+        logger.trace(data.bucket, data.folder, data.pathInFolder);
         s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesOutput) {
            if (err){
                 if (err != "not stored"){
                     res.send(500, { error: err }, {});
                 }
                 else{
+                    logger.trace("storeFolder");
                     s3Folders.storeFolder(data.bucket, data.folder, function(err){ // fetch and store the whole bucket
                         if (err){
                             res.send(500, { error: err }, {});
