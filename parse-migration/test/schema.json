@@ -1,0 +1,140 @@
+{
+  "results": [
+    {
+      "className": "_User",
+      "fields": {
+        "ACL": {
+          "type": "ACL"
+        },
+        "authData": {
+          "type": "Object"
+        },
+        "createdAt": {
+          "type": "Date"
+        },
+        "email": {
+          "type": "String"
+        },
+        "emailVerified": {
+          "type": "Boolean"
+        },
+        "objectId": {
+          "type": "String"
+        },
+        "password": {
+          "type": "String"
+        },
+        "updatedAt": {
+          "type": "Date"
+        },
+        "username": {
+          "type": "String"
+        }
+      }
+    },
+    {
+      "className": "_Role",
+      "fields": {
+        "ACL": {
+          "type": "ACL"
+        },
+        "createdAt": {
+          "type": "Date"
+        },
+        "name": {
+          "type": "String"
+        },
+        "objectId": {
+          "type": "String"
+        },
+        "roles": {
+          "type": "Relation",
+          "targetClass": "_Role"
+        },
+        "updatedAt": {
+          "type": "Date"
+        },
+        "users": {
+          "type": "Relation",
+          "targetClass": "_User"
+        }
+      }
+    },
+    {
+      "className": "post",
+      "fields": {
+        "ACL": {
+          "type": "ACL"
+        },
+        "amount": {
+          "type": "Number"
+        },
+        "best": {
+          "type": "Pointer",
+          "targetClass": "comment"
+        },
+        "content": {
+          "type": "String"
+        },
+        "createdAt": {
+          "type": "Date"
+        },
+        "date": {
+          "type": "Date"
+        },
+        "deleted": {
+          "type": "Boolean"
+        },
+        "location": {
+          "type": "GeoPoint"
+        },
+        "myComments": {
+          "type": "Relation",
+          "targetClass": "comment"
+        },
+        "obj": {
+          "type": "Object"
+        },
+        "objectId": {
+          "type": "String"
+        },
+        "photo": {
+          "type": "File"
+        },
+        "tags": {
+          "type": "Array"
+        },
+        "title": {
+          "type": "String"
+        },
+        "updatedAt": {
+          "type": "Date"
+        }
+      }
+    },
+    {
+      "className": "comment",
+      "fields": {
+        "ACL": {
+          "type": "ACL"
+        },
+        "content": {
+          "type": "String"
+        },
+        "createdAt": {
+          "type": "Date"
+        },
+        "objectId": {
+          "type": "String"
+        },
+        "source": {
+          "type": "Pointer",
+          "targetClass": "post"
+        },
+        "updatedAt": {
+          "type": "Date"
+        }
+      }
+    }
+  ]
+}

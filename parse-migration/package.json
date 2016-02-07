@@ -8,7 +8,8 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies" : {
-    "node-mysql" : "latest"
+  "dependencies": {
+    "async": "^1.5.2",
+    "node-mysql": "latest"
   }
 }

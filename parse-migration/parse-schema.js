@@ -1,6 +1,7 @@
 /**
  * Created by Dell on 2/2/2016.
  */
+var logger = require('./logging/logger').getLogger('ParseSchema');
 
 var self = this;
 
@@ -41,6 +42,23 @@ ParseSchema.prototype = (function() {
                 return null;
             }
             return column.type;
+        },
+
+        getClassRelations:function(className, errorCallback) {
+            var parseClass = this.getClass(className, errorCallback);
+            var relations = [];
+            for (var property in parseClass.fields) {
+                var propertyType = self.getPropertyType(className, property, errorCallback);
+                switch (propertyType) {
+                    case "Relation":
+                        relations.push(property);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            return relations;
         }
 
     };

@@ -2,125 +2,48 @@
  * Created by Dell on 2/2/2016.
  */
 
-var jsonFromParseExample =
-{
-    "amount": 10000000000,
-    "best": {
-        "__type": "Pointer",
-        "className": "comment",
-        "objectId": "JkmFZ65bPq"
-    },
-    "content": "hello",
-    "createdAt": "2016-02-01T06:40:55.155Z",
-    "date": {
-        "__type": "Date",
-        "iso": "2016-02-01T07:05:29.089Z"
-    },
-    "location": {
-        "__type": "GeoPoint",
-        "latitude": 51.5034,
-        "longitude": -0.1275
-    },
-    "objectId": "iaozZi0VY6",
-    "photo": {
-        "__type": "File",
-        "name": "tfss-b9461654-6883-4541-b194-f0b48b699e60-angular.jpg",
-        "url": "http://files.parsetfss.com/b0ba5cbd-d164-47bc-a635-9d467a6e539d/tfss-b9461654-6883-4541-b194-f0b48b699e60-angular.jpg"
-    },
-    "tags": [
-        "a1",
-        "a2",
-        "a3"
-    ],
-    "title": "second",
-    "updatedAt": "2016-02-02T09:34:32.923Z"
-};
 
+var self = this;
 
-
-
-function PointerConverter() {
+function PointerConverter(schema) {
+    self.schema = schema;
 }
 
-PointerConverter.prototype = (function(schema) {
+PointerConverter.prototype = (function() {
     // Private code here
-    var getPointerColumns = function(className, errorCallback) {
-        var columns = [];
-        for (var property in json) {
-            var propertyType = schema.getPropertyType(objectId, property, errorCallback);
-            switch (propertyType) {
-                case "Pointer":
-                    columns.push(property);
-                    break;
-
-                default:
-                    break;
-            }
-        }
-        return columns;
+    var getUpdateStatementForSinglePointer = function(className, property, errorCallback) {
+        return "update `" + className + "` set `" + property + "` = @pointer where objectId = '@objectId'";
     };
-
 
     return {
 
         constructor:PointerConverter,
 
-        getUpdateStatementForSinglePointer:function(className, property, errorCallback) {
-            return "update `" + className + "` set `" + property + "` = ? where objectId = ?";
-        },
+        getUpdateStatementsForAllPointer:function(className, jsonFromParse, errorCallback) {
+            var updateStatements = [];
+            var objectId = jsonFromParse.objectId;
 
-        getValuesToUpdatePointerStatement:function(className, jsonFromParse, errorCallback) {
-            var values = [];
-            for (var property in json) {
+            for (var property in jsonFromParse) {
                 try {
                     if (json.hasOwnProperty(property)) {
-                        var value = json[property];
-                        var propertyType = schema.getPropertyType(className, objectId, property, errorCallback);
+                        var propertyType = self.schema.getPropertyType(className, property, errorCallback);
                         switch (propertyType) {
-                            case "Boolean":
-                            case "Date":
-                            case "String":
-                            case "Number":
-                                values.push(value);
-                                break;
-
-                            case "GeoPoint":
-                                values.push(getMySQLPoint(value));
-                                break;
-
-                            case "File":
-                                values.push(getMySQLFile(value));
-                                break;
-
-                            case "Array":
-                                break;
-
-                            case "Object":
-                                break;
-
-                            case "Relation":
-                                break;
-
                             case "Pointer":
+                                var pointer = "null";
+                                if (json[property] && json[property].objectId) pointer = "'" + json[property].objectId + "'";
+                                var sql = getUpdateStatementForSinglePointer(className, property, errorCallback).replace("@pointer", pointer).replace("@objectId", objectId);
+                                updateStatements.push(sql);
                                 break;
 
                             default:
-                                errorCallback({
-                                    js: "ClassJsonConverter",
-                                    func: "getValuesToInsertStatement",
-                                    className: className,
-                                    objectId: json.objectId,
-                                    column: property,
-                                    message: "The column has no recognized type"
-                                });
                                 break;
                         }
                     }
                 }
                 catch(err){
                     errorCallback({
-                        js: "ClassJsonConverter",
-                        func: "getValuesToInsertStatement",
+                        js: "PointerConverter",
+                        func: "getUpdateStatementsForAllPointer",
                         className: className,
                         objectId: json.objectId,
                         column: property,
@@ -129,14 +52,14 @@ PointerConverter.prototype = (function(schema) {
                     });
                 }
 
-                return values;
+                return updateStatements;
             }
         }
 
     };
 })();
 
-
+module.exports = PointerConverter;
 
 
 

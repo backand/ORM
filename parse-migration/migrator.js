@@ -3,148 +3,17 @@
  */
 var ParseSchema = require('./parse-schema');
 var ClassJsonConverter = require('./class-json-converter');
+var PointerConverter = require('./pointer-converter');
+var RelationConverter = require('./relation-converter');
 var BulkRunner = require('./bulk-runner');
 var Streamer = require('./streamer');
+var logger = require('./logging/logger').getLogger('Migrator');
+var async = require('async');
+// test
+var testSchema = require('./test/schema.json').results;
+var testConnection = require('./test/connection.json');
+var Cleaner = require('./test/cleaner');
 
-var schemaExample =
-    [
-        {
-            "className": "_User",
-            "fields": {
-                "ACL": {
-                    "type": "ACL"
-                },
-                "authData": {
-                    "type": "Object"
-                },
-                "createdAt": {
-                    "type": "Date"
-                },
-                "email": {
-                    "type": "String"
-                },
-                "emailVerified": {
-                    "type": "Boolean"
-                },
-                "objectId": {
-                    "type": "String"
-                },
-                "password": {
-                    "type": "String"
-                },
-                "updatedAt": {
-                    "type": "Date"
-                },
-                "username": {
-                    "type": "String"
-                }
-            }
-        },
-        {
-            "className": "_Role",
-            "fields": {
-                "ACL": {
-                    "type": "ACL"
-                },
-                "createdAt": {
-                    "type": "Date"
-                },
-                "name": {
-                    "type": "String"
-                },
-                "objectId": {
-                    "type": "String"
-                },
-                "roles": {
-                    "type": "Relation",
-                    "targetClass": "_Role"
-                },
-                "updatedAt": {
-                    "type": "Date"
-                },
-                "users": {
-                    "type": "Relation",
-                    "targetClass": "_User"
-                }
-            }
-        },
-        {
-            "className": "post",
-            "fields": {
-                "ACL": {
-                    "type": "ACL"
-                },
-                "amount": {
-                    "type": "Number"
-                },
-                "best": {
-                    "type": "Pointer",
-                    "targetClass": "comment"
-                },
-                "content": {
-                    "type": "String"
-                },
-                "createdAt": {
-                    "type": "Date"
-                },
-                "date": {
-                    "type": "Date"
-                },
-                "deleted": {
-                    "type": "Boolean"
-                },
-                "location": {
-                    "type": "GeoPoint"
-                },
-                "myComments": {
-                    "type": "Relation",
-                    "targetClass": "comment"
-                },
-                "obj": {
-                    "type": "Object"
-                },
-                "objectId": {
-                    "type": "String"
-                },
-                "photo": {
-                    "type": "File"
-                },
-                "tags": {
-                    "type": "Array"
-                },
-                "title": {
-                    "type": "String"
-                },
-                "updatedAt": {
-                    "type": "Date"
-                }
-            }
-        },
-        {
-            "className": "comment",
-            "fields": {
-                "ACL": {
-                    "type": "ACL"
-                },
-                "content": {
-                    "type": "String"
-                },
-                "createdAt": {
-                    "type": "Date"
-                },
-                "objectId": {
-                    "type": "String"
-                },
-                "source": {
-                    "type": "Pointer",
-                    "targetClass": "post"
-                },
-                "updatedAt": {
-                    "type": "Date"
-                }
-            }
-        }
-    ];
 
 function Migrator() {
 }
@@ -152,55 +21,155 @@ function Migrator() {
 Migrator.prototype = (function () {
     // Private code here
 
+    function insertClass(streamer, datalink, fileName, converter, className, bulkRunner, callback) {
+        logger.info('start insert class ' + className);
+        streamer.getData(datalink, fileName, function (fileName, data) {
+
+            if (!data) {
+                callback();
+            }
+
+
+            var sql = converter.getInsertStatement(className, function (error) {
+                // error report
+            })
+
+            var valuesForBulkInserts = [];
+            // read each Parse class and insert it into a table
+            for (var i in data) {
+                var json = data[i];
+                var valuesToInsert = converter.getValuesToInsertStatement(className, json, function (error) {
+                    // error report
+                })
+
+                valuesForBulkInserts.push(valuesToInsert);
+            }
+
+            bulkRunner.insert(sql, valuesForBulkInserts, function (error) {
+                // error report
+            }, callback);
+        });
+    };
+
+    function updatePointers(streamer, datalink, fileName, converter, className, bulkRunner, callback) {
+        streamer.getData(datalink, fileName, function (fileName, data) {
+            var sql = "";
+            for (var i in data) {
+                var json = data[i];
+                var updateStatements = converter.getUpdateStatementsForAllPointer(className, json, function (error) {
+                    // error report
+                })
+                if (!updateStatements || updateStatements.length == 0) {
+                    break; // class has no pointers so there is no point to run through its data
+                }
+                sql = sql + updateStatements.join(";");
+            }
+
+            if (!sql){
+                callback();
+            }
+
+            bulkRunner.update(sql, function (error) {
+                // error report
+            }, callback);
+        });
+    };
+
+    function updateRelations(streamer, datalink, converter, className, parseSchema, bulkRunner, callback) {
+        var relations = parseSchema.getClassRelations(className, function (error) {
+            // error report
+        });
+        for (var i in relations) {
+            var relationName = relations[i];
+            var fileName = "_Join_" + relationName + "_" + className;
+            updateRelation(streamer, datalink, fileName, converter, className, relationName, bulkRunner, callback);
+        }
+    };
+
+    function updateRelation(streamer, datalink, fileName, converter, className, relationName, bulkRunner, callback) {
+        streamer.getData(datalink, fileName, function (fileName, data) {
+            var sql = "";
+            for (var i in data) {
+                var json = data[i];
+                var updateStatements = converter.getUpdateStatementsForRelation(className, relationName, json, function (error) {
+                    // error report
+                })
+                sql = sql + updateStatements.join(";");
+            }
+
+            bulkRunner.update(sql, function (error) {
+                // error report
+            }, callback);
+        });
+    };
+
+
     return {
 
         constructor: Migrator,
 
         run: function (appName, accessToken, connectionInfo, datalink, schema) {
+            // a schema wrapper with helping functions
             var parseSchema = new ParseSchema(schema);
-            var converter = new ClassJsonConverter(parseSchema);
-
+            // converts json to SQL Insert commands and parameters
+            var classJsonConverter = new ClassJsonConverter(parseSchema);
+            // converts Parse Pointers to SQL Update commands
+            var pointerConverter = new PointerConverter(parseSchema);
+            // converts Parse Relations to SQL Update commands
+            var relationConverter = new RelationConverter(parseSchema);
+            // run MySQL bulk SQL commands
             var bulkRunner = new BulkRunner(connectionInfo);
-
-
+            // read large json files
             var streamer = new Streamer();
 
-            streamer.getData(datalink, function (className, data) {
-                var sql = converter.getInsertStatement(className, function (error) {
+            // insert data of all classes without Relations and Pointers
+            async.series([function (callback) {
+                // iterate on each class in the schema
+                async.eachSeries(schema, function (sc, callback2) {
+                    // get the class
+                    var className = sc.className;
+                    logger.info('enter to schema ' + className);
+                    // get the file equivalent to this class
+                    var fileName = className + ".json";
+                    // insert the file to equivalent MySQL table
+                    insertClass(streamer, datalink, fileName, classJsonConverter, className, bulkRunner, callback2);
+                }, callback);
+            },
+                function (callback) {
+                    // update data of all classes Pointers
+                    async.eachSeries(schema, function (sc, callback2) {
+                        var className = sc.className;
+                        var fileName = className + ".json";
+                        updatePointers(streamer, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
+                    },callback);
+                },
+                function (callback) {
 
-                })
 
-                var valuesForBulkInserts = [];
-                for (var i in data) {
-                    var json = data[i];
-                    var valuesToInsert = converter.getValuesToInsertStatement(className, json, function (error) {
-
-
-                    })
-
-                    valuesForBulkInserts.push(valuesToInsert);
-                }
-
-                bulkRunner.insert(sql, valuesForBulkInserts, function (error) {
-                });
-            });
+                    // update data of all classes Relations
+                    async.eachSeries(schema, function (sc, callback2) {
+                        var className = sc.className;
+                        updateRelations(streamer, datalink, relationConverter, className, parseSchema, bulkRunner, callback2);
+                    }, callback);
+                }]);
         }
-
     };
 })();
 
 function test() {
-    var migrator = new Migrator();
-    var connectionInfo = {
-        multipleStatements: true,
-        host: "localhost",
-        database: "backandapp04newusq4e6hv13",
-        user: "root",
-        //password: "jay",
-        port: 3306
-    };
 
-    migrator.run("aaa", "", connectionInfo, "", schemaExample);
+    var cleaner = new Cleaner(testConnection);
+    var migrator = new Migrator();
+    cleaner.clean(testSchema, function (error) {
+        console.log(error);
+    }, function(){
+
+    }, function() {
+            migrator.run("aaa", "", testConnection, "./test/data/", testSchema)
+        }
+    );
+
+
 }
 
 test();
