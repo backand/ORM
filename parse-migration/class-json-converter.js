@@ -79,9 +79,17 @@ ClassJsonConverter.prototype = (function () {
             case "Boolean":
             case "Date":
             case "ACL":
-            case "String":
             case "Number":
                 values.push(value);
+                break;
+
+            case "String":
+                if (property == "objectId") {
+                    values.push(self.schema.toUUid(value));
+                }
+                else {
+                    values.push(value);
+                }
                 break;
 
             case "GeoPoint":

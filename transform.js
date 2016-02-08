@@ -168,6 +168,26 @@ var mapToKnexTypes =
 };
 
 // var r = transform(
+// 	[],
+// 	[
+
+// { name: 'post',
+//   fields: 
+//    { content: { type: 'string' },
+//      date: { type: 'datetime' },
+//      location: { type: 'point' },
+//      photo: { type: 'string' },
+//      title: { type: 'string' },
+//      comment_source: { collection: 'comment', via: 'source' } } },
+// { name: 'comment',
+//   fields: { content: { type: 'string' }, source: { object: 'post' } } }
+
+
+
+// 	],
+// 1, true);
+
+// var r = transform(
 // 	[{
 // 		"name": "R",
 
@@ -234,7 +254,7 @@ var mapToKnexTypes =
 // });
 
 
-function transform(oldSchema, newSchema, severity){
+function transform(oldSchema, newSchema, severity, isSpecialPrimary){
 
 	try{
 
@@ -268,7 +288,7 @@ function transform(oldSchema, newSchema, severity){
 	            });
 	    }
 		// Construct an array of the required changes between schemes
-		var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
+		var alterStatementsArray = createStatements(oldSchema, newSchema, modifications, isSpecialPrimary);
 		
 		// remove created at and updated at columns
 		alterStatementsArray = _.map(alterStatementsArray, function(s){
@@ -510,7 +530,7 @@ function getRelationships(newSchema){
 }
 
 // Transform the array of required changes into SQL alter statements
-function createStatements(oldSchema, newSchema, modifications){
+function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary){
 	var statements = [];
 	var oldRelationships = modifications.oldRelationships;
 	var newRelationships = modifications.newRelationships;
@@ -543,7 +563,13 @@ function createStatements(oldSchema, newSchema, modifications){
 	_.each(addedTables, function(t){
 		var statementsRelationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
-		  table.increments();
+		  if (!isSpecialPrimary){
+		  	table.increments();
+		  }
+		  else{
+		  	var idColumn = table.uuid('objectId');
+		  	idColumn.unique().primary();	  	
+		  }
 		  table.timestamps();
 
 		  var newTableSchema = _.findWhere(newSchema, { name: t });

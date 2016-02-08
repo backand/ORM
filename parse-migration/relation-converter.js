@@ -15,7 +15,7 @@ function RelationConverter(schema) {
 RelationConverter.prototype = (function() {
     // Private code here
     var getUpdateStatementForRelation = function(className, relationName, errorCallback) {
-        return "update `" + className + "` set `" + relationName + "Join` = @owningId where objectId = '@objectId'";
+        return "update `" + className + "` set `" + relationName + "Join` = '@owningId' where objectId = '@objectId'";
     };
 
     return {
@@ -24,9 +24,9 @@ RelationConverter.prototype = (function() {
 
         getUpdateStatementsForRelation:function(className, relationName, jsonFromParse, errorCallback) {
             var updateStatements = [];
-            var owningId = jsonFromParse.owningId;
-            var relatedId = jsonFromParse.relatedId;
-            var sql = getUpdateStatementForRelation(className, property, errorCallback);
+            var owningId = self.schema.toUUid(jsonFromParse.owningId);
+            var relatedId = self.schema.toUUid(jsonFromParse.relatedId);
+            var sql = getUpdateStatementForRelation(self.schema.getClassRelationTargetClass(className, relationName), relationName, errorCallback);
 
             return sql.replace("@owningId", owningId).replace("@objectId", relatedId);
         }

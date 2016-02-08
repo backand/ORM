@@ -21,16 +21,17 @@ PointerConverter.prototype = (function() {
 
         getUpdateStatementsForAllPointer:function(className, jsonFromParse, errorCallback) {
             var updateStatements = [];
-            var objectId = jsonFromParse.objectId;
+            var objectId = self.schema.toUUid(jsonFromParse.objectId);
 
             for (var property in jsonFromParse) {
                 try {
-                    if (json.hasOwnProperty(property)) {
+                    if (jsonFromParse.hasOwnProperty(property)) {
                         var propertyType = self.schema.getPropertyType(className, property, errorCallback);
                         switch (propertyType) {
                             case "Pointer":
                                 var pointer = "null";
-                                if (json[property] && json[property].objectId) pointer = "'" + json[property].objectId + "'";
+                                if (jsonFromParse[property] && jsonFromParse[property].objectId)
+                                    pointer = "'" + self.schema.toUUid(jsonFromParse[property].objectId) + "'";
                                 var sql = getUpdateStatementForSinglePointer(className, property, errorCallback).replace("@pointer", pointer).replace("@objectId", objectId);
                                 updateStatements.push(sql);
                                 break;
@@ -45,15 +46,14 @@ PointerConverter.prototype = (function() {
                         js: "PointerConverter",
                         func: "getUpdateStatementsForAllPointer",
                         className: className,
-                        objectId: json.objectId,
+                        objectId: jsonFromParse.objectId,
                         column: property,
                         message: "Parse to MySQL transformation error",
                         internalError: err
                     });
                 }
-
-                return updateStatements;
             }
+            return updateStatements;
         }
 
     };

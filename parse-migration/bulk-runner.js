@@ -24,7 +24,7 @@ BulkRunner.prototype = (function() {
             conn.query(sql, [values], function(err) {
                 conn.end();
                 if (err) {
-                    logger.error('error finish to insert');
+                    logger.error('error finish to insert ' + this.sql + ";  error: " + err.message);
 
                     errorCallback({
                         js: "BulkRunner",
@@ -35,9 +35,10 @@ BulkRunner.prototype = (function() {
                 }
                 else {
                     logger.trace('success finish to insert');
-
-                    successCallback();
                 };
+
+                successCallback();
+
             });
         },
 
@@ -47,6 +48,7 @@ BulkRunner.prototype = (function() {
             conn.query(sql, function(err) {
                 conn.end();
                 if (err) {
+                    logger.error('error finish to update ' + this.sql + ";  error: " + err.message);
                     errorCallback({
                         js: "BulkRunner",
                         func: "update",
@@ -56,10 +58,8 @@ BulkRunner.prototype = (function() {
                 }
                 else {
                     logger.trace('success finish to update');
-                    successCallback();
                 }
-
-
+                successCallback();
             });
         }
 

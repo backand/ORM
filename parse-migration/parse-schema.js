@@ -48,7 +48,7 @@ ParseSchema.prototype = (function() {
             var parseClass = this.getClass(className, errorCallback);
             var relations = [];
             for (var property in parseClass.fields) {
-                var propertyType = self.getPropertyType(className, property, errorCallback);
+                var propertyType = this.getPropertyType(className, property, errorCallback);
                 switch (propertyType) {
                     case "Relation":
                         relations.push(property);
@@ -59,6 +59,16 @@ ParseSchema.prototype = (function() {
                 }
             }
             return relations;
+        },
+
+        getClassRelationTargetClass:function(className, relationName, errorCallback) {
+            var parseClass = this.getClass(className, errorCallback);
+
+            return parseClass.fields[relationName].targetClass;
+        },
+
+        toUUid:function(str){
+            return '00000000-0000-0000-0000-00' + str;
         }
 
     };
