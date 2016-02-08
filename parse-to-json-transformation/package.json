@@ -1,0 +1,13 @@
+
+{
+  "name": "parse-to_json_transformation",
+  "version": "0.0.0",
+  "private": true,
+  "scripts":{
+    "test" : "echo no test yet"
+  },
+  "dependencies": {
+    "knex": "latest",
+    "lodash": "latest"
+  }
+}
