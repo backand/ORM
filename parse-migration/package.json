@@ -10,6 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "async": "^1.5.2",
-    "node-mysql": "latest"
+    "backandsdk": "0.0.5",
+    "mysql": "^2.10.2",
+    "q": "^1.4.1",
+    "underscore": "^1.8.3"
   }
 }
