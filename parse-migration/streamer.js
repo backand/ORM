@@ -41,7 +41,7 @@ Streamer.prototype = (function () {
 
         getDataFromSpecificObjectId: function (datalink, fileName, objectId, onData, finishCallback) {
             this.getDataInner(datalink, fileName, onData, finishCallback, objectId);
-        }
+        },
 
         getData: function (datalink, fileName, onData, finishCallback) {
             this.getDataInner(datalink, fileName, onData, finishCallback);

@@ -4,8 +4,7 @@
 
 var config = require('./config');
 var backand = require('backandsdk/backand');
-var logger = require('./logging/logger').getLogger('StatusBl');
-var async = require('async');
+—var async = require('async');
 var q = require('q');
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
