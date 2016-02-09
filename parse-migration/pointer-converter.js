@@ -12,7 +12,7 @@ function PointerConverter(schema) {
 PointerConverter.prototype = (function() {
     // Private code here
     var getUpdateStatementForSinglePointer = function(className, property, errorCallback) {
-        return "update `" + className + "` set `" + property + "` = @pointer where objectId = '@objectId'";
+        return "update ignore `" + className + "` set `" + property + "` = @pointer where objectId = '@objectId'";
     };
 
     return {
