@@ -201,8 +201,6 @@ function test() {
             migrator.run("aaa", "", testConnection, "./test/data/", testSchema)
         }
     );
-
-
 }
 
-test();
+//test();
