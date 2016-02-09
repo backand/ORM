@@ -33,7 +33,7 @@ StatusBl.prototype.getNextJob = function () {
                 return undefined;
             }
 
-            logger.info(`found ${result.length} jobs`);
+            //logger.info(`found ${result.length} jobs`);
 
             if (result[0].id) {
                 return result[0];
@@ -54,7 +54,7 @@ StatusBl.prototype.takeJob = function (job) {
 
     return backand.put('/1/objects/MigrationJobQueue/' + job.id + '?returnObject=true', job)
         .then(function (res) {
-            logger.info(`success take job ${job.id}`);
+            logger.info('success take job' + job.id);
         })
 }
 
@@ -71,7 +71,7 @@ StatusBl.prototype.fillSchemaTable = function (appName, tables) {
             isFinish: false
         };
 
-        backand.post('/1/objects/MigrationTablesApp?returnObject=true').then(() =>  {
+        backand.post('/1/objects/MigrationTablesApp?returnObject=true').then(function ()  {
             logger.info('finish fillTable for ' + tableName + ' in ' + appName);
             callback();
         })
@@ -99,7 +99,7 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
         current.endTime = new Date();
 
         backand.post('/1/objects/MigrationTablesApp/' + id, current)
-        .then(() => {
+        .then(function() {
             logger.info('finish setTableFinish for ' + tableName + ' in ' + appName);
             deferred.resolve();
         })

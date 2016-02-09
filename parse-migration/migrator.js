@@ -84,7 +84,7 @@ Migrator.prototype = (function () {
         var relations = parseSchema.getClassRelations(className, function (error) {
             // error report
         });
-        //for (var i in relations) {
+
         async.eachSeries(relations, function (rel, callback2) {
             var relationName = rel;
             var fileName = "_Join_" + relationName + "_" + className;
@@ -119,7 +119,7 @@ Migrator.prototype = (function () {
 
         constructor: Migrator,
 
-        run: function (appName, accessToken, connectionInfo, datalink, schema) {
+        run: function (appName, connectionInfo, datalink, schema, finishedCallback) {
             // a schema wrapper with helping functions
             var parseSchema = new ParseSchema(schema);
 
@@ -183,6 +183,13 @@ Migrator.prototype = (function () {
                         logger.info('finish step updateRelations');
                         callback()
                     });
+                },
+                function (callback) {
+
+                    finishedCallback();
+                    callback();
+                    logger.info('finished migration');
+
                 }]);
         }
     };
@@ -198,7 +205,10 @@ function test() {
     }, function(){
 
     }, function() {
-            migrator.run("aaa", "", testConnection, "./test/data/", testSchema)
+            migrator.run("aaa", testConnection, "./test/data/", testSchema, function(){
+                logger.info('finishedCallback');
+
+            });
         }
     );
 

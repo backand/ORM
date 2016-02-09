@@ -6,9 +6,9 @@ var _ = require('underscore');
 
 var api_url = require('./configFactory').getConfig().api_url;
 
-var connectionInfoUrl = "https://api.backand.com:8079/admin/myApps/";
+var connectionInfoUrl = api_url + "/admin/myApps/";
 // https://api.backand.com:8079/admin/myApps/testsql?deep=true
-var connectionPasswordUrl = "https://api.backand.com:8079/admin/myAppConnection/getPassword/";
+var connectionPasswordUrl = api_url + "/admin/myAppConnection/getPassword/";
 
 function getConnectionInfo(accessToken, tokenType, appName, getCallback){
 	
@@ -33,11 +33,12 @@ function getConnectionInfo(accessToken, tokenType, appName, getCallback){
 					    if(!error && response.statusCode == 200) {
 					    	var body = JSON.parse(body);
 					    	var databaseConnection = body["Database_Connection"];					    	
-					    	var info = { 
-					    		hostname: databaseConnection["ServerName"],
-					    		port: databaseConnection["ProductPort"], 
-					    		db: databaseConnection["Catalog"], 
-					    		username: databaseConnection["Username"]   
+					    	var info = {
+								"multipleStatements": true,
+								host: databaseConnection["ServerName"],
+					    		port: databaseConnection["ProductPort"],
+								database: databaseConnection["Catalog"],
+					    		user: databaseConnection["Username"]
 					    	};
 					    	callback(null, info);
 					    }
@@ -102,3 +103,16 @@ function getConnectionInfo(accessToken, tokenType, appName, getCallback){
 	)
 
 }
+
+function test(){
+	var accessToken = "MmwQD904WBS8UlAxCS3jMl0yWh4jovyWIeM1yklNMvkqjpG0lfLBwr5JaOm1G2zhJW1OtnEMaewgK7UGlh95EXUxNaNl6jBIitZbMueK90bq9AfdvTbGYZzuIh_h57c0h39SD00zDrAZ7mLJ0b2cbGuD8RsYpdbMU2rxDNKAHVRcjKbVlTe1oEWkZAX3BlC0rH-udzSnOUD4yMN2yN6erKEWyeE8Uq-MQWsUa6F2-3AK6NWcvNt8G5aZRZoGLRM6_DdOTHz0pukUvEfSj1xi2Q";
+	var tokenType = "bearer";
+	var appName = "stat01";
+
+	getConnectionInfo(accessToken, tokenType, appName, function(err, r){
+		console.log(r);
+	})
+
+}
+
+test();

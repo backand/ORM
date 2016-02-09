@@ -20,10 +20,8 @@ Cleaner.prototype = (function() {
 
         clean:function(parseSchema, errorCallback, successCallback, afterAllCompletedCallback) {
             var bulkRunner = new BulkRunner(self.connectionInfo);
-            async.each(parseSchema,
+            async.eachSeries(parseSchema,
                 function(parseClass, successCallback){
-
-
                     var sql = "SET FOREIGN_KEY_CHECKS = 0; truncate table " + parseClass.className + "; SET FOREIGN_KEY_CHECKS = 1;";
                     bulkRunner.update(sql, function (error) {
                         errorCallback(error);
