@@ -7,6 +7,7 @@ var PointerConverter = require('./pointer-converter');
 var RelationConverter = require('./relation-converter');
 var BulkRunner = require('./bulk-runner');
 var Streamer = require('./streamer');
+var Report = require('./report');
 var logger = require('./logging/logger').getLogger('Migrator');
 var async = require('async');
 // test
@@ -53,11 +54,14 @@ Migrator.prototype = (function () {
         // read large json files
         var streamer = new Streamer();
 
+        // report errors and statistics
+        var report = new Report("./" + appName + ".json");
+
         // insert data of all classes without Relations and Pointers
         async.series([
             function (callback) {
                 logger.info('start insertClass');
-                var insertStep = new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer);
+                var insertStep = new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer, report);
                 // iterate on each class in the schema
                 async.eachSeries(schema, function (sc, callback2) {
                         // get the class
@@ -82,7 +86,7 @@ Migrator.prototype = (function () {
 
                     var className = sc.className;
                     var fileName = className + ".json";
-                    updatePointerStep.updatePointers(streamer, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
+                    updatePointerStep.updatePointers(streamer, report, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
                 }, function () {
                     logger.info('finish step pointer');
                     callback()
@@ -94,7 +98,7 @@ Migrator.prototype = (function () {
                 // update data of all classes Relations
                 async.eachSeries(schema, function (sc, callback2) {
                     var className = sc.className;
-                    updateRelationStep.updateRelations(streamer, datalink, relationConverter, className, parseSchema, bulkRunner, callback2);
+                    updateRelationStep.updateRelations(streamer, report, datalink, relationConverter, className, parseSchema, bulkRunner, callback2);
                 }, function () {
                     logger.info('finish step updateRelations');
                     callback()
@@ -164,12 +168,9 @@ function test2() {
         }, function () {
             var statusBl = new StatusBl();
             statusBl.connect().then(function() {
-
-
                 migrator.runTest("aaa", testConnection, "./test/data/",
                     testSchema, statusBl, function () {
                         logger.info('finishedCallback');
-
                     })
             })
         }

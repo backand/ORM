@@ -10,8 +10,8 @@ function updateRelationStep () {
 
 }
 
-updateRelationStep.prototype.updateRelations = function(streamer, datalink, converter, className, parseSchema, bulkRunner, finishAllCallback) {
-    var current =this;
+updateRelationStep.prototype.updateRelations = function(streamer, report, datalink, converter, className, parseSchema, bulkRunner, finishAllCallback) {
+    var current = this;
     var relations = parseSchema.getClassRelations(className, function (error) {
         // error report
     });
@@ -20,7 +20,7 @@ updateRelationStep.prototype.updateRelations = function(streamer, datalink, conv
         var relationName = rel;
         var fileName = "_Join_" + relationName + "_" + className + '.json';
         logger.info('start ' + fileName)
-        current.updateRelation(streamer, datalink, fileName, converter, className, relationName, bulkRunner, callback2);
+        current.updateRelation(streamer, report, datalink, fileName, converter, className, relationName, bulkRunner, callback2);
     }, finishAllCallback);
 };
 
@@ -42,9 +42,10 @@ updateRelationStep.prototype.updateRelationInner = function(sql , bulkRunner, ca
     }
 }
 
-updateRelationStep.prototype.updateRelation = function(streamer, datalink, fileName, converter, className, relationName, bulkRunner, callback) {
+updateRelationStep.prototype.updateRelation = function(streamer, report, datalink, fileName, converter, className, relationName, bulkRunner, callback) {
     var current = this;
     current.updateRelationBulk = [];
+    current.report = report;
 
     function updateRelationOnFinish(){
         current.updateRelationInner(current.updateRelationBulk,bulkRunner, callback);

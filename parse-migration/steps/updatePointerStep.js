@@ -9,7 +9,7 @@ function updatePointer(){
 
 }
 
-updatePointer.prototype.updateInner = function(bulkRunner, cb) {
+updatePointer.prototype.updateInner = function(className, bulkRunner, cb) {
     var current =this;
     // transform
     if(current.updateStatetmentBulk.length > 0) {
@@ -17,8 +17,10 @@ updatePointer.prototype.updateInner = function(bulkRunner, cb) {
 
         bulkRunner.update(command, function (error) {
             // error report
-            logger.error(command + ' ' + JSON.stringify(error));
+            logger.error(command + ' ' + JSON.stringify(error))
+            current.report.updatePointerError(className, error);
         }, function () {
+            current.report.updatePointerSuccess(className, current.valuesForBulkInserts.length);
             current.updateStatetmentBulk = [];
             cb();
         });
@@ -28,12 +30,13 @@ updatePointer.prototype.updateInner = function(bulkRunner, cb) {
     }
 }
 
-updatePointer.prototype.updatePointers = function(streamer, datalink, fileName, converter, className, bulkRunner, callback) {
+updatePointer.prototype.updatePointers = function(streamer, report, datalink, fileName, converter, className, bulkRunner, callback) {
     var current =this;
+    current.report = report;
     current.updateStatetmentBulk = [];
     current.filename = fileName;
     function updatePointerOnFinish() {
-        current.updateInner(bulkRunner, function () {
+        current.updateInner(className, bulkRunner, function () {
             logger.info('finish updatePointers for ' + current.filename);
             callback();
         })
@@ -51,7 +54,7 @@ updatePointer.prototype.updatePointers = function(streamer, datalink, fileName, 
 
         current.updateStatetmentBulk.push(sqlArray.join(";"));
         if (current.updateStatetmentBulk.length === BULK_SIZE) {
-            current.updateInner(bulkRunner, cb);
+            current.updateInner(className, bulkRunner, cb);
         } else{
             cb();
         }

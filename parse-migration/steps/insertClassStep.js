@@ -7,23 +7,26 @@ const BULK_SIZE = 1;
 
 //                var insertStep = new InsertClassStep(statusBl, bulkRunner, classJsonConverter, streamer);
 
-function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer){
+function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer, report){
     this.appName= appName;
     this.statusBl = statusBl;
     this.bulkRunner = bulkRunner;
     this.converter = classJsonConverter;
     this.streamer = streamer;
+    this.report = report;
 }
 
 
-insertClass.prototype.insertClassInsertToDB = function(sql, cb) {
+insertClass.prototype.insertClassInsertToDB = function(className, sql, cb) {
 // check bulk size arrive to size, if true => send to db
     var current = this;
     logger.info('bulkRunner insert ' + sql);
     current.bulkRunner.insert(sql, current.valuesForBulkInserts, function (error) {
         logger.error('bulkRunner error ' + sql);
+        current.report.insertClassError(className, error);
     }, function () {
         logger.info('bulkRunner finish insert ' + sql);
+        current.report.insertClassSuccess(className, current.valuesForBulkInserts.length);
         current.valuesForBulkInserts = [];
         cb();
     });
@@ -44,7 +47,7 @@ insertClass.prototype.insertClass = function( datalink, fileName, className, cal
         }
 
         if (current.valuesForBulkInserts && current.valuesForBulkInserts.length > 0) {
-            insertClassInsertToDB(current.sql, function () {
+            insertClassInsertToDB(className, current.sql, function () {
                 logger.info('finsih getData ' + fileName);
                 updateTableStatus();
             });
@@ -69,7 +72,7 @@ insertClass.prototype.insertClass = function( datalink, fileName, className, cal
             current.valuesForBulkInserts.push(valuesToInsert);
             if (current.valuesForBulkInserts.length === BULK_SIZE) {
                 console.log('send data to bulk');
-                current.insertClassInsertToDB(current.sql, cb);
+                current.insertClassInsertToDB(className, current.sql, cb);
             }
             else {
                 cb();
