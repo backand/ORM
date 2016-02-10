@@ -1,14 +1,14 @@
 /**
  * Created by backand on 2/4/16.
  */
-
+var logger = require('./logging/logger').getLogger('statusBL');
 var config = require('./config');
-var backand = require('backandsdk/backand');
+var BackandSDK = require('backandsdk/backand');
+var backand = new BackandSDK();
 var async = require('async');
 var q = require('q');
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
-var logger  = require('./logging/logger').getLogger('updateRelation');
 
 
 var StatusBl = function (workerId) {
@@ -73,26 +73,30 @@ StatusBl.prototype.takeJob = function (job) {
         })
 }
 
-StatusBl.prototype.fillSchemaTable = function (appName, tables) {
+StatusBl.prototype.fillSchemaTable = function (appName, status, tables) {
     var deferred = q.defer();
 
-    async.eachSeries(tables, function iterator(tableName, callback) {
-        logger.info('start fillTable for ' + tableName + ' in ' + appName);
-        var data = {
-            appName: appName,
-            tableName: tableName,
-            insertTime: new Date(),
-            endTime: null,
-            isFinish: false
-        };
-
-        backand.post('/1/objects/MigrationTablesApp?returnObject=true', data)
-            .then(function () {
-                logger.info('finish fillTable for ' + tableName + ' in ' + appName);
-                callback();
-            })
-    }, function done() {
+    if(status == 1){
         deferred.resolve();
+        return deferred.promise;
+    }
+
+    async.eachSeries(tables, function iterator(tableName, callback) {
+      logger.info('start fillTable for ' + tableName + ' in ' + appName);
+      var data = {
+        appName: appName,
+        tableName: tableName,
+        insertTime: new Date(),
+        endTime: null,
+        isFinish: false
+      };
+      backand.post('/1/objects/MigrationTablesApp?returnObject=true', data)
+          .then(function () {
+            logger.info('finish fillTable for ' + tableName + ' in ' + appName);
+            callback();
+          })
+    }, function done() {
+      deferred.resolve();
     });
 
     return deferred.promise;
@@ -140,6 +144,27 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
         })
 
     return deferred.promise;
+}
+
+StatusBl.prototype.model = function (schema, token) {
+
+  logger.info('start post the new model ');
+
+  var deferred = q.defer();
+
+  var backandClient = new BackandSDK();
+
+  var data = {"newSchema": schema, "severity": 0};
+
+  backandClient.basicAuth(token).then(function(){
+    backandClient.post('/1/model',data).then(function(){
+      logger.info('end post the new model');
+      deferred.resolve();
+    })
+  });
+
+  return deferred.promise;
+
 }
 
 StatusBl.prototype.setCurrentObjectId = function (appName, file, objectId) {
