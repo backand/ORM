@@ -8,6 +8,7 @@ var async = require('async');
 var q = require('q');
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
+var logger  = require('./logging/logger').getLogger('updateRelation');
 
 
 var StatusBl = function (workerId) {
@@ -104,9 +105,26 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
 
     var deferred = q.defer();
 
-    backand.get('/1/objects/MigrationTablesApp', {'appName': appName, 'tableName': tableName})
+    backand.get('/1/objects/MigrationTablesApp',undefined ,
+        [
+            {
+                fieldName: 'appName',
+                operator: 'equals',
+                value: appName
+            },
+            {
+                fieldName: 'tableName',
+                operator: 'equals',
+                value: tableName
+            }]
+        )
         .then(function (res) {
             var current = res.data[0];
+
+            if(!current){
+                deferred.reject('can"t find intresting this in response: ' + JSON.stringify(res.data));
+                return;
+            }
             var id = current.id;
 
             logger.trace('finish get step setTableFinish for ' + tableName + ' in ' + appName + ' id is ' + id + ' res: ' + JSON.stringify(res));

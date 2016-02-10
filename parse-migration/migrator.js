@@ -13,6 +13,17 @@ var async = require('async');
 var testSchema = require('./test/schema.json').results;
 var testConnection = require('./test/connection.json');
 var Cleaner = require('./test/cleaner');
+var StatusBl = require('./statusBl');
+//
+
+var connectionRetreiver = require('../get_connection_info');
+
+// STEPS //
+var InsertClassStep = require('./steps/insertClassStep');
+var UpdatePointerStep = require('./steps/updatePointerStep');
+var UpdateRelationStep = require('./steps/updateRelationStep');
+//
+
 
 
 function Migrator() {
@@ -20,178 +31,106 @@ function Migrator() {
 
 Migrator.prototype = (function () {
     // Private code here
+    var current = this;
 
-    function insertClass(streamer, datalink, fileName, converter, className, bulkRunner, callback) {
-        logger.info('start insert class ' + className);
-        streamer.getData(datalink, fileName, function (fileName, data) {
-            logger.info('start getData ' + fileName);
 
-            if (!data) {
+    function runInner(appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus) {
+        // a schema wrapper with helping functions
+        var parseSchema = new ParseSchema(schema);
+
+        // converts json to SQL Insert commands and parameters
+        var classJsonConverter = new ClassJsonConverter(parseSchema);
+
+        // converts Parse Pointers to SQL Update commands
+        var pointerConverter = new PointerConverter(parseSchema);
+
+        // converts Parse Relations to SQL Update commands
+        var relationConverter = new RelationConverter(parseSchema);
+
+        // run MySQL bulk SQL commands
+        var bulkRunner = new BulkRunner(connectionInfo);
+
+        // read large json files
+        var streamer = new Streamer();
+
+        // insert data of all classes without Relations and Pointers
+        async.series([
+            function (callback) {
+                logger.info('start insertClass');
+                var insertStep = new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer);
+                // iterate on each class in the schema
+                async.eachSeries(schema, function (sc, callback2) {
+                        // get the class
+                        var className = sc.className;
+
+                        // get the file equivalent to this class
+                        var fileName = className + ".json";
+
+                        // insert the file to equivalent MySQL table
+                        insertStep.insertClass(datalink, fileName,className, callback2);
+                    }, function () {
+                        logger.info('finish step insertClass');
+                        callback()
+                    }
+                );
+            },
+            function (callback) {
+                logger.info('start Pointer step');
+                var updatePointerStep = new UpdatePointerStep();
+                // update data of all classes Pointers
+                async.eachSeries(schema, function (sc, callback2) {
+
+                    var className = sc.className;
+                    var fileName = className + ".json";
+                    updatePointerStep.updatePointers(streamer, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
+                }, function () {
+                    logger.info('finish step pointer');
+                    callback()
+                });
+            },
+            function (callback) {
+                logger.info('start updateRelations step');
+                var updateRelationStep = new UpdateRelationStep();
+                // update data of all classes Relations
+                async.eachSeries(schema, function (sc, callback2) {
+                    var className = sc.className;
+                    updateRelationStep.updateRelations(streamer, datalink, relationConverter, className, parseSchema, bulkRunner, callback2);
+                }, function () {
+                    logger.info('finish step updateRelations');
+                    callback()
+                });
+            },
+            function (callback) {
+
+                finishedCallback();
                 callback();
-            }
+                logger.info('finished migration');
 
-            else {
-                var sql = converter.getInsertStatement(className, function (error) {
-                    // error report
-                })
-
-                var valuesForBulkInserts = [];
-
-                // read each Parse class and insert it into a table
-                for (var i in data) {
-                    var json = data[i];
-                    var valuesToInsert = converter.getValuesToInsertStatement(className, json, function (error) {
-                        // error report
-                    })
-
-                    valuesForBulkInserts.push(valuesToInsert);
-                }
-
-                logger.info('bulkRunner insert ' + sql);
-                bulkRunner.insert(sql, valuesForBulkInserts, function (error) {
-                }, callback);
-            }
-        });
+            }]);
     };
-
-    function updatePointers(streamer, datalink, fileName, converter, className, bulkRunner, callback) {
-        streamer.getData(datalink, fileName, function (fileName, data) {
-            var sql = "";
-            for (var i in data) {
-                var json = data[i];
-                var updateStatements = converter.getUpdateStatementsForAllPointer(className, json, function (error) {
-                    // error report
-                })
-                if (!updateStatements || updateStatements.length == 0) {
-                    break; // class has no pointers so there is no point to run through its data
-                }
-                sql = sql + updateStatements.join(";") + ";";
-            }
-
-            if (!sql){
-                callback();
-            }
-            else {
-                bulkRunner.update(sql, function (error) {
-                    // error report
-
-                }, callback);
-            }
-        });
-    };
-
-    function updateRelations(streamer, datalink, converter, className, parseSchema, bulkRunner, callback) {
-        var relations = parseSchema.getClassRelations(className, function (error) {
-            // error report
-        });
-
-        async.eachSeries(relations, function (rel, callback2) {
-            var relationName = rel;
-            var fileName = "_Join_" + relationName + "_" + className;
-            updateRelation(streamer, datalink, fileName, converter, className, relationName, bulkRunner, callback2);
-        }, callback );
-    };
-
-    function updateRelation(streamer, datalink, fileName, converter, className, relationName, bulkRunner, callback) {
-        streamer.getData(datalink, fileName, function (fileName, data) {
-            var sql = "";
-            for (var i in data) {
-                var json = data[i];
-                var updateStatements = converter.getUpdateStatementsForRelation(className, relationName, json, function (error) {
-                    // error report
-                })
-                sql = sql + updateStatements + ";";
-            }
-
-            if (!sql){
-                callback();
-            }
-            else {
-                bulkRunner.update(sql, function (error) {
-                    // error report
-                }, callback);
-            }
-        });
-    };
-
 
     return {
 
         constructor: Migrator,
 
-        run: function (appName, connectionInfo, datalink, schema, finishedCallback) {
-            // a schema wrapper with helping functions
-            var parseSchema = new ParseSchema(schema);
+        run: function (job, directory, statusBl, finishedCallback) {
+            var self = this;
+            self.directory = directory;
+            self.currentJob = job;
+            self.statusBl = statusBl;
 
-            // converts json to SQL Insert commands and parameters
-            var classJsonConverter = new ClassJsonConverter(parseSchema);
+            var caller = finishedCallback;
 
-            // converts Parse Pointers to SQL Update commands
-            var pointerConverter = new PointerConverter(parseSchema);
+            connectionRetreiver.getConnectionInfoSimple(job.appToken, job.appName, function (err, result) {
+                var job = self.currentJob;
+                runInner(job.appName, result, self.directory, job.parseSchema, self.statusBl, caller);
+            });
+        },
 
-            // converts Parse Relations to SQL Update commands
-            var relationConverter = new RelationConverter(parseSchema);
-
-            // run MySQL bulk SQL commands
-            var bulkRunner = new BulkRunner(connectionInfo);
-
-            // read large json files
-            var streamer = new Streamer();
-
-            // insert data of all classes without Relations and Pointers
-            async.series([function (callback) {
-                logger.info('start insertClass');
-                // iterate on each class in the schema
-                async.eachSeries(schema, function (sc, callback2) {
-
-                    // get the class
-                    var className = sc.className;
-
-
-                    // get the file equivalent to this class
-                    var fileName = className + ".json";
-
-                    // insert the file to equivalent MySQL table
-                    insertClass(streamer, datalink, fileName,  classJsonConverter, className, bulkRunner, callback2);
-                }, function() {
-                        logger.info('finish step insertClass');
-                    callback()
-                }
-                );
-            },
-                function (callback) {
-                    logger.info('start Pointer step');
-                    // update data of all classes Pointers
-                    async.eachSeries(schema, function (sc, callback2) {
-
-                        var className = sc.className;
-                        var fileName = className + ".json";
-                        updatePointers(streamer, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
-                    },function() {
-                        logger.info('finish step pointer');
-                        callback()
-                    });
-                },
-                function (callback) {
-                    logger.info('start updateRelations step');
-
-                    // update data of all classes Relations
-                    async.eachSeries(schema, function (sc, callback2) {
-                        var className = sc.className;
-                        updateRelations(streamer, datalink, relationConverter, className, parseSchema, bulkRunner, callback2);
-                    }, function() {
-                        logger.info('finish step updateRelations');
-                        callback()
-                    });
-                },
-                function (callback) {
-
-                    finishedCallback();
-                    callback();
-                    logger.info('finished migration');
-
-                }]);
+        runTest: function (appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus) {
+            runInner(appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus);
         }
+
     };
 })();
 
@@ -201,11 +140,11 @@ function test() {
     var migrator = new Migrator();
     // perform database cleanup to initiate all the tables. only needed in the test
     cleaner.clean(testSchema, function (error) {
-        console.log(error);
-    }, function(){
+            console.log(error);
+        }, function () {
 
-    }, function() {
-            migrator.run("aaa", testConnection, "./test/data/", testSchema, function(){
+        }, function () {
+            migrator.run("aaa", testConnection, "./test/data/", testSchema, function () {
                 logger.info('finishedCallback');
 
             });
@@ -213,4 +152,28 @@ function test() {
     );
 }
 
+function test2() {
+
+    var cleaner = new Cleaner(testConnection);
+    var migrator = new Migrator();
+    // perform database cleanup to initiate all the tables. only needed in the test
+    cleaner.clean(testSchema, function (error) {
+            console.log(error);
+        }, function () {
+
+        }, function () {
+            var statusBl = new StatusBl();
+            statusBl.connect().then(function() {
+
+
+                migrator.runTest("aaa", testConnection, "./test/data/",
+                    testSchema, statusBl, function () {
+                        logger.info('finishedCallback');
+
+                    })
+            })
+        }
+    );
+}
+test2();
 //test();

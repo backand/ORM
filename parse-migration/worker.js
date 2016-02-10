@@ -27,11 +27,9 @@ function mainRoutine() {
                         // todo:
                         //add schema
                         // call to fillSchemaTable
-
-
                         logger.info('start migrator for app ' + job.appName)
 
-                        migrator.run(job.appName, job.appToken, undefined, job.parseSchema, directory, function () {
+                        migrator.run(job, directory, statusBl, function () {
                             statusBl.finishJob(job).then(function () {
                                 logger.info('job finish ' + job.appName);
                                 mainRoutine();
