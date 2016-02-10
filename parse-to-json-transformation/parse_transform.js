@@ -21,8 +21,11 @@ function transform(schema){
 		return !_.startsWith(o.className, '_Join');
 	});
 
-	// find 1:n relationship - collect the many side in order to generate the one side later
+	// find 1:n relationship - 
+	// collect the many side for a pointer type in order to generate the one side later
+	// collect the one side for a relation type in order to generate the many side later
 	oneManyRelationships = {};
+	manyOneRelationships = {};
 	_.each(primaryObjects, function(o){
 		_.each(o.fields, function(columnDescription, columnName){
 			if (columnDescription.type == 'Pointer'){ // many side
@@ -33,6 +36,15 @@ function transform(schema){
 					oneManyRelationships[oneObject] = [];
 				}
 				oneManyRelationships[oneObject].push({ object: manyObject, column: manyColumn });
+			}
+			else if (columnDescription.type == 'Relation'){ // one side
+				var oneObject = o.className;
+				var manyObject = columnDescription.targetClass;
+				var oneColumn = columnName;
+				if (!_.has(manyOneRelationships, oneObject)){
+					manyOneRelationships[manyObject] = [];
+				}
+				manyOneRelationships[manyObject].push({ object: oneObject, column: oneColumn });
 			}
 		});
 	});
@@ -55,6 +67,12 @@ function transformPrimaryObject(o){
 				'object': columnDescription.targetClass
 			};
 		}
+		else if (columnDescription.type == 'Relation'){
+			fields[columnName] = {
+				'collection': columnDescription.targetClass,
+				'via': o.className  + "_" + columnName
+			};
+		}
 	});
 
 	// generate one side of many-to-one relationship
@@ -64,6 +82,16 @@ function transformPrimaryObject(o){
 			fields[newColumnName] = {
 				collection: oneAttribute.object,
 				via: oneAttribute.column
+			};
+		});
+	}
+
+	// generate many side of many-to-one relationship
+	if (_.has(manyOneRelationships, o.className)){
+		_.each(manyOneRelationships[o.className], function(manyAttribute){
+			var newColumnName = manyAttribute.object + "_" + manyAttribute.column;
+			fields[newColumnName] = {
+				object: manyAttribute.object
 			};
 		});
 	}
