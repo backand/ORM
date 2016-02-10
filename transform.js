@@ -567,7 +567,7 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 		  	table.increments();
 		  }
 		  else{
-		  	var idColumn = table.uuid('objectId');
+		  	var idColumn = table.uuid('id');
 		  	idColumn.unique().primary();	  	
 		  }
 		  table.timestamps();

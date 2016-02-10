@@ -91,7 +91,10 @@ router.map(function () {
             res.send(500, {error: isValidNewSchema.error}, {});
         }
         else if (isValidNewSchema.valid) {
-            result = transformer(data.oldSchema, data.newSchema, data.severity);
+            var isSpecialPrimary = false;
+            if (data.isSpecialPrimary)
+                isSpecialPrimary = true;
+            result = transformer(data.oldSchema, data.newSchema, data.severity, isSpecialPrimary);
             logger.trace(result);
 
             if (result.error) {

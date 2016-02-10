@@ -37,11 +37,19 @@ ClassJsonConverter.prototype = (function () {
             switch (propertyType) {
                 case "Boolean":
                 case "Date":
-                case "String":
                 case "Number":
                 case "ACL":
                 case "File":
                     columns.push(property);
+                    break;
+
+                case "String":
+                    if (property == "objectId") {
+                        columns.push("id");
+                    }
+                    else {
+                        columns.push(property);
+                    }
                     break;
 
                 case "GeoPoint":

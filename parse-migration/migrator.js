@@ -11,9 +11,9 @@ var Report = require('./report');
 var logger = require('./logging/logger').getLogger('Migrator');
 var async = require('async');
 // test
-var testSchema = require('./test/schema.json');
-var testConnection = require('./test/connection.json');
-var Cleaner = require('./test/cleaner');
+//var testSchema = require('./test/schema.json');
+//var testConnection = require('./test/connection.json');
+//var Cleaner = require('./test/cleaner');
 var StatusBl = require('./statusBl');
 //
 
@@ -182,5 +182,5 @@ function test2() {
         }
     );
 }
-test2();
+//test2();
 //test();

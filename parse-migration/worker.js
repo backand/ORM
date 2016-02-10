@@ -11,7 +11,7 @@ var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
 var transformer = require('../parse-to-json-transformation/parse_transform').transformer;
-var globalConfig = require('configFactory').getConfig();
+var globalConfig = require('./configFactory').getConfig();
 var workerId = globalConfig.workerId;
 
 

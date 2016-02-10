@@ -1,0 +1,7 @@
+{
+  "multipleStatements": true,
+  "host": "localhost",
+  "database": "backandapp04newusq4e6hv13",
+  "user": "root",
+  "port": 3306
+}

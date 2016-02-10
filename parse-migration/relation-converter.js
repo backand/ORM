@@ -15,7 +15,7 @@ function RelationConverter(schema) {
 RelationConverter.prototype = (function() {
     // Private code here
     var getUpdateStatementForRelation = function(className, relationName, errorCallback) {
-        return "update `" + className + "` set `" + relationName + "Join` = '@owningId' where objectId = '@objectId'";
+        return "update `" + className + "` set `" + relationName + "Join` = '@owningId' where id = '@objectId'";
     };
 
     return {

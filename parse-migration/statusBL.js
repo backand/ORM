@@ -2,14 +2,14 @@
  * Created by backand on 2/4/16.
  */
 var logger = require('./logging/logger').getLogger('statusBL');
-var config = require('./config');
+var globalConfig = require('./configFactory').getConfig();
+var config = globalConfig.authDetail;
 var BackandSDK = require('backandsdk/backand');
-var backand = new BackandSDK();
+var backand = new BackandSDK(globalConfig.api_url);
 var async = require('async');
 var q = require('q');
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
-var globalConfig = require('configFactory').getConfig();
 
 
 var StatusBl = function (workerId) {
