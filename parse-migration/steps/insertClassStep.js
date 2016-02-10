@@ -29,6 +29,7 @@ insertClass.prototype.insertClassInsertToDB = function(sql, cb) {
     });
 }
 
+
 insertClass.prototype.insertClass = function( datalink, fileName, className, callback) {
     var current = this;
     function onInsertClassFinish() {
