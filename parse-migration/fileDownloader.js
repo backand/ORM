@@ -9,7 +9,12 @@ var q = require('q');
 var logger = require('./logging/logger').getLogger('FileUtil');
 var Zip = require("adm-zip");
 var mkdirp = require('mkdirp');
-
+var Utils = require("adm-zip/util");
+var pth = require("path");
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
 
 function downloadFile(url, fileName) {
     logger.info('start download file ' + url + ' \nfileName ' + fileName);
@@ -42,7 +47,15 @@ function unzipFile(fileName, directory) {
         }
 
         try {
-            zip.extractAllTo(path, true);
+            zip.getEntries().forEach(function(entry) {
+
+                var content = entry.getData();
+                if (!content) {
+                    throw Utils.Errors.CANT_EXTRACT_FILE + "2";
+                }
+                Utils.writeFileTo(pth.resolve(path, entry.entryName.toString().replaceAll(":","_")), content, true);
+            })
+           // zip.extractAllTo(path, true);
             logger.info('finish unzip for ' + path);
             deferred.resolve(path);
         } catch (err2) {
@@ -50,7 +63,6 @@ function unzipFile(fileName, directory) {
         }
 
     });
-
     return deferred.promise;
 }
 

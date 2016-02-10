@@ -35,7 +35,10 @@ insertClass.prototype.insertClassInsertToDB = function(className, sql, cb) {
 
 insertClass.prototype.insertClass = function( datalink, fileName, className, callback) {
     var current = this;
-    function onInsertClassFinish() {
+    function onInsertClassFinish(err) {
+        if (err){
+            current.report.insertClassError(className, err);
+        }
         function updateTableStatus() {
             current.statusBl.setTableFinish(current.appName, fileName)
                 .fail(function (error) {

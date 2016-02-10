@@ -34,6 +34,14 @@ Streamer.prototype = (function () {
 
         var path = datalink + fileName;
 
+        try {
+            fs.accessSync(path, fs.R_OK);
+        }
+        catch(err){
+            finishCallback(err);
+            return;
+        }
+
         var a = fs.createReadStream(path)
             .on('end',function(){
                 // assign a callback

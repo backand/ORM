@@ -30,7 +30,7 @@ function mainRoutine() {
           logger.info('start unzip for app ' + job.appName)
 
           fileUtil.unzipFile(filePath, job.appName).then(function (directory) {
-
+            logger.info('start schema transformation');
             //add schema
             var objects = [];
             var t = transformer(JSON.parse(job.parseSchema));
@@ -49,7 +49,8 @@ function mainRoutine() {
 
                 logger.info('start migration for app ' + job.appName);
                 //add all the files into the app table
-                migrator.run(job.appName, job.appToken, undefined, job.parseSchema, directory, function () {
+                directory = directory + "/";
+                migrator.run (job, directory, statusBl,  function () {
                   statusBl.finishJob(job).then(function () {
                     logger.info('job finish ' + job.appName);
                     mainRoutine();
@@ -58,8 +59,8 @@ function mainRoutine() {
               })
             });
 
-          });
-        });
+          }, logError);
+        }, logError);
       } else {
         setTimeout(mainRoutine, waitInterval);
       }
@@ -67,6 +68,12 @@ function mainRoutine() {
   });
 
 }
+
+function logError(err){
+  logger.error(err);
+}
+
+
 
 mainRoutine();
 

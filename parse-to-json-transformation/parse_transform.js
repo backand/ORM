@@ -38,12 +38,13 @@ function transform(schema){
 				oneManyRelationships[oneObject].push({ object: manyObject, column: manyColumn });
 			}
 			else if (columnDescription.type == 'Relation'){ // one side
-				var oneObject = o.className;
+				var oneObject = o.className
 				var manyObject = columnDescription.targetClass;
 				var oneColumn = columnName;
-				if (!_.has(manyOneRelationships, oneObject)){
+				if (!_.has(manyOneRelationships, manyObject)){
 					manyOneRelationships[manyObject] = [];
 				}
+
 				manyOneRelationships[manyObject].push({ object: oneObject, column: oneColumn });
 			}
 		});
@@ -102,141 +103,141 @@ function transformPrimaryObject(o){
 	};
 }
 
- //var r = transform(
- //
- //	{
- //  "results": [
- //    {
- //      "className": "_User",
- //      "fields": {
- //        "ACL": {
- //          "type": "ACL"
- //        },
- //        "authData": {
- //          "type": "Object"
- //        },
- //        "createdAt": {
- //          "type": "Date"
- //        },
- //        "email": {
- //          "type": "String"
- //        },
- //        "emailVerified": {
- //          "type": "Boolean"
- //        },
- //        "objectId": {
- //          "type": "String"
- //        },
- //        "password": {
- //          "type": "String"
- //        },
- //        "updatedAt": {
- //          "type": "Date"
- //        },
- //        "username": {
- //          "type": "String"
- //        }
- //      }
- //    },
- //    {
- //      "className": "_Role",
- //      "fields": {
- //        "ACL": {
- //          "type": "ACL"
- //        },
- //        "createdAt": {
- //          "type": "Date"
- //        },
- //        "name": {
- //          "type": "String"
- //        },
- //        "objectId": {
- //          "type": "String"
- //        },
- //        "roles": {
- //          "type": "Relation",
- //          "targetClass": "_Role"
- //        },
- //        "updatedAt": {
- //          "type": "Date"
- //        },
- //        "users": {
- //          "type": "Relation",
- //          "targetClass": "_User"
- //        }
- //      }
- //    },
- //    {
- //      "className": "post",
- //      "fields": {
- //        "ACL": {
- //          "type": "ACL"
- //        },
- //        "content": {
- //          "type": "String"
- //        },
- //        "createdAt": {
- //          "type": "Date"
- //        },
- //        "date": {
- //          "type": "Date"
- //        },
- //        "location": {
- //          "type": "GeoPoint"
- //        },
- //        "myComments": {
- //          "type": "Relation",
- //          "targetClass": "comment"
- //        },
- //        "obj": {
- //          "type": "Object"
- //        },
- //        "objectId": {
- //          "type": "String"
- //        },
- //        "photo": {
- //          "type": "File"
- //        },
- //        "tags": {
- //          "type": "Array"
- //        },
- //        "title": {
- //          "type": "String"
- //        },
- //        "updatedAt": {
- //          "type": "Date"
- //        }
- //      }
- //    },
- //    {
- //      "className": "comment",
- //      "fields": {
- //        "ACL": {
- //          "type": "ACL"
- //        },
- //        "content": {
- //          "type": "String"
- //        },
- //        "createdAt": {
- //          "type": "Date"
- //        },
- //        "objectId": {
- //          "type": "String"
- //        },
- //        "source": {
- //          "type": "Pointer",
- //          "targetClass": "post"
- //        },
- //        "updatedAt": {
- //          "type": "Date"
- //        }
- //      }
- //    }
- //  ]
- //}
- //
- //);
-
+// var r = transform(
+//
+// 	{
+//   "results": [
+//     {
+//       "className": "_User",
+//       "fields": {
+//         "ACL": {
+//           "type": "ACL"
+//         },
+//         "authData": {
+//           "type": "Object"
+//         },
+//         "createdAt": {
+//           "type": "Date"
+//         },
+//         "email": {
+//           "type": "String"
+//         },
+//         "emailVerified": {
+//           "type": "Boolean"
+//         },
+//         "objectId": {
+//           "type": "String"
+//         },
+//         "password": {
+//           "type": "String"
+//         },
+//         "updatedAt": {
+//           "type": "Date"
+//         },
+//         "username": {
+//           "type": "String"
+//         }
+//       }
+//     },
+//     {
+//       "className": "_Role",
+//       "fields": {
+//         "ACL": {
+//           "type": "ACL"
+//         },
+//         "createdAt": {
+//           "type": "Date"
+//         },
+//         "name": {
+//           "type": "String"
+//         },
+//         "objectId": {
+//           "type": "String"
+//         },
+//         "roles": {
+//           "type": "Relation",
+//           "targetClass": "_Role"
+//         },
+//         "updatedAt": {
+//           "type": "Date"
+//         },
+//         "users": {
+//           "type": "Relation",
+//           "targetClass": "_User"
+//         }
+//       }
+//     },
+//     {
+//       "className": "post",
+//       "fields": {
+//         "ACL": {
+//           "type": "ACL"
+//         },
+//         "content": {
+//           "type": "String"
+//         },
+//         "createdAt": {
+//           "type": "Date"
+//         },
+//         "date": {
+//           "type": "Date"
+//         },
+//         "location": {
+//           "type": "GeoPoint"
+//         },
+//         "myComments": {
+//           "type": "Relation",
+//           "targetClass": "comment"
+//         },
+//         "obj": {
+//           "type": "Object"
+//         },
+//         "objectId": {
+//           "type": "String"
+//         },
+//         "photo": {
+//           "type": "File"
+//         },
+//         "tags": {
+//           "type": "Array"
+//         },
+//         "title": {
+//           "type": "String"
+//         },
+//         "updatedAt": {
+//           "type": "Date"
+//         }
+//       }
+//     },
+//     {
+//       "className": "comment",
+//       "fields": {
+//         "ACL": {
+//           "type": "ACL"
+//         },
+//         "content": {
+//           "type": "String"
+//         },
+//         "createdAt": {
+//           "type": "Date"
+//         },
+//         "objectId": {
+//           "type": "String"
+//         },
+//         "source": {
+//           "type": "Pointer",
+//           "targetClass": "post"
+//         },
+//         "updatedAt": {
+//           "type": "Date"
+//         }
+//       }
+//     }
+//   ]
+// }
+//
+// );
+//
 //var objects = [];
 // _.each(r, function(s){
 // 	  //console.log(s);

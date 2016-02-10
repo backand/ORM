@@ -20,7 +20,9 @@ updatePointer.prototype.updateInner = function(className, bulkRunner, cb) {
             logger.error(command + ' ' + JSON.stringify(error))
             current.report.updatePointerError(className, error);
         }, function () {
-            current.report.updatePointerSuccess(className, current.valuesForBulkInserts.length);
+            if (current.valuesForBulkInserts) {
+                current.report.updatePointerSuccess(className, current.valuesForBulkInserts.length);
+            }
             current.updateStatetmentBulk = [];
             cb();
         });
