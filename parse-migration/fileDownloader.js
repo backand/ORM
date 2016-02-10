@@ -2,6 +2,7 @@
  * Created by backand on 2/8/16.
  */
 
+var _ = require('lodash');
 var request = require('request');
 var fs = require('fs');
 var q = require('q');
@@ -11,7 +12,7 @@ var mkdirp = require('mkdirp');
 
 
 function downloadFile(url, fileName) {
-    logger.info('start download file ' + url + ' fileName ' + fileName);
+    logger.info('start download file ' + url + ' \nfileName ' + fileName);
     var self = this;
     var deferred = q.defer();
     var fn = fileName;
@@ -29,21 +30,21 @@ function downloadFile(url, fileName) {
     return deferred.promise;
 }
 
-function unzipFile(fileName) {
+function unzipFile(fileName, directory) {
     logger.info('start unzip for ' + fileName);
     var deferred = q.defer();
-    var directory = fileName.substr(0, fileName.indexOf('.'));
     var zip = new Zip(fileName);
-    mkdirp(directory, function (err) {
+    var path = this.path + '/' + directory;
+    mkdirp(path, function (err) {
         if (err) {
             deferred.reject(err);
             return;
         }
 
         try {
-            zip.extractAllTo(directory, true);
-            logger.info('finish unzip for ' + directory);
-            deferred.resolve(directory);
+            zip.extractAllTo(path, true);
+            logger.info('finish unzip for ' + path);
+            deferred.resolve(path);
         } catch (err2) {
             deferred.reject(err2);
         }
@@ -53,13 +54,23 @@ function unzipFile(fileName) {
     return deferred.promise;
 }
 
+function getFilesList(directory){
+  logger.info('Get list of files for folder ' + directory);
+
+  //this assume flat folder
+  return fs.readdirSync(directory);
+
+}
+
 
 var FileDownloader = function (path) {
     this.path = path;
-}
+};
 
 FileDownloader.prototype.downloadFile = downloadFile;
 
 FileDownloader.prototype.unzipFile = unzipFile;
+
+FileDownloader.prototype.getFilesList = getFilesList;
 
 module.exports = FileDownloader;

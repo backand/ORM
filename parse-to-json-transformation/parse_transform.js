@@ -12,12 +12,13 @@ var simpleTypesMapping = {
 };
 
 var	oneManyRelationships = {};
+
 function transform(schema){
 	var objects = schema.results;
 
-
 	var primaryObjects = _.filter(objects, function(o){
-		return o.className != '_User' && o.className != '_Role' && !_.startsWith(o.className, '_Join');
+		//return o.className != '_User' && o.className != '_Role' && !_.startsWith(o.className, '_Join');
+		return !_.startsWith(o.className, '_Join');
 	});
 
 	// find 1:n relationship - collect the many side in order to generate the one side later
@@ -73,142 +74,145 @@ function transformPrimaryObject(o){
 	};
 }
 
-// var r = transform(
+ //var r = transform(
+ //
+ //	{
+ //  "results": [
+ //    {
+ //      "className": "_User",
+ //      "fields": {
+ //        "ACL": {
+ //          "type": "ACL"
+ //        },
+ //        "authData": {
+ //          "type": "Object"
+ //        },
+ //        "createdAt": {
+ //          "type": "Date"
+ //        },
+ //        "email": {
+ //          "type": "String"
+ //        },
+ //        "emailVerified": {
+ //          "type": "Boolean"
+ //        },
+ //        "objectId": {
+ //          "type": "String"
+ //        },
+ //        "password": {
+ //          "type": "String"
+ //        },
+ //        "updatedAt": {
+ //          "type": "Date"
+ //        },
+ //        "username": {
+ //          "type": "String"
+ //        }
+ //      }
+ //    },
+ //    {
+ //      "className": "_Role",
+ //      "fields": {
+ //        "ACL": {
+ //          "type": "ACL"
+ //        },
+ //        "createdAt": {
+ //          "type": "Date"
+ //        },
+ //        "name": {
+ //          "type": "String"
+ //        },
+ //        "objectId": {
+ //          "type": "String"
+ //        },
+ //        "roles": {
+ //          "type": "Relation",
+ //          "targetClass": "_Role"
+ //        },
+ //        "updatedAt": {
+ //          "type": "Date"
+ //        },
+ //        "users": {
+ //          "type": "Relation",
+ //          "targetClass": "_User"
+ //        }
+ //      }
+ //    },
+ //    {
+ //      "className": "post",
+ //      "fields": {
+ //        "ACL": {
+ //          "type": "ACL"
+ //        },
+ //        "content": {
+ //          "type": "String"
+ //        },
+ //        "createdAt": {
+ //          "type": "Date"
+ //        },
+ //        "date": {
+ //          "type": "Date"
+ //        },
+ //        "location": {
+ //          "type": "GeoPoint"
+ //        },
+ //        "myComments": {
+ //          "type": "Relation",
+ //          "targetClass": "comment"
+ //        },
+ //        "obj": {
+ //          "type": "Object"
+ //        },
+ //        "objectId": {
+ //          "type": "String"
+ //        },
+ //        "photo": {
+ //          "type": "File"
+ //        },
+ //        "tags": {
+ //          "type": "Array"
+ //        },
+ //        "title": {
+ //          "type": "String"
+ //        },
+ //        "updatedAt": {
+ //          "type": "Date"
+ //        }
+ //      }
+ //    },
+ //    {
+ //      "className": "comment",
+ //      "fields": {
+ //        "ACL": {
+ //          "type": "ACL"
+ //        },
+ //        "content": {
+ //          "type": "String"
+ //        },
+ //        "createdAt": {
+ //          "type": "Date"
+ //        },
+ //        "objectId": {
+ //          "type": "String"
+ //        },
+ //        "source": {
+ //          "type": "Pointer",
+ //          "targetClass": "post"
+ //        },
+ //        "updatedAt": {
+ //          "type": "Date"
+ //        }
+ //      }
+ //    }
+ //  ]
+ //}
+ //
+ //);
 
-// 	{
-//   "results": [
-//     {
-//       "className": "_User",
-//       "fields": {
-//         "ACL": {
-//           "type": "ACL"
-//         },
-//         "authData": {
-//           "type": "Object"
-//         },
-//         "createdAt": {
-//           "type": "Date"
-//         },
-//         "email": {
-//           "type": "String"
-//         },
-//         "emailVerified": {
-//           "type": "Boolean"
-//         },
-//         "objectId": {
-//           "type": "String"
-//         },
-//         "password": {
-//           "type": "String"
-//         },
-//         "updatedAt": {
-//           "type": "Date"
-//         },
-//         "username": {
-//           "type": "String"
-//         }
-//       }
-//     },
-//     {
-//       "className": "_Role",
-//       "fields": {
-//         "ACL": {
-//           "type": "ACL"
-//         },
-//         "createdAt": {
-//           "type": "Date"
-//         },
-//         "name": {
-//           "type": "String"
-//         },
-//         "objectId": {
-//           "type": "String"
-//         },
-//         "roles": {
-//           "type": "Relation",
-//           "targetClass": "_Role"
-//         },
-//         "updatedAt": {
-//           "type": "Date"
-//         },
-//         "users": {
-//           "type": "Relation",
-//           "targetClass": "_User"
-//         }
-//       }
-//     },
-//     {
-//       "className": "post",
-//       "fields": {
-//         "ACL": {
-//           "type": "ACL"
-//         },
-//         "content": {
-//           "type": "String"
-//         },
-//         "createdAt": {
-//           "type": "Date"
-//         },
-//         "date": {
-//           "type": "Date"
-//         },
-//         "location": {
-//           "type": "GeoPoint"
-//         },
-//         "myComments": {
-//           "type": "Relation",
-//           "targetClass": "comment"
-//         },
-//         "obj": {
-//           "type": "Object"
-//         },
-//         "objectId": {
-//           "type": "String"
-//         },
-//         "photo": {
-//           "type": "File"
-//         },
-//         "tags": {
-//           "type": "Array"
-//         },
-//         "title": {
-//           "type": "String"
-//         },
-//         "updatedAt": {
-//           "type": "Date"
-//         }
-//       }
-//     },
-//     {
-//       "className": "comment",
-//       "fields": {
-//         "ACL": {
-//           "type": "ACL"
-//         },
-//         "content": {
-//           "type": "String"
-//         },
-//         "createdAt": {
-//           "type": "Date"
-//         },
-//         "objectId": {
-//           "type": "String"
-//         },
-//         "source": {
-//           "type": "Pointer",
-//           "targetClass": "post"
-//         },
-//         "updatedAt": {
-//           "type": "Date"
-//         }
-//       }
-//     }
-//   ]
-// }
-
-// );
-
+//var objects = [];
 // _.each(r, function(s){
-// 	console.log(s);
+// 	  //console.log(s);
+//   objects.push(s);
 // });
-
+//var bkSchema = JSON.parse(JSON.stringify(objects));
+//console.log(JSON.stringify(bkSchema));

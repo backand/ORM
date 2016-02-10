@@ -1,48 +1,71 @@
 /**
  * Created by backand on 2/8/16.
  */
+var _ = require('lodash');
 var StatusBl = require('./StatusBL');
 var Migrator = require('./Migrator');
 var migrator = new Migrator();
-var workerId = 1;
+var workerId = 5;
 var statusBl = new StatusBl(workerId);
 var waitInterval = 5 * 1000;
 var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
-var fileUtil = new FileDownloader();
+var fileUtil = new FileDownloader('./files_download');
+var transformer = require('../parse-to-json-transformation/parse_transform').transformer;
 
 function mainRoutine() {
-    statusBl.connect().then(function () {
-        var job = statusBl.getNextJob();
+  statusBl.connect().then(function () {
+    statusBl.getNextJob().then(function(job){
+      if (job) {
+        logger.info('start job for app ' + job.appName)
 
-        if (job) {
-            logger.info('start job for app ' + job.appName)
-
-            fileUtil.downloadFile(job.parseUrl, job.appName)
-                .then(function (filePath) {
-                    logger.info('start unzip for app ' + job.appName)
-
-                    fileUtil.unzipFile(filePath).then(function (directory) {
-
-                        // todo:
-                        //add schema
-                        // call to fillSchemaTable
-
-
-                        logger.info('start migrator for app ' + job.appName)
-
-                        migrator.run(job.appName, job.appToken, undefined, job.parseSchema, directory, function () {
-                            statusBl.finishJob(job).then(function () {
-                                logger.info('job finish ' + job.appName);
-                                mainRoutine();
-                            });
-                        });
-                    });
-                });
-        } else {
-            setTimeout(mainRoutine, waitInterval);
+        var jobStatus = job.status;
+        if(jobStatus == 0){
+          statusBl.takeJob(job);
         }
-    });
+
+        fileUtil.downloadFile(job.parseUrl, job.appName).then(function (filePath) {
+          logger.info('start unzip for app ' + job.appName)
+
+          fileUtil.unzipFile(filePath, job.appName).then(function (directory) {
+
+            //add schema
+            var objects = [];
+            var t = transformer(JSON.parse(job.parseSchema));
+            _.each(t, function (s) {
+              //console.log(s);
+              objects.push(s);
+            });
+
+            // call to backand model
+            statusBl.model(objects, job.appToken).then(function(model){
+
+              //get files
+              var files = fileUtil.getFilesList(directory);
+
+              statusBl.fillSchemaTable(job.appName, jobStatus, files).then(function(){
+
+                logger.info('start migration for app ' + job.appName);
+                //add all the files into the app table
+                migrator.run(job.appName, job.appToken, undefined, job.parseSchema, directory, function () {
+                  statusBl.finishJob(job).then(function () {
+                    logger.info('job finish ' + job.appName);
+                    mainRoutine();
+                  });
+                });
+              })
+            });
+
+          });
+        });
+      } else {
+        setTimeout(mainRoutine, waitInterval);
+      }
+    })
+  });
 
 }
+
+mainRoutine();
+
 
