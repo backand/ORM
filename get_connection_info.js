@@ -224,5 +224,5 @@ function testBasic(){
 	})
 
 }
-testBasic();
+//testBasic();
 //test();

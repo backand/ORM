@@ -47,7 +47,8 @@ function mainRoutine() {
 
                 logger.info('start migration for app ' + job.appName);
                 //add all the files into the app table
-                migrator.run(job.appName, job.appToken, undefined, job.parseSchema, directory, function () {
+
+                migrator.run (job, directory, statusBl,  function () {
                   statusBl.finishJob(job).then(function () {
                     logger.info('job finish ' + job.appName);
                     mainRoutine();
