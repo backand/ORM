@@ -138,6 +138,8 @@ Migrator.prototype = (function () {
     };
 })();
 
+module.exports = Migrator;
+
 function test() {
 
     var cleaner = new Cleaner(testConnection);
