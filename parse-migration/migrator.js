@@ -11,7 +11,7 @@ var Report = require('./report');
 var logger = require('./logging/logger').getLogger('Migrator');
 var async = require('async');
 // test
-var testSchema = require('./test/schema.json').results;
+var testSchema = require('./test/schema.json');
 var testConnection = require('./test/connection.json');
 var Cleaner = require('./test/cleaner');
 var StatusBl = require('./statusBl');
@@ -35,7 +35,9 @@ Migrator.prototype = (function () {
     var current = this;
 
 
-    function runInner(appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus) {
+    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, finishedCallback, currentStatus) {
+        var schema = JSON.parse(strSchema).results;
+
         // a schema wrapper with helping functions
         var parseSchema = new ParseSchema(schema);
 
@@ -144,13 +146,14 @@ function test() {
 
     var cleaner = new Cleaner(testConnection);
     var migrator = new Migrator();
+    var strSchema = JSON.stringify(testSchema);
     // perform database cleanup to initiate all the tables. only needed in the test
     cleaner.clean(testSchema, function (error) {
             console.log(error);
         }, function () {
 
         }, function () {
-            migrator.run("aaa", testConnection, "./test/data/", testSchema, function () {
+            migrator.run("aaa", testConnection, "./test/data/", strSchema, function () {
                 logger.info('finishedCallback');
 
             });
@@ -162,8 +165,9 @@ function test2() {
 
     var cleaner = new Cleaner(testConnection);
     var migrator = new Migrator();
+    var strSchema = JSON.stringify(testSchema);
     // perform database cleanup to initiate all the tables. only needed in the test
-    cleaner.clean(testSchema, function (error) {
+    cleaner.clean(testSchema.results, function (error) {
             console.log(error);
         }, function () {
 
@@ -171,12 +175,12 @@ function test2() {
             var statusBl = new StatusBl();
             statusBl.connect().then(function() {
                 migrator.runTest("aaa", testConnection, "./test/data/",
-                    testSchema, statusBl, function () {
+                    strSchema, statusBl, function () {
                         logger.info('finishedCallback');
                     })
             })
         }
     );
 }
-//test2();
+test2();
 //test();
