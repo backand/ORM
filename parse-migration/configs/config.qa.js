@@ -10,3 +10,9 @@ var redis = {
 };
 
 module.exports.redis = redis;
+
+var workerId = 20;
+
+module.exports.redis = redis;
+module.exports.api_url = api_url;
+module.exports.workerId = workerId;

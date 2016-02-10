@@ -9,6 +9,7 @@ var async = require('async');
 var q = require('q');
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
+var globalConfig = require('configFactory').getConfig();
 
 
 var StatusBl = function (workerId) {
@@ -152,7 +153,7 @@ StatusBl.prototype.model = function (schema, token) {
 
   var deferred = q.defer();
 
-  var backandClient = new BackandSDK();
+  var backandClient = new BackandSDK(globalConfig.api_url);
 
   var data = {"newSchema": schema, "severity": 0};
 

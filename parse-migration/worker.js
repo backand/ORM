@@ -5,13 +5,15 @@ var _ = require('lodash');
 var StatusBl = require('./StatusBL');
 var Migrator = require('./Migrator');
 var migrator = new Migrator();
-var workerId = 5;
 var statusBl = new StatusBl(workerId);
 var waitInterval = 5 * 1000;
 var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
 var transformer = require('../parse-to-json-transformation/parse_transform').transformer;
+var globalConfig = require('configFactory').getConfig();
+var workerId = globalConfig.workerId;
+
 
 function mainRoutine() {
   statusBl.connect().then(function () {
