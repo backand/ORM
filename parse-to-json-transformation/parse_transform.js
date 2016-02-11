@@ -55,12 +55,20 @@ function transform(schema){
 
 function transformPrimaryObject(o){
 	var fields = {};
+
+
+
 	_.each(o.fields, function(columnDescription, columnName){
 		// skip special fields
-		if (_.includes(['ACL', 'objectId'], columnName)){
+		if (_.includes(['ACL'], columnName)){
 			
 		}
 		else if (_.has(simpleTypesMapping, columnDescription.type)){
+			// בורא פרי הפאטץ
+			if(columnName == "objectId"){
+				columnName = "parseObjectId"
+			}
+
 			fields[columnName] = { type: simpleTypesMapping[columnDescription.type] };
 		}
 		else if (columnDescription.type == 'Pointer'){

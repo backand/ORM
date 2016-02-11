@@ -57,7 +57,7 @@ Migrator.prototype = (function () {
         var streamer = new Streamer();
 
         // report errors and statistics
-        var report = new Report("./" + appName + ".json");
+        var report = new Report("./reports/" + appName + ".json");
 
         // insert data of all classes without Relations and Pointers
         async.series([
@@ -85,8 +85,10 @@ Migrator.prototype = (function () {
                 var updatePointerStep = new UpdatePointerStep();
                 // update data of all classes Pointers
                 async.eachSeries(schema, function (sc, callback2) {
-
                     var className = sc.className;
+                    logger.info('Pointer inner step: ' + className);
+
+
                     var fileName = className + ".json";
                     updatePointerStep.updatePointers(streamer, report, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
                 }, function () {
@@ -107,7 +109,7 @@ Migrator.prototype = (function () {
                 });
             },
             function (callback) {
-
+                report.write();
                 finishedCallback();
                 callback();
                 logger.info('finished migration');

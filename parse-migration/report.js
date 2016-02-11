@@ -38,7 +38,7 @@ Report.prototype = (function() {
         initErrors(className, "pointers")
     };
     var initRelationErrors = function(className, relationName) {
-        initErrors(className, "relations")
+        init("errors", className, "relations", {})
         if (!self.data.errors[className].relations[relationName])
             self.data.errors[className].relations[relationName] = [];
 
@@ -50,7 +50,7 @@ Report.prototype = (function() {
         initStatistics(className, "pointers")
     };
     var initRelationStatistics = function(className, relationName) {
-        initStatistics(className, "relations")
+        init("statistics", className, "relations", {})
         if (!self.data.statistics[className].relations[relationName])
             self.data.statistics[className].relations[relationName] = 0;
 
@@ -96,25 +96,5 @@ Report.prototype = (function() {
 
 module.exports = Report;
 
-function test(){
-    var report = new Report("./reportTest.json");
-    report.insertClassSuccess("c1", 15);
-    report.insertClassSuccess("c1", 17);
-    report.insertClassError("c1", {message:"error1 occured"});
-    report.insertClassError("c2", {message:"error2 occured"});
-    report.insertClassSuccess("c2", 17);
-    report.insertClassError("c2", {message:"error3 occured"});
-    report.generalError({message:"error4 occured"});
-    report.updatePointerError("c1", {message:"error5 occured"});
-    report.updatePointerSuccess("c1", 3);
-    report.updateRelationError("c1", "r1", {message:"error6 occured"});
-    report.updateRelationSuccess("c1","r1", 3);
-    report.updateRelationError("c1", "r1", {message:"error7 occured"});
-    report.updateRelationSuccess("c1","r1", 4);
-    report.updateRelationError("c1", "r2", {message:"error8 occured"});
-    report.updateRelationSuccess("c1","r2", 4);
-    report.write();
 
-}
-//test();
 

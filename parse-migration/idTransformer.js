@@ -25,13 +25,10 @@
  Thanks for Itay to found this algo.
  */
 
-
-
-var md5 = require('blueimp-md5');
-
-
 function string_as_unicode_escape(input) {
-    return (input.charCodeAt(0).toString(16));
+    var u = (input.charCodeAt(0).toString(16));
+    return u;
+
 }
 function formatAsGuid(str) {
     var parts = [];
@@ -53,14 +50,17 @@ function toGuidId(str) {
     // chaange to ascii -> hex -> join
     // format 8-4-4-4-12
     var res = "";
-    for (var c in str) {
-        res += string_as_unicode_escape(str[c]);
+
+    for (var x = 0; x < str.length; x++)
+    {
+        var c = str.charAt(x);
+        res += string_as_unicode_escape(c);
     }
 
-    // pad qith zero to be sure we have 32
+    // pad with zero to be sure we have 32
     res = String("00000000000000000000000000000000" + res).slice(-32);
     res = formatAsGuid(res);
-
+    console.log("toGuidId finsish", str, res);
     return res;
 
 }
@@ -73,10 +73,9 @@ idTranstormer.prototype.toGuidId = toGuidId;
 
 module.exports = new idTranstormer();
 
-/*
-console.log(toGuidId('1234567890'));
-console.log(toGuidId('asdhjkiuhj'));
-console.log(toGuidId('zzzzzzzzzz'));
-console.log(toGuidId('zzzzzzzzzz'));
+//
+//console.log(toGuidId('NaPEZM3BMe'));
+//console.log(toGuidId('asdhjkiuhj'));
+//console.log(toGuidId('zzzzzzzzzz'));
+//console.log(toGuidId('zzzzzzzzzz'));
 //console.log(toGuidId('asdasdasd'));
-*/
