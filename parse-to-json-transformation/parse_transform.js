@@ -57,7 +57,7 @@ function transformPrimaryObject(o){
 	var fields = {};
 	_.each(o.fields, function(columnDescription, columnName){
 		// skip special fields
-		if (_.includes(['ACL', 'objectId', 'createdAt', 'updatedAt'], columnName)){
+		if (_.includes(['ACL', 'objectId'], columnName)){
 			
 		}
 		else if (_.has(simpleTypesMapping, columnDescription.type)){

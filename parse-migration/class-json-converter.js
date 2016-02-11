@@ -38,7 +38,6 @@ ClassJsonConverter.prototype = (function () {
                 case "Boolean":
                 case "Date":
                 case "Number":
-                case "ACL":
                 case "File":
                     columns.push(property);
                     break;
@@ -68,6 +67,9 @@ ClassJsonConverter.prototype = (function () {
                 case "Pointer":
                     break;
 
+                case "ACL":
+                    break;
+
                 default:
                     errorCallback({
                         js: "ClassJsonConverter",
@@ -86,7 +88,6 @@ ClassJsonConverter.prototype = (function () {
         switch (propertyType) {
             case "Boolean":
             case "Date":
-            case "ACL":
             case "Number":
                 values.push(value);
                 break;
@@ -109,7 +110,6 @@ ClassJsonConverter.prototype = (function () {
                 break;
 
             case "Array":
-
                 break;
 
             case "Object":
@@ -119,6 +119,9 @@ ClassJsonConverter.prototype = (function () {
                 break;
 
             case "Pointer":
+                break;
+
+            case "ACL":
                 break;
 
             default:
