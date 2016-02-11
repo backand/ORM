@@ -85,8 +85,10 @@ Migrator.prototype = (function () {
                 var updatePointerStep = new UpdatePointerStep();
                 // update data of all classes Pointers
                 async.eachSeries(schema, function (sc, callback2) {
-
                     var className = sc.className;
+                    logger.info('Pointer inner step: ' + className);
+
+
                     var fileName = className + ".json";
                     updatePointerStep.updatePointers(streamer, report, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
                 }, function () {

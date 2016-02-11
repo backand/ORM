@@ -24,7 +24,7 @@ BulkRunner.prototype = (function() {
                     if (err) { throw err; }
                 connection.query(sql, [values], function(err) {
                     if (err) {
-                        logger.error('error finish to insert ' + this.sql + ";  error: " + err.message);
+                        logger.error('error finish to insert ' + this.sql + "; " + this.values.join() + ";  error: " + err.message);
 
                         errorCallback({
                             js: "BulkRunner",
