@@ -1,6 +1,7 @@
 /**
  * Created by backand on 2/8/16.
  */
+process.chdir(__dirname);
 var _ = require('lodash');
 var StatusBl = require('./StatusBL');
 var Migrator = require('./Migrator');
