@@ -579,6 +579,9 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 	_.each(addedTables, function(t){
 		var statementsRelationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
+		  if (isSpecialPrimary){
+		  	table.collate("utf8_bin");
+		  }
 		  if (!isSpecialPrimary){
 		  	table.increments();
 		  }
