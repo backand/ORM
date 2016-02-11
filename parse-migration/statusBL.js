@@ -25,6 +25,7 @@ StatusBl.prototype.connect = function () {
 }
 
 StatusBl.prototype.getNextJob = function () {
+    logger.info('start get next Job');
     var self = this;
     var data = {'workerId': self.workerId};
     var deferred = q.defer();

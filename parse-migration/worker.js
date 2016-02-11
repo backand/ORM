@@ -16,12 +16,12 @@ var workerId = globalConfig.workerId;
 
 
 function mainRoutine() {
-    statusBl.connect().then(statusBl.getNextJob()).then(function (job) {
+    statusBl.connect().then(statusBl.getNextJob).then(function (job) {
         if (job) {
             logger.info('start job for app ' + job.appName)
 
             var jobStatus = job.status;
-            if (jobStatus == 0) {
+            if (jobStatus === 0) {
                 statusBl.takeJob(job);
             }
 
