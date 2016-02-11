@@ -1,3 +1,4 @@
+//var api_url = "https://api.backand.com";
 var api_url = "https://api.backand.com";
 //var api_url = "http://localhost:4110";
 //var api_url = "http://10.53.109.128:4110";
@@ -10,19 +11,17 @@ var redis = {
   "hostname": "pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com",
   "option": {"auth_pass": "bell1234"}
 };
-
-var httpsServerConfig = {
-    "serverAddress" : 'http://localhost',
-    "serverPort" : '4000',
-    "useCertificate" : false,
-    "pfxPath" : ''
+var auth = {
+  'appName' : 'parseconverter',
+  'username' : 'relly@backand.com',
+  'passworsd' : 'relly2805'
 }
 
-var storageConfig = {
-  "serverProtocol" : 'http'
-}
 
-module.exports.socketConfig = httpsServerConfig;
-module.exports.api_url = api_url;
+
+var workerId = 10;
+
 module.exports.redis = redis;
-module.exports.storageConfig = storageConfig;
+module.exports.api_url = api_url;
+module.exports.workerId = workerId;
+module.exports.authDetail = auth;
