@@ -25,11 +25,6 @@
  Thanks for Itay to found this algo.
  */
 
-
-
-var md5 = require('blueimp-md5');
-
-
 function string_as_unicode_escape(input) {
     return (input.charCodeAt(0).toString(16));
 }
