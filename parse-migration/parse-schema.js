@@ -2,7 +2,7 @@
  * Created by Dell on 2/2/2016.
  */
 var logger = require('./logging/logger').getLogger('ParseSchema');
-
+var idTransformer = require('./idTransformer');
 var self = this;
 
 function ParseSchema(schema) {
@@ -68,7 +68,7 @@ ParseSchema.prototype = (function() {
         },
 
         toUUid:function(str){
-            return '00000000-0000-0000-0000-00' + str;
+            return idTransformer.toGuidId(str)
         }
 
     };

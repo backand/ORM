@@ -45,6 +45,8 @@ ClassJsonConverter.prototype = (function () {
                 case "String":
                     if (property == "objectId") {
                         columns.push("id");
+                        columns.push("parseObjectId");
+
                     }
                     else {
                         columns.push(property);
@@ -96,9 +98,8 @@ ClassJsonConverter.prototype = (function () {
                 if (property == "objectId") {
                     values.push(self.schema.toUUid(value));
                 }
-                else {
-                    values.push(value);
-                }
+                values.push(value);
+
                 break;
 
             case "GeoPoint":
