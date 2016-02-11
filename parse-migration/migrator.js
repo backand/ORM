@@ -57,7 +57,7 @@ Migrator.prototype = (function () {
         var streamer = new Streamer();
 
         // report errors and statistics
-        var report = new Report("./" + appName + ".json");
+        var report = new Report("./reports/" + appName + ".json");
 
         // insert data of all classes without Relations and Pointers
         async.series([
@@ -109,7 +109,7 @@ Migrator.prototype = (function () {
                 });
             },
             function (callback) {
-
+                report.write();
                 finishedCallback();
                 callback();
                 logger.info('finished migration');

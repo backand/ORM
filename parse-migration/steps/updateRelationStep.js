@@ -24,16 +24,18 @@ updateRelationStep.prototype.updateRelations = function(streamer, report, datali
     }, finishAllCallback);
 };
 
-updateRelationStep.prototype.updateRelationInner = function(sql , bulkRunner, callback) {
+updateRelationStep.prototype.updateRelationInner = function(sql, className, relationName, bulkRunner, callback) {
     var current = this;
 
     if(sql && sql.length > 0) {
         var fullSql = sql.join(";") + ";";
         bulkRunner.update(fullSql, function (error) {
                 // error report
+                current.report.updateRelationError(className, relationName, error);
                 logger.error(sql + " " + JSON.stringify(error));
             },
             function () {
+                current.report.updateRelationSuccess(className, relationName, sql.length);
                 logger.info('success finish updateRelationInner ' + sql);
                 callback();
             });
@@ -48,7 +50,7 @@ updateRelationStep.prototype.updateRelation = function(streamer, report, datalin
     current.report = report;
 
     function updateRelationOnFinish(){
-        current.updateRelationInner(current.updateRelationBulk,bulkRunner, callback);
+        current.updateRelationInner(current.updateRelationBulk, className, relationName,bulkRunner, callback);
     };
 
     function updateRelationOnData(data, cb) {
@@ -70,7 +72,7 @@ updateRelationStep.prototype.updateRelation = function(streamer, report, datalin
             current.updateRelationBulk.push(sql);
 
             if(current.updateRelationBulk.length === BULK_SIZE){
-                current.updateRelationInner(current.updateRelationBulk,bulkRunner, cb);
+                current.updateRelationInner(current.updateRelationBulk, className, relationName, bulkRunner, cb);
             }
             else{
                 cb();

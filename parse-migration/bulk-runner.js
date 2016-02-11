@@ -24,12 +24,12 @@ BulkRunner.prototype = (function() {
                     if (err) { throw err; }
                 connection.query(sql, [values], function(err) {
                     if (err) {
-                        logger.error('error finish to insert ' + this.sql + "; " + this.values.join() + ";  error: " + err.message);
-
+                        var message = "error in: " + this.sql + "; " + this.values.join();
+                        logger.error('error finish to insert ' + message + ";  error: " + err.message);
                         errorCallback({
                             js: "BulkRunner",
                             func: "insert",
-                            message: "Insert failed",
+                            message: message,
                             internalError: err
                         });
                     }
@@ -65,11 +65,12 @@ BulkRunner.prototype = (function() {
 
                 connection.query(sql, function(err) {
                     if (err) {
-                        logger.error('error finish to update ' + this.sql + ";  error: " + err.message);
+                        var message = "error in: " + this.sql;
+                        logger.error('error finish to update ' + message + ";  error: " + err.message);
                         errorCallback({
                             js: "BulkRunner",
                             func: "update",
-                            message: "Update failed",
+                            message: message,
                             internalError: err
                         });
                     }
