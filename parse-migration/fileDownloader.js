@@ -11,6 +11,7 @@ var Zip = require("adm-zip");
 var mkdirp = require('mkdirp');
 var Utils = require("adm-zip/util");
 var pth = require("path");
+
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.replace(new RegExp(search, 'g'), replacement);
@@ -73,7 +74,6 @@ function getFilesList(directory){
   return fs.readdirSync(directory);
 
 }
-
 
 var FileDownloader = function (path) {
     this.path = path;

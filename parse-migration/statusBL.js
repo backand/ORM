@@ -17,22 +17,15 @@ var StatusBl = function (workerId) {
 };
 
 StatusBl.prototype.connect = function () {
-    var deferred = q.defer();
     logger.info('login with ' + config.username + ' to app ' + config.appName);
     return backand.auth({username: config.username, password: config.passworsd, appname: config.appName})
         .then(function () {
             logger.info("success connect to Backand");
-            deferred.resolve();
-        }).fail(function(err){
-            logger.error("can't connect to Backand " + JSON.stringify(err));
-            deferred.reject(err);
         });
-
-    return deferred.promise;
 }
 
 StatusBl.prototype.getNextJob = function () {
-    logger.info('start get next job');
+    logger.info('start get next Job');
     var self = this;
     var data = {'workerId': self.workerId};
     var deferred = q.defer();
