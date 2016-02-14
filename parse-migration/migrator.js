@@ -63,7 +63,7 @@ Migrator.prototype = (function () {
         async.series([
             function (callback) {
                 logger.info('start insertClass');
-                var insertStep = new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer, report);
+                //var insertStep = new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer, report);
                 // iterate on each class in the schema
                 async.eachSeries(schema, function (sc, callback2) {
                         // get the class
@@ -73,27 +73,34 @@ Migrator.prototype = (function () {
                         var fileName = className + ".json";
 
                         // insert the file to equivalent MySQL table
-                        insertStep.insertClass(datalink, fileName,className, callback2);
+                        new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer, report).insertClass(datalink, fileName,className, callback2);
                     }, function () {
                         logger.info('finish step insertClass');
                         callback()
+                        return;
                     }
                 );
             },
             function (callback) {
                 logger.info('start Pointer step');
-                var updatePointerStep = new UpdatePointerStep();
+                //var updatePointerStep = new UpdatePointerStep();
                 // update data of all classes Pointers
                 async.eachSeries(schema, function (sc, callback2) {
                     var className = sc.className;
-                    logger.info('Pointer inner step: ' + className);
+                    logger.info('Pointer inner step: ' + sc.className);
 
+                    if(!parseSchema.classHasPointers(sc.className)){
+                        logger.info('not any pointer in class ' + sc.className)
+                        callback2();
+                        return;
+                    }
 
                     var fileName = className + ".json";
-                    updatePointerStep.updatePointers(streamer, report, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
+                    new UpdatePointerStep().updatePointers(streamer, report, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
                 }, function () {
                     logger.info('finish step pointer');
                     callback()
+                    return;
                 });
             },
             function (callback) {
@@ -102,17 +109,20 @@ Migrator.prototype = (function () {
                 // update data of all classes Relations
                 async.eachSeries(schema, function (sc, callback2) {
                     var className = sc.className;
-                    updateRelationStep.updateRelations(streamer, report, datalink, relationConverter, className, parseSchema, bulkRunner, callback2);
+                    new UpdateRelationStep().updateRelations(streamer, report, datalink, relationConverter,
+                        className, parseSchema, bulkRunner, callback2);
                 }, function () {
                     logger.info('finish step updateRelations');
                     callback()
+                    return;
                 });
             },
             function (callback) {
                 report.write();
                 finishedCallback();
-                callback();
                 logger.info('finished migration');
+                callback();
+                return;
 
             }]);
     };

@@ -31,16 +31,16 @@ describe('simple case test', function(){
     it('can run migrator for case 1', function(done){
         var testSchema = require('./01/schema.json');
         var testConnection = require('./01/connection.json');
-        var directory = "./01/data/";
+        var directory = "./test/integration/01/data/";
         var appName = "aaa";
         runFullTest(testConnection, testSchema, appName, directory, done);
     })
 
-    it('can run migrator for case 2', function(done){
-        var testSchema = require('./02/schema.json');
-        var testConnection = require('./02/connection.json');
-        var directory = ".02/data/";
-        var appName = "stat01";
+ /*   it('can run migrator for case 2', function(done){
+        var testSchema = require('./schema.json');
+        var testConnection = require('./connection.json');
+        var directory = "./test/data/";
+        var appName = "aaa";
         runFullTest(testConnection, testSchema, appName, directory, done);
-    })
+    })*/
 })
