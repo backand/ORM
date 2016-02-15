@@ -16,10 +16,15 @@ updateRelationStep.prototype.updateRelations = function(streamer, report, datali
     var relations = parseSchema.getClassRelations(className, function (error) {
         // error report
     });
+    var parseClass = parseSchema.getClass(className, function (error) {
+        // error report
+    });
 
     async.eachSeries(relations, function (rel, callback2) {
         var relationName = rel;
-        var fileName = "_Join_" + relationName + "_" + className + '.json';
+        var columnName = parseClass.fields[relationName].originalName;
+
+        var fileName = "_Join_" + columnName + "_" + className + '.json';
         logger.info('start ' + fileName)
         current.updateRelation(streamer, report, datalink, fileName, converter,
             className, relationName, bulkRunner, function(){

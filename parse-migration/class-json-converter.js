@@ -156,9 +156,9 @@ ClassJsonConverter.prototype = (function () {
                     var propertyType = self.schema.getPropertyType(className, property, errorCallback);
                     var value = null;
 
-
-                    if(jsonFromParse.hasOwnProperty(property)) {
-                        value = jsonFromParse[property];
+                    var columnName = parseClass.fields[property].originalName;
+                    if(jsonFromParse.hasOwnProperty(columnName)) {
+                        value = jsonFromParse[columnName];
                     }
                     addValueToSingleType(propertyType, values, value, errorCallback, className, jsonFromParse, property);
                 }

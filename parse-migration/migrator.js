@@ -40,6 +40,7 @@ Migrator.prototype = (function () {
 
         // a schema wrapper with helping functions
         var parseSchema = new ParseSchema(schema);
+        parseSchema.adjustNames();
 
         // converts json to SQL Insert commands and parameters
         var classJsonConverter = new ClassJsonConverter(parseSchema);

@@ -11,6 +11,7 @@ var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
 var transformer = require('../parse-to-json-transformation/parse_transform').transformer;
+var ParseSchema = require('./parse-schema');
 var globalConfig = require('./configFactory').getConfig();
 var q = require('q');
 var workerId = globalConfig.workerId;
@@ -56,6 +57,10 @@ function mainRoutine() {
         logger.info('start schema transformation');
         //add schema
         var objects = [];
+
+        var parseSchema = new ParseSchema(self.job.parseSchema);
+        parseSchema.adjustNames();
+
         var t = transformer(JSON.parse(self.job.parseSchema));
         _.each(t, function (s) {
             //console.log(s);
