@@ -4,6 +4,7 @@
 
 var _ = require('lodash');
 var StatusBl = require('./StatusBL');
+var ParseSchema = require('./parse-schema');
 var Migrator = require('./Migrator');
 var migrator = new Migrator();
 var globalConfig = require('./configFactory').getConfig();
@@ -14,13 +15,15 @@ var waitInterval = 5 * 1000;
 var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
+
 var transformer = require('../parse-to-json-transformation/parse_transform').transformer;
 var q = require('q');
 q.longStackSupport = true;
 
-var self = this;
+var self;
 
 function Worker(mockStatusBl) {
+    self = this;
     statusBl = mockStatusBl || statusBl;
     self.statusBl = statusBl;
 
@@ -62,6 +65,9 @@ Worker.prototype.schemaTransformation = function() {
     logger.info('start schema transformation');
     //add schema
     var objects = [];
+    var parseSchema = new ParseSchema(self.job.parseSchema.results);
+    parseSchema.adjustNames();
+
     var t = transformer(JSON.parse(self.job.parseSchema));
     _.each(t, function (s) {
         //console.log(s);
@@ -94,7 +100,7 @@ Worker.prototype.setJobFinish = function() {
 }
 
 Worker.prototype.startAgain = function() {
-    setTimeout(mainRoutine, waitInterval);
+    setTimeout(self.run, waitInterval);
 }
 
 Worker.prototype.logError = function(err) {
