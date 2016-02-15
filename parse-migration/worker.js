@@ -12,62 +12,94 @@ var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
 var transformer = require('../parse-to-json-transformation/parse_transform').transformer;
 var globalConfig = require('./configFactory').getConfig();
+var q = require('q');
 var workerId = globalConfig.workerId;
+q.longStackSupport = true;
 
 
 function mainRoutine() {
-    statusBl.connect()
-        .then(statusBl.getNextJob)
-        .then(function (job) {
+    var self = this;
+
+    function takeJob(job){
+        self.job = job;
+        var deferred = q.defer();
         if (job) {
             logger.info('start job for app ' + job.appName)
 
-            var jobStatus = job.status;
-            if (jobStatus === 0) {
-                statusBl.takeJob(job);
+            self.jobStatus = job.status;
+            if (self.jobStatus == 0) {
+                statusBl.takeJob(job).then(function(){
+                    deferred.resolve(job);
+                });
             }
-
-            fileUtil.downloadFile(job.parseUrl, job.appName).then(function (filePath) {
-                logger.info('start unzip for app ' + job.appName)
-
-                fileUtil.unzipFile(filePath, job.appName).then(function (directory) {
-                    logger.info('start schema transformation');
-                    //add schema
-                    var objects = [];
-                    var t = transformer(JSON.parse(job.parseSchema));
-                    _.each(t, function (s) {
-                        //console.log(s);
-                        objects.push(s);
-                    });
-
-                    // call to backand model
-                    statusBl.model(objects, job.appToken).then(function (model) {
-
-                        //get files
-                        var files = fileUtil.getFilesList(directory);
-
-                        statusBl.fillSchemaTable(job.appName, jobStatus, files).then(function () {
-
-                            logger.info('start migration for app ' + job.appName);
-                            //add all the files into the app table
-                            directory = directory + "/";
-                            migrator.run(job, directory, statusBl, function () {
-                                statusBl.finishJob(job).then(function () {
-                                    logger.info('job finish ' + job.appName);
-                                    mainRoutine();
-                                });
-                            });
-                        })
-                    });
-
-                }, logError);
-            }, logError);
-        } else {
-            setTimeout(mainRoutine, waitInterval);
         }
-    });
+        else{
+          //  setTimeout(mainRoutine, waitInterval);
+            deferred.reject({'msg' : "no job in queue"});
+        }
 
+        return deferred.promise;
+    }
 
+    function downloadFile(){
+        return fileUtil.downloadFile(self.job.parseUrl, self.job.appName);
+    }
+
+    function unzipFile(filePath){
+        logger.info('start unzip for app ' + self.job.appName);
+        return fileUtil.unzipFile(filePath, self.job.appName).then(function(directory){
+            self.directory = directory;
+        })
+    }
+
+    function schemaTransformation(){
+        logger.info('start schema transformation');
+        //add schema
+        var objects = [];
+        var t = transformer(JSON.parse(self.job.parseSchema));
+        _.each(t, function (s) {
+            //console.log(s);
+            objects.push(s);
+        });
+
+        // call to backand model
+        return statusBl.model(objects, self.job.appToken)
+    }
+
+    function fillSchemaTable() {
+        var files = fileUtil.getFilesList(self.directory);
+        return statusBl.fillSchemaTable(self.job.appName, self.jobStatus, files)
+    }
+
+    function migrateData(){
+        var deferred = q.defer();
+        logger.info('start migration for app ' + self.job.appName);
+        //add all the files into the app table
+        self.directory = self.directory + "/";
+        migrator.run(self.job, self.directory, statusBl,  deferred.makeNodeResolver());
+        return deferred.promise;
+
+    }
+
+    function setJobFinish(){
+        logger.info('job finish ' + self.job.appName);
+        return statusBl.finishJob(self.job);
+    }
+
+    function startAgain(){
+        setTimeout(mainRoutine, waitInterval);
+    }
+
+    statusBl.connect()
+        .then(statusBl.getNextJob)
+        .then(takeJob)
+        .then(downloadFile)
+        .then(unzipFile)
+        .then(schemaTransformation)
+        .then(migrateData)
+        .then(setJobFinish)
+        .fail(logError)
+        .done(startAgain);
 }
 
 function logError(err) {

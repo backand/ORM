@@ -66,6 +66,22 @@ ParseSchema.prototype = (function() {
 
             return parseClass.fields[relationName].targetClass;
         },
+        classHasPointers : function(className,errorCallback){
+            var parseClass = this.getClass(className, errorCallback);
+
+            for (var property in parseClass.fields) {
+                var propertyType = this.getPropertyType(className, property, errorCallback);
+                switch (propertyType) {
+                    case "Pointer":
+                        return true;
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            return false;
+        },
 
         toUUid:function(str){
             return idTransformer.toGuidId(str)

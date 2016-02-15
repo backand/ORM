@@ -4,9 +4,6 @@
 var logger = require('../logging/logger').getLogger('insertClass');
 const BULK_SIZE = 1;
 
-
-//                var insertStep = new InsertClassStep(statusBl, bulkRunner, classJsonConverter, streamer);
-
 function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer, report){
     this.appName= appName;
     this.statusBl = statusBl;
@@ -15,7 +12,6 @@ function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer
     this.streamer = streamer;
     this.report = report;
 }
-
 
 insertClass.prototype.insertClassInsertToDB = function(className, sql, cb) {
 // check bulk size arrive to size, if true => send to db
@@ -32,31 +28,34 @@ insertClass.prototype.insertClassInsertToDB = function(className, sql, cb) {
     });
 }
 
-
-insertClass.prototype.insertClass = function( datalink, fileName, className, callback) {
+insertClass.prototype.insertClass = function(datalink, fileName, className, callback) {
     var current = this;
+    current.finishCallback = callback;
+
     function onInsertClassFinish(err) {
         if (err){
             current.report.insertClassError(className, err);
         }
+
         function updateTableStatus() {
             current.statusBl.setTableFinish(current.appName, fileName)
                 .fail(function (error) {
                     logger.error("can't update " + filename + ' ' + error);
 
                 }).fin(function(){
-                    callback();
+                    current.finishCallback();
                 })
         }
 
         if (current.valuesForBulkInserts && current.valuesForBulkInserts.length > 0) {
-            insertClassInsertToDB(className, current.sql, function () {
-                logger.info('finsih getData ' + fileName);
+            current.insertClassInsertToDB(className, current.sql, function () {
+                logger.info('finish getData ' + fileName);
                 updateTableStatus();
             });
         }
         else {
-            logger.info('finsih getData else' + fileName);
+            logger.info('finsih getData else ' + fileName);
+
             updateTableStatus();
         }
     };
@@ -89,10 +88,7 @@ insertClass.prototype.insertClass = function( datalink, fileName, className, cal
     current.sql = current.converter.getInsertStatement(className, function (error) {
         // error report
     })
-
     current.streamer.getData(datalink, fileName, onInsertClassData, onInsertClassFinish)
 };
-
-
 
 module.exports = insertClass;
