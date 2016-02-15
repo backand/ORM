@@ -7,8 +7,10 @@
 
 var fs = require('fs');
 var s3Uploader = require('./fileUploader');
+var _ = require('underscore');
+var self = this;
 
-
+var template = fs.readFileSync('./template/report.html', 'utf8');
 
 function Report(fileName, appName) {
     self.appName = appName;
@@ -17,7 +19,6 @@ function Report(fileName, appName) {
 }
 
 Report.prototype = (function () {
-    var self = this;
     self.uploader = s3Uploader;
 
     // Private code here
@@ -92,9 +93,20 @@ Report.prototype = (function () {
             initRelationStatistics(className, relationName);
             self.data.statistics[className].relations[relationName] = self.data.statistics[className].relations[relationName] + rows;
         },
+        log : function(message){
+            self.logs += message + '\n';
+        },
+        setData : function(data){
+          // for test. we love you relly
+            self.data = data;
+
+        },
         write: function () {
-            fileData = JSON.stringify(self.data, null ,4);
-            self.uploader.uploadFile(self.fileName, fileData, 'text/plain', self.appName);
+
+            var compiled =  _.template(template);
+            self.data.appName = self.appName;
+            var  fileData = compiled(self.data);
+            self.uploader.uploadFile(self.fileName, fileData, 'text/html', self.appName);
         }
     };
 })();

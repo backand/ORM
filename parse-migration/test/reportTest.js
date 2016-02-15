@@ -21,5 +21,49 @@ describe('can run reporter', function () {
         report.updateRelationError("c1", "r2", {message: "error8 occured"});
         report.updateRelationSuccess("c1", "r2", 4);
         report.write();
-    })
+    });
+
+    it('can create html', function (done) {
+        var report = new Report("test2.html", 'parsetest2');
+
+
+        var data = {
+            errors: {
+                general: [],
+                _Session: {
+                    inserts: [
+                        {
+                            errno: -2,
+                            code: "ENOENT",
+                            syscall: "access",
+                            path: "./files_download/parsetest2/_Session.json"
+                        }
+                    ]
+                }
+            },
+            statistics: {
+                _User: {
+                    inserts: 3
+                },
+                _Role: {
+                    inserts: 3,
+                    relations: {
+                        roles: 3,
+                        users: 3
+                    }
+                },
+                Section: {
+                    inserts: 1
+                },
+                Topic: {
+                    inserts: 2
+                }
+            }
+        };
+        report.setData(data);
+        report.write();
+        done();
+    });
+
+
 })

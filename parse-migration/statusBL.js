@@ -11,10 +11,13 @@ var q = require('q');
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
 
+var self = this;
 
-var StatusBl = function (workerId) {
-    this.workerId = workerId;
-};
+function StatusBl(workerId) {
+    self.workerId = workerId;
+    logger.info('start statusBl with workerId ' + workerId);
+}
+
 
 StatusBl.prototype.connect = function () {
     logger.info('login with ' + config.username + ' to app ' + config.appName);
@@ -26,7 +29,6 @@ StatusBl.prototype.connect = function () {
 
 StatusBl.prototype.getNextJob = function () {
     logger.info('start get next Job');
-    var self = this;
     var data = {'workerId': self.workerId};
     var deferred = q.defer();
 
@@ -78,27 +80,27 @@ StatusBl.prototype.takeJob = function (job) {
 StatusBl.prototype.fillSchemaTable = function (appName, status, tables) {
     var deferred = q.defer();
 
-    if(status == 1){
+    if (status == 1) {
         deferred.resolve();
         return deferred.promise;
     }
 
     async.eachSeries(tables, function iterator(tableName, callback) {
-      logger.info('start fillTable for ' + tableName + ' in ' + appName);
-      var data = {
-        appName: appName,
-        tableName: tableName,
-        insertTime: new Date(),
-        endTime: null,
-        isFinish: false
-      };
-      backand.post('/1/objects/MigrationTablesApp?returnObject=true', data)
-          .then(function () {
-            logger.info('finish fillTable for ' + tableName + ' in ' + appName);
-            callback();
-          })
+        logger.info('start fillTable for ' + tableName + ' in ' + appName);
+        var data = {
+            appName: appName,
+            tableName: tableName,
+            insertTime: new Date(),
+            endTime: null,
+            isFinish: false
+        };
+        backand.post('/1/objects/MigrationTablesApp?returnObject=true', data)
+            .then(function () {
+                logger.info('finish fillTable for ' + tableName + ' in ' + appName);
+                callback();
+            })
     }, function done() {
-      deferred.resolve();
+        deferred.resolve();
     });
 
     return deferred.promise;
@@ -111,7 +113,7 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
 
     var deferred = q.defer();
 
-    backand.get('/1/objects/MigrationTablesApp',undefined ,
+    backand.get('/1/objects/MigrationTablesApp', undefined,
         [
             {
                 fieldName: 'appName',
@@ -127,7 +129,7 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
         .then(function (res) {
             var current = res.data[0];
 
-            if(!current){
+            if (!current) {
                 deferred.reject('can"t find intresting this in response: ' + JSON.stringify(res.data));
                 return;
             }
@@ -150,22 +152,22 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
 
 StatusBl.prototype.model = function (schema, token) {
 
-  logger.info('start post the new model ');
+    logger.info('start post the new model ');
 
-  var deferred = q.defer();
+    var deferred = q.defer();
 
-  var backandClient = new BackandSDK(globalConfig.api_url);
+    var backandClient = new BackandSDK(globalConfig.api_url);
 
-  var data = {"newSchema": schema, "severity": 0};
+    var data = {"newSchema": schema, "severity": 0};
 
-  backandClient.basicAuth(token).then(function(){
-    backandClient.post('/1/model',data).then(function(){
-      logger.info('end post the new model');
-      deferred.resolve();
-    })
-  });
+    backandClient.basicAuth(token).then(function () {
+        backandClient.post('/1/model', data).then(function () {
+            logger.info('end post the new model');
+            deferred.resolve();
+        })
+    });
 
-  return deferred.promise;
+    return deferred.promise;
 
 }
 
@@ -197,7 +199,6 @@ StatusBl.prototype.enqueueSimpleJob = function () {
 
     return backand.post('/1/objects/MigrationJobQueue', data)
 }
-
 
 /*
  var a = new StatusBl(1);
