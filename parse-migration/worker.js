@@ -16,7 +16,9 @@ var workerId = globalConfig.workerId;
 
 
 function mainRoutine() {
-    statusBl.connect().then(statusBl.getNextJob).then(function (job) {
+    statusBl.connect()
+        .then(statusBl.getNextJob)
+        .then(function (job) {
         if (job) {
             logger.info('start job for app ' + job.appName)
 

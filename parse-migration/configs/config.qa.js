@@ -14,6 +14,10 @@ var auth = {
   'passworsd' : 'bell1234'
 }
 
+var transformAddress = {
+  'host' : 'localhost',
+  'port' : 9000
+}
 
 module.exports.redis = redis;
 
