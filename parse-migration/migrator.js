@@ -7,7 +7,6 @@ var PointerConverter = require('./pointer-converter');
 var RelationConverter = require('./relation-converter');
 var BulkRunner = require('./bulk-runner');
 var Streamer = require('./streamer');
-var Report = require('./report');
 var logger = require('./logging/logger').getLogger('Migrator');
 var async = require('async');
 // test
@@ -35,7 +34,7 @@ Migrator.prototype = (function () {
     var current = this;
 
 
-    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, finishedCallback, currentStatus) {
+    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, finishedCallback, report,  currentStatus) {
         var schema = JSON.parse(strSchema).results;
 
         // a schema wrapper with helping functions
@@ -57,8 +56,6 @@ Migrator.prototype = (function () {
         // read large json files
         var streamer = new Streamer();
 
-        // report errors and statistics
-        var report = new Report("migration.txt", appName);
 
         // insert data of all classes without Relations and Pointers
         async.series([
@@ -134,17 +131,17 @@ Migrator.prototype = (function () {
 
         constructor: Migrator,
 
-        run: function (job, directory, statusBl, finishedCallback) {
+        run: function (job, directory, statusBl, report,  finishedCallback) {
             var self = this;
             self.directory = directory;
             self.currentJob = job;
             self.statusBl = statusBl;
-
+            self.report = report;
             var caller = finishedCallback;
 
             connectionRetreiver.getConnectionInfoSimple(job.appToken, job.appName, function (err, result) {
                 var job = self.currentJob;
-                runInner(job.appName, result, self.directory, job.parseSchema, self.statusBl, caller);
+                runInner(job.appName, result, self.directory, job.parseSchema, self.statusBl, self.report, caller);
             });
         },
 

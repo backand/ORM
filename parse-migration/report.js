@@ -15,11 +15,10 @@ var template = fs.readFileSync('./template/report.html', 'utf8');
 function Report(fileName, appName) {
     self.appName = appName;
     self.fileName = fileName;
-    self.data = {errors: {general: []}, statistics: {}};
+    self.data = {errors: {general: []}, statistics: {}, logs: {}, hasErrors: false};
 }
 
 Report.prototype = (function () {
-    self.uploader = s3Uploader;
 
     // Private code here
     var init = function (type, className, action, val) {
@@ -33,6 +32,7 @@ Report.prototype = (function () {
     };
 
     var initErrors = function (className, action) {
+        self.hasErrors = true;
         init("errors", className, action, [])
     };
     var initStatistics = function (className, action) {
@@ -71,7 +71,7 @@ Report.prototype = (function () {
         },
         insertClassError: function (className, err) {
             initInsertErrors(className);
-            self.data.errors[className].inserts.push(err);
+            self.data.errors[className].inserts.push(err.message);
         },
         updatePointerError: function (className, err) {
             initPointerErrors(className);
@@ -94,7 +94,7 @@ Report.prototype = (function () {
             self.data.statistics[className].relations[relationName] = self.data.statistics[className].relations[relationName] + rows;
         },
         log : function(message){
-            self.logs += message + '\n';
+            self.data.logs.push(message);
         },
         setData : function(data){
           // for test. we love you relly
@@ -106,7 +106,7 @@ Report.prototype = (function () {
             var compiled =  _.template(template);
             self.data.appName = self.appName;
             var  fileData = compiled(self.data);
-            self.uploader.uploadFile(self.fileName, fileData, 'text/html', self.appName);
+            s3Uploader.uploadFile(self.fileName, fileData, 'text/html', self.appName);
         }
     };
 })();

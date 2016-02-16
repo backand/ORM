@@ -15,6 +15,7 @@ var waitInterval = 5 * 1000;
 var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
+var Report = require('./report');
 
 var transformer = require('../parse-to-json-transformation/parse_transform').transformer;
 var q = require('q');
@@ -26,10 +27,13 @@ function Worker(mockStatusBl) {
     self = this;
     statusBl = mockStatusBl || statusBl;
     self.statusBl = statusBl;
+    // report errors and statistics
+    self.report = new Report("migration.html", appName);
+
 
 
 }
-Worker.prototype.takeJob = function(job) {
+Worker.prototype.takeJob = function (job) {
     self.job = job;
     var deferred = q.defer();
     if (job) {
@@ -50,18 +54,18 @@ Worker.prototype.takeJob = function(job) {
     return deferred.promise;
 }
 
-Worker.prototype.downloadFile = function() {
+Worker.prototype.downloadFile = function () {
     return fileUtil.downloadFile(self.job.parseUrl, self.job.appName);
 }
 
-Worker.prototype.unzipFile = function(filePath) {
+Worker.prototype.unzipFile = function (filePath) {
     logger.info('start unzip for app ' + self.job.appName);
     return fileUtil.unzipFile(filePath, self.job.appName).then(function (directory) {
         self.directory = directory;
     })
 }
 
-Worker.prototype.schemaTransformation = function() {
+Worker.prototype.schemaTransformation = function () {
     logger.info('start schema transformation');
     //add schema
     var objects = [];
@@ -70,6 +74,7 @@ Worker.prototype.schemaTransformation = function() {
     var parseSchema = new ParseSchema(schemaObj.results);
     parseSchema.adjustNames();
 
+    report['transform'] = parseSchema.getAdjustedNames();
     var t = transformer(schemaObj);
     _.each(t, function (s) {
         //console.log(s);
@@ -86,26 +91,26 @@ Worker.prototype.fillSchemaTable = function () {
     return statusBl.fillSchemaTable(self.job.appName, self.jobStatus, files);
 }
 
-Worker.prototype.migrateData = function() {
+Worker.prototype.migrateData = function () {
     var deferred = q.defer();
     logger.info('start migration for app ' + self.job.appName);
     //add all the files into the app table
     self.directory = self.directory + "/";
-    migrator.run(self.job, self.directory, statusBl, deferred.makeNodeResolver());
+    migrator.run(self.job, self.directory, statusBl, self.report, deferred.makeNodeResolver());
     return deferred.promise;
 
 }
 
-Worker.prototype.setJobFinish = function() {
+Worker.prototype.setJobFinish = function () {
     logger.info('job finish ' + self.job.appName);
     return statusBl.finishJob(self.job);
 }
 
-Worker.prototype.startAgain = function() {
+Worker.prototype.startAgain = function () {
     setTimeout(self.run, waitInterval);
 }
 
-Worker.prototype.logError = function(err) {
+Worker.prototype.logError = function (err) {
     logger.error(err);
 }
 

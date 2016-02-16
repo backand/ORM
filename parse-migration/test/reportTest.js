@@ -1,5 +1,5 @@
 var Report = require('../report');
-
+var _ = require('underscore');
 describe('can run reporter', function () {
     it('do something', function () {
         var report = new Report("./reports/reportTest.json");
@@ -28,16 +28,28 @@ describe('can run reporter', function () {
 
 
         var data = {
+            hasErrors: true,
+            logs: {},
+            transform: [
+                {originalName: 'c', adjustedName: '_Role'},
+                {originalName: 'Section', fields: [{originalName: "column.originalName", adjustedName: "property"}]}
+            ]
+            ,
             errors: {
+
                 general: [],
                 _Session: {
                     inserts: [
-                        {
-                            errno: -2,
-                            code: "ENOENT",
-                            syscall: "access",
-                            path: "./files_download/parsetest2/_Session.json"
-                        }
+                        "can't access some file"
+                    ]
+                },
+                _User: {
+                    inserts: [
+                        "can't access some file"
+                    ],
+                    update: [
+                        'another problem',
+                        'third problem'
                     ]
                 }
             },
@@ -60,6 +72,12 @@ describe('can run reporter', function () {
                 }
             }
         };
+
+        var ff = _.find(data.transform, function(f) { return f.originalName == 'b' || f.adjustedName == 'b' });
+        console.log(ff);
+        _.each(_.allKeys(data.statistics), function (name) {
+            console.log(name);
+        });
         report.setData(data);
         report.write();
         done();

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-2.2.0.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
     <title>Title</title>
@@ -10,144 +11,149 @@
 <div class="container">
     <div class="row">
         <div class="col-xs-10">
-            <div class="panel panel-primary">
+            <div class="panel panel-primary" style="border-color: #fe4e00;">
                 <!-- Default panel contents -->
-                <div class="panel-heading">
+                <div class="panel-heading" style="border-color: #fe4e00;background-color: #fe4e00;">
                     <h2 class="panel-title">
                         Result for Parse Migration
                     </h2>
                 </div>
                 <div class="panel-body">
-                    <h3>
-                        <%= appName %>
-                    </h3>
+                    <div class="row">
+                        <div class="col-md-4"><img
+                                src="https://www.backand.com/wp-content/uploads/2015/11/support_img4.jpg"/></div>
+                        <div class="col-md-8"><h3>
+                            <b>Application Name</b> <a url="https://www.backand.com/apps/#/app/<%= appName %>"><%=
+                            appName %></a>
+                        </h3>
+                            <p>
+                                <b>Finish Time: <%= new Date() %></b>
+                            </p></div>
+
+                    </div>
+
+
                 </div>
+                <% if(hasErrors) { print(`
+                <div class="alert alert-warning" style="
+    margin-left: 20%;
+    margin-right: 20%;
+" role="alert">
+                    <h4><span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Run finish without
+                        some warnings see below</h4>
+                </div>
+                `
+                ) } %>
+                <% if(!hasErrors) { print(`
+                <div class="alert alert-success" style="
+    margin-left: 20%;
+    margin-right: 20%;
+" role="alert">
+                    <h4><span class="glyphicon glyphicon-ok"></span> Run finish without any error</h4>
+                </div>
+                `) } %>
+                <li class="list-group-item">
+
+                <h4>Global Logs</h4>
+                <ul>
+                    <% if(logs) {  _.each(logs, function (log) {   %>
+
+                    <li><%= log %></li>
+                    <% }) } %>
+                </ul>
+                </li>
+
+                <% _.keys(statistics, function(name) { %>
+                <li><%= name %></li>
+                <% }); %>
+
                 <ul class="list-group">
+                    <% _.each(_.allKeys(statistics), function (key) {   %>
 
                     <li class="list-group-item">
-                        <h4>Account # 1364672 (current debit:: $356.61)</h4>
+                        <h4> <%= key %></h4>
+                        <div class="col-xs-6 col-md-3">
+                            <div class="panel status panel-success">
+                                <div class="panel-heading">
+                                    <h1 class="panel-title text-center"><%= statistics[key].inserts %></h1>
+                                </div>
+                                <div class="panel-body text-center">
+                                    <strong>Rows</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <% if(statistics[key].relations) {  _.each(_.allKeys(statistics[key].relations), function (rel) {  %>
+                        <div class="col-xs-6 col-md-3">
+                            <div class="panel status panel-warning">
+                                <div class="panel-heading">
+                                    <h1 class="panel-title text-center"><%= statistics[key].relations[rel] %></h1>
+                                </div>
+                                <div class="panel-body text-center">
+                                    <strong>Relation with <%= rel %></strong>
+                                </div>
+                            </div>
+                        </div>
+                        <% })} %>
+
                         <table class="table table-hover">
                             <thead>
                             <tr>
-                                <th>Operation date</th>
-                                <th>Remitter</th>
-                                <th>Beneficiary</th>
-                                <th>Amount</th>
-                                <th>Description</th>
+                                <th>Step</th>
+                                <th>Message</th>
                             </tr>
                             </thead>
                             <tbody>
+                            <% if(!errors[key]) { print('<br/><br/><br/><br/><br/><br/>')  } else {  _.each(_.allKeys(errors[key]), function (er1) {   %>
+
+
+                                <% {  _.each(errors[key][er1] , function(msg) { %>
                             <tr>
-                                <td>Wed Nov 12 17:43:13 MSK 2014</td>
-                                <td>Smith J. (cash in)</td>
-                                <td>Jonex A.</td>
-                                <td>356.61</td>
-                                <td>Iniital deposit</td>
+                                <td><%= er1 %></td>
+                                <td><%= msg %></td>
                             </tr>
+                            <% })} %>
+
+
+                        <% })} %>
+
+                            <% var stats = _.find(transform, function(f) { return f.originalName == key || f.adjustedName == key }); if(stats) {%>
                             <tr>
-                                <td>Wed Nov 13 12:41:13 MSK 2014</td>
-                                <td>Suzarland TJ.</td>
-                                <td>Smith J.</td>
-                                <td>2000.00</td>
-                                <td>Reward</td>
+                                <% if(stats.adjustedName){ // case 1  change of class name %>
+                                <td>SchemaValidation</td>
+                                <td>change class name from <%= stats.originalName %> to <%= stats.adjustedName %></td>
+                                <% } %>
+
+                                <% if(stats.fields){ // case 1  change of class name %>
+                                <% _.each(stats.fields, function(f) { %>
+                                <td>SchemaValidation</td>
+                                <td>change column name <%= f.originalName %> to <%= f.adjustedName %> in  class <%= stats.originalName %></td>
+                                <% }) %>
+
+                                <% } %>
+
+
                             </tr>
-                            <tr>
-                                <td>Wed Nov 15 07:43:13 MSK 2014</td>
-                                <td>Smith J.</td>
-                                <td>Smith M.</td>
-                                <td>100.00</td>
-                                <td>funds transfer</td>
-                            </tr>
+                            <% } %>
                             </tbody>
                         </table>
+
                     </li>
 
-                    <li class="list-group-item">
-                        <h4>Account # 1364672 (current debit:: $356.61)</h4>
-                        <table class="table table-hover">
-                            <thead>
-                            <tr>
-                                <th>Operation date</th>
-                                <th>Remitter</th>
-                                <th>Beneficiary</th>
-                                <th>Amount</th>
-                                <th>Description</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Wed Nov 12 17:43:13 MSK 2014</td>
-                                <td>Smith J. (cash in)</td>
-                                <td>Jonex A.</td>
-                                <td>356.61</td>
-                                <td>Iniital deposit</td>
-                            </tr>
-                            <tr>
-                                <td>Wed Nov 13 12:41:13 MSK 2014</td>
-                                <td>Suzarland TJ.</td>
-                                <td>Smith J.</td>
-                                <td>2000.00</td>
-                                <td>Reward</td>
-                            </tr>
-                            <tr>
-                                <td>Wed Nov 15 07:43:13 MSK 2014</td>
-                                <td>Smith J.</td>
-                                <td>Smith M.</td>
-                                <td>100.00</td>
-                                <td>funds transfer</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </li>
 
-                    <li class="list-group-item">
-                        <h4>Account # 1364672 (current debit:: $356.61)</h4>
-                        <table class="table table-hover">
-                            <thead>
-                            <tr>
-                                <th>Operation date</th>
-                                <th>Remitter</th>
-                                <th>Beneficiary</th>
-                                <th>Amount</th>
-                                <th>Description</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Wed Nov 12 17:43:13 MSK 2014</td>
-                                <td>Smith J. (cash in)</td>
-                                <td>Jonex A.</td>
-                                <td>356.61</td>
-                                <td>Iniital deposit</td>
-                            </tr>
-                            <tr>
-                                <td>Wed Nov 13 12:41:13 MSK 2014</td>
-                                <td>Suzarland TJ.</td>
-                                <td>Smith J.</td>
-                                <td>2000.00</td>
-                                <td>Reward</td>
-                            </tr>
-                            <tr>
-                                <td>Wed Nov 15 07:43:13 MSK 2014</td>
-                                <td>Smith J.</td>
-                                <td>Smith M.</td>
-                                <td>100.00</td>
-                                <td>funds transfer</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </li>
+
+                    <% }); %>
+
                 </ul>
             </div>
         </div>
     </div>
 </div>
-    <!--<div class="container">-->
-        <!--<h1>Result for <%= appName %></h1>-->
+<!--<div class="container">-->
+<!--<h1>Result for <%= appName %></h1>-->
 
-        <!--<% _.keys(errors, function(name) { %> <li><%=   name %></li> <% }); %>-->
-        <!--<% _.keys(statistics, function(name) { %> <li><%=   name %></li> <% }); %>-->
+<!--<% _.keys(errors, function(name) { %> <li><%=   name %></li> <% }); %>-->
+<!--<% _.keys(statistics, function(name) { %> <li><%=   name %></li> <% }); %>-->
 
-    <!--</div>-->
+<!--</div>-->
 </body>
 </html>
