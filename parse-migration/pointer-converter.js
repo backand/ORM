@@ -24,7 +24,7 @@ PointerConverter.prototype = (function() {
             var objectId = self.schema.toUUid(jsonFromParse.objectId);
             var parseClass = self.schema.getClass(className, errorCallback);
 
-            for (var property in jsonFromParse) {
+            for (var property in parseClass.fields) {
                 try {
                     var columnName = parseClass.fields[property].originalName;
                     if (jsonFromParse.hasOwnProperty(columnName)) {

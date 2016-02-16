@@ -51,7 +51,8 @@ updatePointer.prototype.updatePointers = function(streamer, report, datalink, fi
     function updatePointerOnData(data, cb) {
         var json = data;
         var sqlArray = converter.getUpdateStatementsForAllPointer(className, json, function (error) {
-            // error report
+            logger.error('getUpdateStatementsForAllPointer for ' + className)
+
         })
         if (!sqlArray || sqlArray.length == 0) {
             cb();

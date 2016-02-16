@@ -24,7 +24,8 @@ updateRelationStep.prototype.updateRelations = function(streamer, report, datali
         var relationName = rel;
         var columnName = parseClass.fields[relationName].originalName;
 
-        var fileName = "_Join_" + columnName + "_" + className + '.json';
+
+        var fileName = "_Join_" + columnName + "_" + parseClass.originalName + '.json';
         logger.info('start ' + fileName)
         current.updateRelation(streamer, report, datalink, fileName, converter,
             className, relationName, bulkRunner, function(){

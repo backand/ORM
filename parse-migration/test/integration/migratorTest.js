@@ -28,13 +28,13 @@ function runFullTest(testConnection, testSchema, appName, directory, done) {
 }
 describe('simple case test', function(){
     this.timeout(1000 * 240);
-    it('can run migrator for case 1', function(done){
-        var testSchema = require('./01/schema.json');
-        var testConnection = require('./01/connection.json');
-        var directory = "./test/integration/01/data/";
-        var appName = "aaa";
-        runFullTest(testConnection, testSchema, appName, directory, done);
-    })
+    //it('can run migrator for case 1', function(done){
+    //    var testSchema = require('./01/schema.json');
+    //    var testConnection = require('./01/connection.json');
+    //    var directory = "./test/integration/01/data/";
+    //    var appName = "aaa";
+    //    runFullTest(testConnection, testSchema, appName, directory, done);
+    //})
 
  /*   it('can run migrator for case 2', function(done){
         var testSchema = require('./schema.json');

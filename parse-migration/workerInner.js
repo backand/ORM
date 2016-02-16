@@ -65,10 +65,12 @@ Worker.prototype.schemaTransformation = function() {
     logger.info('start schema transformation');
     //add schema
     var objects = [];
-    var parseSchema = new ParseSchema(self.job.parseSchema.results);
+
+    var schemaObj = JSON.parse(self.job.parseSchema);
+    var parseSchema = new ParseSchema(schemaObj.results);
     parseSchema.adjustNames();
 
-    var t = transformer(JSON.parse(self.job.parseSchema));
+    var t = transformer(schemaObj);
     _.each(t, function (s) {
         //console.log(s);
         objects.push(s);

@@ -105,8 +105,10 @@ ParseSchema.prototype = (function() {
             var nameLimit = NAME_LIMIT;
             if (column.type == "Pointer" || column.type == "Relation"){
                 nameLimit = NAME_LIMIT_IN_RELATION;
-                if (property.length > nameLimit) {
-                    var column = adjustColumnName(parseClass, property, nameLimit);
+                if (property.length > nameLimit - 1) {
+                    var column = adjustColumnName(parseClass, property, nameLimit - 1);
+                }
+                if (column.targetClass.length > nameLimit) {
                     if (!relations[column.targetClass]) {
                         relations[column.targetClass] = [];
                     }
@@ -152,9 +154,18 @@ ParseSchema.prototype = (function() {
         getClass:function(className, errorCallback) {
             var parseClass = self.schemaDictionary[className];
             if (!parseClass){
-                errorCallback({js: "ParseSchema", func: "getPropertyType", className: className, message: "The class was not found in the schema"});
+                if(typeof(errorCallback) == "function") {
+                    errorCallback({
+                        js: "ParseSchema",
+                        func: "getPropertyType",
+                        className: className,
+                        message: "The class was not found in the schema"
+                    });
+                }
+
                 return null;
             };
+
             return parseClass;
         },
 
