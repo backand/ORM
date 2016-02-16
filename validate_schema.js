@@ -137,9 +137,9 @@ function validRelation(relation){
 	else{
 		_.each(relation.fields, function(value, key){
 
-			if (key.length > 24){
+			if (key.length > 32){
 				valid = false;
-				warnings.push("relation: " + relationName + " column:" + key + " - column name should be no longer than 24 characters");
+				warnings.push("relation: " + relationName + " column:" + key + " - column name should be no longer than 32 characters");
 			}
 		    if (!(/^\w+$/).test(key)){		
 				valid = false;
