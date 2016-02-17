@@ -29,7 +29,6 @@ function Worker(mockStatusBl) {
     self.statusBl = statusBl;
 
 
-
 }
 Worker.prototype.takeJob = function (job) {
     self.job = job;
@@ -38,14 +37,12 @@ Worker.prototype.takeJob = function (job) {
         logger.info('start job for app ' + job.appName)
 
         self.jobStatus = job.status;
-        if (self.jobStatus == 0) {
-            statusBl.takeJob(job).then(function () {
-                // report errors and statistics
-                self.report = new Report("migration.html", job.appName);
+        // report errors and statistics
+        self.report = new Report("migration.html", job.appName);
 
-                deferred.resolve(job);
-            });
-        }
+        statusBl.takeJob(job).then(function () {
+            deferred.resolve(job);
+        })
     }
     else {
         //  setTimeout(mainRoutine, waitInterval);
@@ -67,15 +64,22 @@ Worker.prototype.unzipFile = function (filePath) {
 }
 
 Worker.prototype.schemaTransformation = function () {
+    var deferred = q.defer();
     logger.info('start schema transformation');
     //add schema
     var objects = [];
 
     var schemaObj = JSON.parse(self.job.parseSchema);
+    if (!schemaObj) {
+        deferred.reject(new Error("can't jsonParse " + JSON.stringify(self.job)));
+        return deferred.promise;
+    }
+
+
     var parseSchema = new ParseSchema(schemaObj.results);
     parseSchema.adjustNames();
 
-    self.report.pushData('transform' , parseSchema.getAdjustedNames());
+    self.report.pushData('transform', parseSchema.getAdjustedNames());
     var t = transformer(schemaObj);
     _.each(t, function (s) {
         //console.log(s);
@@ -83,7 +87,10 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    return statusBl.model(objects, self.job.appToken)
+    statusBl.model(objects, self.job.appToken).then(function () {
+        deferred.resolve(undefined);
+    })
+    return deferred.promise;
 }
 
 Worker.prototype.fillSchemaTable = function () {
