@@ -33,21 +33,26 @@ updatePointer.prototype.updateInner = function(className, bulkRunner, cb) {
 }
 
 updatePointer.prototype.updatePointers = function(streamer, report, datalink, fileName, converter, className, bulkRunner, callback) {
+
     var current =this;
     current.report = report;
     current.updateStatetmentBulk = [];
     current.filename = fileName;
+    current.finishCallback = callback;
+
     function updatePointerOnFinish() {
+        logger.info('updatePointerOnFinish for ' + current.filename)
         current.updateInner(className, bulkRunner, function () {
             logger.info('finish updatePointers for ' + current.filename);
-            callback();
+            current.finishCallback();
         })
     }
 
     function updatePointerOnData(data, cb) {
         var json = data;
         var sqlArray = converter.getUpdateStatementsForAllPointer(className, json, function (error) {
-            // error report
+            logger.error('getUpdateStatementsForAllPointer for ' + className)
+
         })
         if (!sqlArray || sqlArray.length == 0) {
             cb();

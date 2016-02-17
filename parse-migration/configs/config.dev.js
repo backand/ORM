@@ -18,6 +18,11 @@ var auth = {
 }
 
 
+var transformAddress = {
+  'host' : 'localhost',
+  'port' : 9000
+}
+
 
 var workerId = 10;
 
@@ -25,3 +30,4 @@ module.exports.redis = redis;
 module.exports.api_url = api_url;
 module.exports.workerId = workerId;
 module.exports.authDetail = auth;
+module.exports.transformAddress = transformAddress;

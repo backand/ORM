@@ -22,16 +22,18 @@ PointerConverter.prototype = (function() {
         getUpdateStatementsForAllPointer:function(className, jsonFromParse, errorCallback) {
             var updateStatements = [];
             var objectId = self.schema.toUUid(jsonFromParse.objectId);
+            var parseClass = self.schema.getClass(className, errorCallback);
 
-            for (var property in jsonFromParse) {
+            for (var property in parseClass.fields) {
                 try {
-                    if (jsonFromParse.hasOwnProperty(property)) {
+                    var columnName = parseClass.fields[property].originalName;
+                    if (jsonFromParse.hasOwnProperty(columnName)) {
                         var propertyType = self.schema.getPropertyType(className, property, errorCallback);
                         switch (propertyType) {
                             case "Pointer":
                                 var pointer = "null";
-                                if (jsonFromParse[property] && jsonFromParse[property].objectId)
-                                    pointer = "'" + self.schema.toUUid(jsonFromParse[property].objectId) + "'";
+                                if (jsonFromParse[columnName] && jsonFromParse[columnName].objectId)
+                                    pointer = "'" + self.schema.toUUid(jsonFromParse[columnName].objectId) + "'";
                                 var sql = getUpdateStatementForSinglePointer(className, property, errorCallback).replace("@pointer", pointer).replace("@objectId", objectId);
                                 updateStatements.push(sql);
                                 break;

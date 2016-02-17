@@ -1,3 +1,4 @@
+/parse-migration/test/reports
 **.DS_Store
 node_modules/
 Edge/UseNodejsInDotNet/UseNodejsInDotNet/bin/

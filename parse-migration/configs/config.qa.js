@@ -14,6 +14,10 @@ var auth = {
   'passworsd' : 'itay1234'
 }
 
+var transformAddress = {
+  'host' : 'localhost',
+  'port' : 9000
+}
 
 module.exports.redis = redis;
 

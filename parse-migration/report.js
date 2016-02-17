@@ -6,51 +6,59 @@
  */
 
 var fs = require('fs');
-
+var s3Uploader = require('./fileUploader');
+var _ = require('underscore');
 var self = this;
 
-function Report(fileName) {
+var template = fs.readFileSync('./template/report.html', 'utf8');
+
+function Report(fileName, appName) {
+    self.appName = appName;
     self.fileName = fileName;
-    self.data = {errors:{general:[]}, statistics:{}};
+    self.data = {transform: {}, errors: {general: []}, statistics: {}, logs: [], hasErrors: false};
 }
 
-Report.prototype = (function() {
+Report.prototype = (function () {
+
     // Private code here
-    var init = function(type, className, action, val) {
+    var init = function (type, className, action, val) {
         if (!self.data[type][className]) {
             self.data[type][className] = {};
             self.data[type][className][action] = val;
         }
-        if (!self.data[type][className][action])
+        if (!self.data[type][className][action]) {
             self.data[type][className][action] = val;
+        }
     };
 
-    var initErrors = function(className, action) {
+    var initErrors = function (className, action) {
+        self.data.hasErrors = true;
         init("errors", className, action, [])
     };
-    var initStatistics = function(className, action) {
+    var initStatistics = function (className, action) {
         init("statistics", className, action, 0)
     };
-    var initInsertErrors = function(className) {
+    var initInsertErrors = function (className) {
         initErrors(className, "inserts")
     };
-    var initPointerErrors = function(className) {
+    var initPointerErrors = function (className) {
         initErrors(className, "pointers")
     };
-    var initRelationErrors = function(className, relationName) {
-        initErrors(className, "relations")
+    var initRelationErrors = function (className, relationName) {
+        self.data.hasErrors = true;
+        init("errors", className, "relations", {})
         if (!self.data.errors[className].relations[relationName])
             self.data.errors[className].relations[relationName] = [];
 
     };
-    var initInsertStatistics = function(className) {
+    var initInsertStatistics = function (className) {
         initStatistics(className, "inserts")
     };
-    var initPointerStatistics = function(className) {
+    var initPointerStatistics = function (className) {
         initStatistics(className, "pointers")
     };
-    var initRelationStatistics = function(className, relationName) {
-        initStatistics(className, "relations")
+    var initRelationStatistics = function (className, relationName) {
+        init("statistics", className, "relations", {})
         if (!self.data.statistics[className].relations[relationName])
             self.data.statistics[className].relations[relationName] = 0;
 
@@ -58,63 +66,61 @@ Report.prototype = (function() {
 
     return {
 
-        constructor:Report,
-
-        generalError:function(err) {
+        constructor: Report,
+        generalError: function (err) {
             self.data.errors.general.push(err);
         },
-
-        insertClassError:function(className, err) {
+        insertClassError: function (className, err) {
             initInsertErrors(className);
-            self.data.errors[className].inserts.push(err);
+            self.data.errors[className].inserts.push(err.message);
         },
-        updatePointerError:function(className, err) {
+        updatePointerError: function (className, err) {
             initPointerErrors(className);
             self.data.errors[className].pointers.push(err);
         },
-        updateRelationError:function(className, relationName, err) {
+        updateRelationError: function (className, relationName, err) {
             initRelationErrors(className, relationName);
             self.data.errors[className].relations[relationName].push(err);
         },
-        insertClassSuccess:function(className, rows) {
+        insertClassSuccess: function (className, rows) {
             initInsertStatistics(className);
             self.data.statistics[className].inserts = self.data.statistics[className].inserts + rows;
         },
-        updatePointerSuccess:function(className, rows) {
+        updatePointerSuccess: function (className, rows) {
             initPointerStatistics(className);
             self.data.statistics[className].pointers = self.data.statistics[className].pointers + rows;
         },
-        updateRelationSuccess:function(className, relationName, rows) {
+        updateRelationSuccess: function (className, relationName, rows) {
             initRelationStatistics(className, relationName);
             self.data.statistics[className].relations[relationName] = self.data.statistics[className].relations[relationName] + rows;
         },
-        write:function(){
-            fs.writeFileSync(self.fileName, JSON.stringify(self.data));
+        log : function(message){
+            self.data.logs.push(message);
+        },
+        pushData : function(key, value){
+          self.data[key] = value;
+        },
+
+        setData : function(data){
+          // for test. we love you relly
+            self.data = data;
+
+        },
+        write: function () {
+
+            var compiled =  _.template(template);
+            console.log(self.data);
+
+            // add needed data
+            self.data.appName = self.appName;
+
+            var  fileData = compiled(self.data);
+            s3Uploader.uploadFile(self.fileName, fileData, 'text/html', self.appName);
         }
     };
 })();
 
 module.exports = Report;
 
-function test(){
-    var report = new Report("./reportTest.json");
-    report.insertClassSuccess("c1", 15);
-    report.insertClassSuccess("c1", 17);
-    report.insertClassError("c1", {message:"error1 occured"});
-    report.insertClassError("c2", {message:"error2 occured"});
-    report.insertClassSuccess("c2", 17);
-    report.insertClassError("c2", {message:"error3 occured"});
-    report.generalError({message:"error4 occured"});
-    report.updatePointerError("c1", {message:"error5 occured"});
-    report.updatePointerSuccess("c1", 3);
-    report.updateRelationError("c1", "r1", {message:"error6 occured"});
-    report.updateRelationSuccess("c1","r1", 3);
-    report.updateRelationError("c1", "r1", {message:"error7 occured"});
-    report.updateRelationSuccess("c1","r1", 4);
-    report.updateRelationError("c1", "r2", {message:"error8 occured"});
-    report.updateRelationSuccess("c1","r2", 4);
-    report.write();
 
-}
-//test();
 

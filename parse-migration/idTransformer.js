@@ -60,7 +60,7 @@ function toGuidId(str) {
     // pad with zero to be sure we have 32
     res = String("00000000000000000000000000000000" + res).slice(-32);
     res = formatAsGuid(res);
-    console.log("toGuidId finsish", str, res);
+    //console.log("toGuidId finsish", str, res);
     return res;
 
 }

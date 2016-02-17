@@ -7,7 +7,6 @@ var PointerConverter = require('./pointer-converter');
 var RelationConverter = require('./relation-converter');
 var BulkRunner = require('./bulk-runner');
 var Streamer = require('./streamer');
-var Report = require('./report');
 var logger = require('./logging/logger').getLogger('Migrator');
 var async = require('async');
 // test
@@ -35,11 +34,13 @@ Migrator.prototype = (function () {
     var current = this;
 
 
-    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, finishedCallback, currentStatus) {
+    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, report, finishedCallback,  currentStatus) {
+        console.log("report is ", report);
         var schema = JSON.parse(strSchema).results;
 
         // a schema wrapper with helping functions
         var parseSchema = new ParseSchema(schema);
+        parseSchema.adjustNames();
 
         // converts json to SQL Insert commands and parameters
         var classJsonConverter = new ClassJsonConverter(parseSchema);
@@ -56,44 +57,51 @@ Migrator.prototype = (function () {
         // read large json files
         var streamer = new Streamer();
 
-        // report errors and statistics
-        var report = new Report("./" + appName + ".json");
 
         // insert data of all classes without Relations and Pointers
         async.series([
             function (callback) {
                 logger.info('start insertClass');
-                var insertStep = new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer, report);
+                //var insertStep = new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer, report);
                 // iterate on each class in the schema
                 async.eachSeries(schema, function (sc, callback2) {
                         // get the class
                         var className = sc.className;
-
+                        var originalName = sc.originalName;
                         // get the file equivalent to this class
-                        var fileName = className + ".json";
+                        var fileName = originalName + ".json";
 
                         // insert the file to equivalent MySQL table
-                        insertStep.insertClass(datalink, fileName,className, callback2);
+                        new InsertClassStep(appName,statusBl, bulkRunner, classJsonConverter, streamer, report).insertClass(datalink, fileName,className, callback2);
                     }, function () {
                         logger.info('finish step insertClass');
                         callback()
+                        return;
                     }
                 );
             },
             function (callback) {
                 logger.info('start Pointer step');
-                var updatePointerStep = new UpdatePointerStep();
+                //var updatePointerStep = new UpdatePointerStep();
                 // update data of all classes Pointers
                 async.eachSeries(schema, function (sc, callback2) {
                     var className = sc.className;
-                    logger.info('Pointer inner step: ' + className);
+                    var originalName = sc.originalName;
+                    logger.info('Pointer inner step: ' + sc.className);
 
+                    if(!parseSchema.classHasPointers(sc.className)){
+                        logger.info('not any pointer in class ' + sc.className)
+                        callback2();
+                        return;
+                    }
 
-                    var fileName = className + ".json";
-                    updatePointerStep.updatePointers(streamer, report, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
+                    var fileName = originalName + ".json";
+                    new UpdatePointerStep().updatePointers(streamer, report, datalink, fileName, pointerConverter,
+                        className, bulkRunner, callback2);
                 }, function () {
                     logger.info('finish step pointer');
                     callback()
+                    return;
                 });
             },
             function (callback) {
@@ -102,17 +110,21 @@ Migrator.prototype = (function () {
                 // update data of all classes Relations
                 async.eachSeries(schema, function (sc, callback2) {
                     var className = sc.className;
-                    updateRelationStep.updateRelations(streamer, report, datalink, relationConverter, className, parseSchema, bulkRunner, callback2);
+                    new UpdateRelationStep().updateRelations(streamer, report, datalink, relationConverter,
+                        className, parseSchema, bulkRunner, callback2);
                 }, function () {
                     logger.info('finish step updateRelations');
                     callback()
+                    return;
                 });
             },
             function (callback) {
-
+                report.log('success finsih migration for appName ' + appName);
+                report.write();
                 finishedCallback();
-                callback();
                 logger.info('finished migration');
+                callback();
+                return;
 
             }]);
     };
@@ -121,22 +133,22 @@ Migrator.prototype = (function () {
 
         constructor: Migrator,
 
-        run: function (job, directory, statusBl, finishedCallback) {
+        run: function (job, directory, statusBl, report,  finishedCallback) {
             var self = this;
             self.directory = directory;
             self.currentJob = job;
             self.statusBl = statusBl;
-
+            self.report = report;
             var caller = finishedCallback;
 
             connectionRetreiver.getConnectionInfoSimple(job.appToken, job.appName, function (err, result) {
                 var job = self.currentJob;
-                runInner(job.appName, result, self.directory, job.parseSchema, self.statusBl, caller);
+                runInner(job.appName, result, self.directory, job.parseSchema, self.statusBl, self.report, caller);
             });
         },
 
         runTest: function (appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus) {
-            runInner(appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus);
+            runInner(appName, connectionInfo, datalink, schema, statusBl,null,  finishedCallback, currentStatus);
         }
 
     };

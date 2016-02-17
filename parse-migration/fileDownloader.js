@@ -11,6 +11,7 @@ var Zip = require("adm-zip");
 var mkdirp = require('mkdirp');
 var Utils = require("adm-zip/util");
 var pth = require("path");
+
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.replace(new RegExp(search, 'g'), replacement);
@@ -47,13 +48,19 @@ function unzipFile(fileName, directory) {
         }
 
         try {
-            zip.getEntries().forEach(function(entry) {
 
+            zip.getEntries().forEach(function(entry) {
+                var entryName = entry.entryName.toString().replaceAll(":","_");
+                var targetPath = pth.resolve(path, entryName);
+                if (entry.isDirectory) {
+                    Utils.makeDir(pth.resolve(targetPath,entryName));
+                    return;
+                }
                 var content = entry.getData();
                 if (!content) {
                     throw Utils.Errors.CANT_EXTRACT_FILE + "2";
                 }
-                Utils.writeFileTo(pth.resolve(path, entry.entryName.toString().replaceAll(":","_")), content, true);
+                Utils.writeFileTo(targetPath, content, true);
             })
            // zip.extractAllTo(path, true);
             logger.info('finish unzip for ' + path);
@@ -73,7 +80,6 @@ function getFilesList(directory){
   return fs.readdirSync(directory);
 
 }
-
 
 var FileDownloader = function (path) {
     this.path = path;

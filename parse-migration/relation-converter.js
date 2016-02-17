@@ -23,6 +23,7 @@ RelationConverter.prototype = (function() {
         constructor:RelationConverter,
 
         getUpdateStatementsForRelation:function(className, relationName, jsonFromParse, errorCallback) {
+            console.log(className, relationName, jsonFromParse)
             var updateStatements = [];
             var owningId = self.schema.toUUid(jsonFromParse.owningId);
             var relatedId = self.schema.toUUid(jsonFromParse.relatedId);

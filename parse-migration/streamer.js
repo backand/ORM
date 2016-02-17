@@ -12,55 +12,93 @@ function Streamer() {
 Streamer.prototype = (function () {
     // Private code here
     function getDataInner(datalink, fileName, onData, finishCallback, startId) {
-        var q = async.queue(function (task, callback) {
-            console.log(task.val.objectId);
-            onData(task.val, function(){
-                console.log('call finish data ' +  task.val.objectId);
+        var path = datalink + fileName;
+
+        var current = this;
+
+        current.path = path;
+        current.finishCallback = finishCallback;
+        current.jsonIsEmpty = true;
+        current.onData = onData;
+        current.firstTimeFinish = true;
+        current.q = async.queue(function (task, callback) {
+            var objectId = task.val ?  task.val.objectId : undefined;
+
+            var currentCallback = function(){
+                console.log("finsih " + objectId)
                 callback();
-            });
+                return;
+            }
+
+            // handle case of empty file
+            if(task.val) {
+                console.log(task.val.objectId);
+                current.jsonIsEmpty = false;
+                task.onData(task.val, function () {
+                    console.log('call finish data ' + task.val.objectId);
+                    currentCallback();
+                    return;
+                });
+            }else{
+                currentCallback();
+                return;
+            }
         }, 1);
 
-        q.drain = function() {
-            console.log('all items have been processed');
-            isFinsihed = true;
-            finishCallback();
+        current.q.drain = function() {
+            current.q.drain = function(){};
+            console.log('all items have been processed ' + current.path);
+            current.firstTimeFinish = false;
+            current.finishCallback();
+            return;
         }
+        current.fileExist = false;
+        current.canRead = false;
 
-        var canRead = false;
-        var jsonIsEmpty = true;
         if (!startId) {
-            canRead = true;
+            current.canRead = true;
         }
-
-        var path = datalink + fileName;
 
         try {
             fs.accessSync(path, fs.R_OK);
+            current.fileExist = true;
         }
         catch(err){
-            finishCallback(err);
+            console.log('error in streamer ' , err);
+            console.log(current.finishCallback)
+            current.firstTimeFinish = false;
+            current.finishCallback(err);
             return;
         }
 
-        var a = fs.createReadStream(path)
-            .on('end',function(){
+        if(!current.fileExist){
+            console.log('nope');
+            return;
+        }
+
+        console.log("start read " + current.path);
+        fs.createReadStream(current.path)
+            .on('close',function(){
+                console.log('finish '  + current.path);
+                current.q.push({'val' : undefined});
+                return;
                 // assign a callback
-                if(jsonIsEmpty){
-                    console.log("finish without any json for " + path);
-                    finishCallback();
-                }
+                /*if(current.jsonIsEmpty && current.firstTimeFinish){
+                    current.firstTimeFinish = false;
+                    console.log("finish without any json for " + current.path);
+                    current.finishCallback();
+                    return;
+                }*/
             } )
             .pipe(JSONStream.parse(['results',true]))
             .pipe(es.mapSync(function (data, cb) {
-                if (!canRead && data && data.objectId === startId) {
-                    canRead = true;
+                if (!current.canRead && data && data.objectId === startId) {
+                    current.canRead = true;
                 }
 
-                console.log('start data ' + data.objectId);
-
-                if (canRead) {
-                    jsonIsEmpty = false;
-                    q.push({'val' : data});
+                if (current.canRead) {
+                    current.jsonIsEmpty = false;
+                    current.q.push({'val' : data, 'onData' : current.onData});
                 }
             }));
 
