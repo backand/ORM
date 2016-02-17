@@ -73,6 +73,7 @@ StatusBl.prototype.takeJob = function (job) {
     // update job taken
     logger.info("try take job for app " + job.appName + ' and jobId ' + job.id);
     job.status = 1;
+    job.attempts = job.attempts + 1;
     job.workerId = this.workerId;
     job.attempts = job.attempts + 1;
 

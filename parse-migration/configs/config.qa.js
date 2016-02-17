@@ -10,8 +10,8 @@ var redis = {
 };
 var auth = {
   'appName' : 'parseconverter',
-  'username' : 'administrator@backand.com',
-  'passworsd' : 'bell1234'
+  'username' : 'itay@backand.com',
+  'passworsd' : 'itay1234'
 }
 
 var transformAddress = {

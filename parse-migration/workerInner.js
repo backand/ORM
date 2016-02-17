@@ -65,11 +65,18 @@ Worker.prototype.unzipFile = function (filePath) {
 }
 
 Worker.prototype.schemaTransformation = function () {
+    var deferred = q.defer();
     logger.info('start schema transformation');
     //add schema
     var objects = [];
 
     var schemaObj = JSON.parse(self.job.parseSchema);
+    if (!schemaObj) {
+        deferred.reject(new Error("can't jsonParse " + JSON.stringify(self.job)));
+        return deferred.promise;
+    }
+
+
     var parseSchema = new ParseSchema(schemaObj.results);
     parseSchema.adjustNames();
 
@@ -81,7 +88,10 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    return statusBl.model(objects, self.job.appToken)
+    statusBl.model(objects, self.job.appToken).then(function () {
+        deferred.resolve(undefined);
+    })
+    return deferred.promise;
 }
 
 Worker.prototype.fillSchemaTable = function () {
