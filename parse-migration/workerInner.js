@@ -10,7 +10,6 @@ var migrator = new Migrator();
 var globalConfig = require('./configFactory').getConfig();
 var workerId = globalConfig.workerId;
 var statusBl = new StatusBl(workerId);
-console.log(statusBl.workerId);
 var waitInterval = 5 * 1000;
 var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
@@ -29,7 +28,6 @@ function Worker(mockStatusBl) {
     self.statusBl = statusBl;
 
 
-
 }
 Worker.prototype.takeJob = function (job) {
     self.job = job;
@@ -38,14 +36,14 @@ Worker.prototype.takeJob = function (job) {
         logger.info('start job for app ' + job.appName)
 
         self.jobStatus = job.status;
-        if (self.jobStatus == 0) {
-            statusBl.takeJob(job).then(function () {
-                // report errors and statistics
-                self.report = new Report("migration.html", job.appName);
+        self.report = new Report("migration.html", job.appName);
 
-                deferred.resolve(job);
-            });
-        }
+        statusBl.takeJob(job).then(function () {
+            // report errors and statistics
+
+            deferred.resolve(job);
+
+        })
     }
     else {
         //  setTimeout(mainRoutine, waitInterval);
@@ -75,7 +73,7 @@ Worker.prototype.schemaTransformation = function () {
     var parseSchema = new ParseSchema(schemaObj.results);
     parseSchema.adjustNames();
 
-    self.report.pushData('transform' , parseSchema.getAdjustedNames());
+    self.report.pushData('transform', parseSchema.getAdjustedNames());
     var t = transformer(schemaObj);
     _.each(t, function (s) {
         //console.log(s);
@@ -108,6 +106,7 @@ Worker.prototype.setJobFinish = function () {
 }
 
 Worker.prototype.startAgain = function () {
+    // console.log('start again');
     setTimeout(self.run, waitInterval);
 }
 
@@ -115,9 +114,18 @@ Worker.prototype.logError = function (err) {
     logger.error(err);
 }
 
+Worker.prototype.finish = function () {
+    if (self.done) {
+        self.done();
+    } else {
+        self.startAgain();
+    }
+}
+
 Worker.prototype.run = function (done) {
-    var self = this;
-    statusBl.connect()
+    var self = new Worker();
+    self.done = done;
+    q.fcall(statusBl.connect)
         .then(statusBl.getNextJob)
         .then(self.takeJob)
         .then(self.downloadFile)
@@ -127,8 +135,9 @@ Worker.prototype.run = function (done) {
         .then(self.migrateData)
         .then(self.setJobFinish)
         .fail(self.logError)
-        .done(done || self.startAgain);
+        .then(self.finish);
 }
+
 
 module.exports.Worker = Worker;
 

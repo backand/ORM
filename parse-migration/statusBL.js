@@ -20,18 +20,21 @@ function StatusBl(workerId) {
 
 
 StatusBl.prototype.connect = function () {
+    var deferred = q.defer();
     logger.info('login with ' + config.username + ' to app ' + config.appName);
-    return backand.auth({username: config.username, password: config.passworsd, appname: config.appName})
+     backand.auth({username: config.username, password: config.passworsd, appname: config.appName})
         .then(function () {
             logger.info("success connect to Backand");
+            deferred.resolve();
         });
+
+    return deferred.promise;
 }
 
 StatusBl.prototype.getNextJob = function () {
     logger.info('start get next Job');
     var data = {'workerId': self.workerId};
     var deferred = q.defer();
-
     function getEqualityFilter() {
         return {fieldName: "workerId", operator: "equals", value: self.workerId};
     }
@@ -40,18 +43,19 @@ StatusBl.prototype.getNextJob = function () {
         .then(function (result) {
             if (!result) {
                 deferred.resolve(undefined);
-                return undefined;
+                return;
             }
 
             logger.info('found ' + result.length + ' jobs');
 
             if (result.length === 0) {
                 deferred.resolve(undefined);
-                return undefined;
+                return;
             }
 
             if (result[0].id) {
                 deferred.resolve(result[0]);
+                return;
             }
 
         });
@@ -70,6 +74,7 @@ StatusBl.prototype.takeJob = function (job) {
     logger.info("try take job for app " + job.appName + ' and jobId ' + job.id);
     job.status = 1;
     job.workerId = this.workerId;
+    job.attempts = job.attempts + 1;
 
     return backand.put('/1/objects/MigrationJobQueue/' + job.id + '?returnObject=true', job)
         .then(function (res) {

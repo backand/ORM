@@ -35,7 +35,6 @@ Migrator.prototype = (function () {
 
 
     function runInner(appName, connectionInfo, datalink, strSchema, statusBl, report, finishedCallback,  currentStatus) {
-        console.log("report is ", report);
         var schema = JSON.parse(strSchema).results;
 
         // a schema wrapper with helping functions
@@ -163,7 +162,7 @@ function test() {
     var strSchema = JSON.stringify(testSchema);
     // perform database cleanup to initiate all the tables. only needed in the test
     cleaner.clean(testSchema, function (error) {
-            console.log(error);
+           logger.error(error.message);
         }, function () {
 
         }, function () {
@@ -182,7 +181,7 @@ function test2() {
     var strSchema = JSON.stringify(testSchema);
     // perform database cleanup to initiate all the tables. only needed in the test
     cleaner.clean(testSchema.results, function (error) {
-            console.log(error);
+            logger.error(error.message)
         }, function () {
 
         }, function () {
