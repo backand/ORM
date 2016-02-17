@@ -3,8 +3,8 @@
  */
 var idTransformer = require('./idTransformer');
 var self = this;
-const NAME_LIMIT = 24;
-const NAME_LIMIT_IN_RELATION = 12;
+const NAME_LIMIT = 32;
+const NAME_LIMIT_IN_RELATION = 16;
 
 function ParseSchema(schema) {
     self.schema = schema;

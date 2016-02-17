@@ -59,6 +59,7 @@ var uploadFile = function (fileName, fileData, fileType, appName) {
 
             // should have link url
             deferred.resolve(data);
+            console.log(data.link);
         }
     );
 

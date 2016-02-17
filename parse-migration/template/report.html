@@ -23,7 +23,7 @@
                         <div class="col-md-4"><img
                                 src="https://www.backand.com/wp-content/uploads/2015/11/support_img4.jpg"/></div>
                         <div class="col-md-8"><h3>
-                            <b>Application Name</b> <a url="https://www.backand.com/apps/#/app/<%= appName %>"><%=
+                            <b>Application Name</b> <a href="https://www.backand.com/apps/#/app/<%= appName %>"><%=
                             appName %></a>
                         </h3>
                             <p>
@@ -34,33 +34,17 @@
 
 
                 </div>
-                <% if(hasErrors) { print(`
-                <div class="alert alert-warning" style="
-    margin-left: 20%;
-    margin-right: 20%;
-" role="alert">
-                    <h4><span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span> Run finish without
-                        some warnings see below</h4>
-                </div>
-                `
-                ) } %>
-                <% if(!hasErrors) { print(`
-                <div class="alert alert-success" style="
-    margin-left: 20%;
-    margin-right: 20%;
-" role="alert">
-                    <h4><span class="glyphicon glyphicon-ok"></span> Run finish without any error</h4>
-                </div>
-                `) } %>
+                <% if(hasErrors) { print('<div class="alert alert-warning" style="    margin-left: 20%;     margin-right: 20%; " role="alert"><h4><span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>Run finish with some warnings see below</h4></div>') } %>
+                <% if(!hasErrors) { print('<div class="alert alert-success" style="    margin-left: 20%;     margin-right: 20%; " role="alert"> <h4><span class="glyphicon glyphicon-ok"></span> Run finish without any error</h4></div>') } %>
                 <li class="list-group-item">
 
-                <h4>Global Logs</h4>
-                <ul>
-                    <% if(logs) {  _.each(logs, function (log) {   %>
+                    <h4>Global Logs</h4>
+                    <ul>
+                        <% if(logs) {  _.each(logs, function (log) {   %>
 
-                    <li><%= log %></li>
-                    <% }) } %>
-                </ul>
+                        <li><%= log %></li>
+                        <% }) } %>
+                    </ul>
                 </li>
 
                 <% _.keys(statistics, function(name) { %>
@@ -106,15 +90,15 @@
                             <% if(!errors[key]) { print('<br/><br/><br/><br/><br/><br/>')  } else {  _.each(_.allKeys(errors[key]), function (er1) {   %>
 
 
-                                <% {  _.each(errors[key][er1] , function(msg) { %>
+                            <% {  _.each(errors[key][er1] , function(msg) { %>
                             <tr>
                                 <td><%= er1 %></td>
-                                <td><%= msg %></td>
+                                <td><%= msg.message ?  msg.message : msg %></td>
                             </tr>
                             <% })} %>
 
 
-                        <% })} %>
+                            <% })} %>
 
                             <% var stats = _.find(transform, function(f) { return f.originalName == key || f.adjustedName == key }); if(stats) {%>
                             <tr>

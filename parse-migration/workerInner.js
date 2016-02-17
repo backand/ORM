@@ -27,8 +27,6 @@ function Worker(mockStatusBl) {
     self = this;
     statusBl = mockStatusBl || statusBl;
     self.statusBl = statusBl;
-    // report errors and statistics
-    self.report = new Report("migration.html", appName);
 
 
 
@@ -42,6 +40,9 @@ Worker.prototype.takeJob = function (job) {
         self.jobStatus = job.status;
         if (self.jobStatus == 0) {
             statusBl.takeJob(job).then(function () {
+                // report errors and statistics
+                self.report = new Report("migration.html", job.appName);
+
                 deferred.resolve(job);
             });
         }
@@ -74,7 +75,7 @@ Worker.prototype.schemaTransformation = function () {
     var parseSchema = new ParseSchema(schemaObj.results);
     parseSchema.adjustNames();
 
-    report['transform'] = parseSchema.getAdjustedNames();
+    self.report.pushData('transform' , parseSchema.getAdjustedNames());
     var t = transformer(schemaObj);
     _.each(t, function (s) {
         //console.log(s);

@@ -1,6 +1,8 @@
 var ParseSchema = require('../../parse-schema');
 var expect = require("chai").expect;
 
+const NAME_LIMIT = 32;
+
 var schema = {
     "results": [{
         "className": "SOI",
@@ -610,14 +612,15 @@ describe('schema validation', function(){
     it('table with long name get smaller name', function(done){
         var parseSchema = new ParseSchema(schema.results);
 
-        expect(parseSchema.getClass('TimePunchTimeCalculations')).to.not.be.null;
+        var className = "TimePunchTimeCalculations";
+        expect(parseSchema.getClass(className)).to.not.be.null;
 
         // act
         parseSchema.adjustNames();
 
-        expect(parseSchema.getClass('TimePunchTimeCalculations')).to.be.a('null');
+        expect(parseSchema.getClass(className)).to.be.a('null');
 
-        expect(parseSchema.getClass('TimePunchTim')).to.not.be.a('null');
+        expect(parseSchema.getClass(className.substr(0, NAME_LIMIT/2))).to.not.be.a('null');
 
         var changed = parseSchema.getAdjustedNames();
 
@@ -625,10 +628,11 @@ describe('schema validation', function(){
     })
 
     it('column with long name get smaller name', function(done){
+        var fieldName = "VERYLONGCOLUMNVERYLONGCOLUMN123456";
         schema.results.push({
             "className": "test2",
             "fields": {
-                "VERYLONGCOLUMNVERYLONGCOLUMN": {
+                "VERYLONGCOLUMNVERYLONGCOLUMN123456": {
                     "type": "string"
                 }
             }
@@ -638,9 +642,9 @@ describe('schema validation', function(){
 
         // act
         parseSchema.adjustNames();
-        expect(parseSchema.getClass('test2').fields["VERYLONGCOLUMNVERYLONGCOLUMN"]).to.be.an('undefined');
+        expect(parseSchema.getClass('test2').fields[fieldName]).to.be.an('undefined');
 
-        expect(parseSchema.getClass('test2').fields["VERYLONGCOLUMNVERYLONGCO"]).to.be.an('object');
+        expect(parseSchema.getClass('test2').fields[fieldName.substr(0, NAME_LIMIT)]).to.be.an('object');
 
         var changed = parseSchema.getAdjustedNames();
 
@@ -651,10 +655,10 @@ describe('schema validation', function(){
         schema.results.push({
             "className": "test3",
             "fields": {
-                "VERYLONGCOLUMNVERYLONGCOLUMN": {
+                "VERYLONGCOLUMNVERYLONGCO12345678LUMN": {
                     "type": "string"
                 },
-                "VERYLONGCOLUMNVERYLONGCOLUMN2": {
+                "VERYLONGCOLUMNVERYLONGCO12345678LUMN2": {
                     "type": "string"
                 }
             }
@@ -664,10 +668,10 @@ describe('schema validation', function(){
 
         // act
         parseSchema.adjustNames();
-        expect(parseSchema.getClass('test3').fields["VERYLONGCOLUMNVERYLONGCOLUMN"]).to.be.an('undefined');
+        expect(parseSchema.getClass('test3').fields["VERYLONGCOLUMNVERYLONGCO12345678LUMN"]).to.be.an('undefined');
 
-        expect(parseSchema.getClass('test3').fields["VERYLONGCOLUMNVERYLONGCO"]).to.be.an('object');
-        expect(parseSchema.getClass('test3').fields["VERYLONGCOLUMNVERYLONGC1"]).to.be.an('object');
+        expect(parseSchema.getClass('test3').fields["VERYLONGCOLUMNVERYLONGCO12345678"]).to.be.an('object');
+        expect(parseSchema.getClass('test3').fields["VERYLONGCOLUMNVERYLONGCO12345671"]).to.be.an('object');
 
         var changed = parseSchema.getAdjustedNames();
 
@@ -676,14 +680,14 @@ describe('schema validation', function(){
 
     it('two tables with long name get smaller name with num', function(done){
         schema.results.push({
-            "className": "VERYLONGCLASSVERYLONGCLASS",
+            "className": "VERYLONGCLASSVERYLONGCLA12345678SS",
             "fields": {
 
             }
         });
 
         schema.results.push({
-            "className": "VERYLONGCLASSVERYLONGCLASS2314152346467756",
+            "className": "VERYLONGCLASSVERYLONGCLA12345678SS2314152346467756",
             "fields": {
 
             }
@@ -693,10 +697,10 @@ describe('schema validation', function(){
 
         // act
         parseSchema.adjustNames();
-        expect(parseSchema.getClass('VERYLONGCLASSVERYLONGCLASS')).to.be.a('null');
+        expect(parseSchema.getClass('VERYLONGCLASSVERYLONGCLA12345678SS')).to.be.a('null');
 
-        expect(parseSchema.getClass('VERYLONGCLASSVERYLONGCLA')).to.be.an('object');
-        expect(parseSchema.getClass('VERYLONGCLASSVERYLONGCL1')).to.be.an('object');
+        expect(parseSchema.getClass('VERYLONGCLASSVERYLONGCLA12345678')).to.be.an('object');
+        expect(parseSchema.getClass('VERYLONGCLASSVERYLONGCLA12345671')).to.be.an('object');
 
         var changed = parseSchema.getAdjustedNames();
 
@@ -728,8 +732,8 @@ describe('schema validation', function(){
         parseSchema.adjustNames();
 
 
-        expect(parseSchema.getClass('sample').fields['verylongfie']).to.be.an('object');
-        expect(parseSchema.getClass('sample').fields['verylongfie'].targetClass).to.be.equal('ANOTTHERVERY');
+        expect(parseSchema.getClass('sample').fields['verylongfield12']).to.be.an('object');
+        expect(parseSchema.getClass('sample').fields['verylongfield12'].targetClass).to.be.equal('ANOTTHERVERYLONG');
         done();
     })
 })

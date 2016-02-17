@@ -34,7 +34,8 @@ Migrator.prototype = (function () {
     var current = this;
 
 
-    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, finishedCallback, report,  currentStatus) {
+    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, report, finishedCallback,  currentStatus) {
+        console.log("report is ", report);
         var schema = JSON.parse(strSchema).results;
 
         // a schema wrapper with helping functions
@@ -95,7 +96,8 @@ Migrator.prototype = (function () {
                     }
 
                     var fileName = originalName + ".json";
-                    new UpdatePointerStep().updatePointers(streamer, report, datalink, fileName, pointerConverter, className, bulkRunner, callback2);
+                    new UpdatePointerStep().updatePointers(streamer, report, datalink, fileName, pointerConverter,
+                        className, bulkRunner, callback2);
                 }, function () {
                     logger.info('finish step pointer');
                     callback()
@@ -146,7 +148,7 @@ Migrator.prototype = (function () {
         },
 
         runTest: function (appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus) {
-            runInner(appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus);
+            runInner(appName, connectionInfo, datalink, schema, statusBl,null,  finishedCallback, currentStatus);
         }
 
     };

@@ -165,6 +165,9 @@ StatusBl.prototype.model = function (schema, token) {
             logger.info('end post the new model');
             deferred.resolve();
         })
+    },
+    function(err){
+        logger.error('error post the new model: ' + JSON.stringify(err));
     });
 
     return deferred.promise;
