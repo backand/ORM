@@ -1,0 +1,56 @@
+{
+  "results": [
+    {
+      "className": "post",
+      "fields": {
+        "ACL": {
+          "type": "ACL"
+        },
+        "amount": {
+          "type": "Number"
+        },
+        "best": {
+          "type": "Pointer",
+          "targetClass": "comment"
+        },
+        "content": {
+          "type": "String"
+        },
+        "createdAt": {
+          "type": "Date"
+        },
+        "date": {
+          "type": "Date"
+        },
+        "deleted": {
+          "type": "Boolean"
+        },
+        "location": {
+          "type": "GeoPoint"
+        },
+        "myComments": {
+          "type": "Relation",
+          "targetClass": "comment"
+        },
+        "obj": {
+          "type": "Object"
+        },
+        "objectId": {
+          "type": "String"
+        },
+        "photo": {
+          "type": "File"
+        },
+        "tags": {
+          "type": "Array"
+        },
+        "title": {
+          "type": "String"
+        },
+        "updatedAt": {
+          "type": "Date"
+        }
+      }
+    }
+  ]
+}

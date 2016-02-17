@@ -91,7 +91,10 @@ router.map(function () {
             res.send(500, {error: isValidNewSchema.error}, {});
         }
         else if (isValidNewSchema.valid) {
-            result = transformer(data.oldSchema, data.newSchema, data.severity);
+            var isSpecialPrimary = false;
+            if (data.isSpecialPrimary)
+                isSpecialPrimary = true;
+            result = transformer(data.oldSchema, data.newSchema, data.severity, isSpecialPrimary);
             logger.trace(result);
 
             if (result.error) {
@@ -351,7 +354,7 @@ router.map(function () {
     // upload a content file to S3
     this.post('/uploadFile').bind(function (req, res, data) {
         logger.info('start uploadFile');
-        logger.trace(data.fileName, data.fileType, data.bucket, data.dir);
+        logger.trace(data.fileName + ' ' + ' ' +data.dir);
         var s = data.fileName.toLowerCase();
         var extPosition = s.lastIndexOf('.');
         if (extPosition > -1) {

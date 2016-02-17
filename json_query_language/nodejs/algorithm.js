@@ -151,7 +151,7 @@ var valuesArray =[];
 	// 	"object" : "Dept",
 	// 	"q": {
 			
-	// 		"DeptId": "Finance"
+	// 		"DeptId": "Finance" 
 	// 	},
 					
 	// 	"fields" : [
@@ -197,17 +197,17 @@ var valuesArray =[];
 	// 		}
 	// 	]
 	// },
-//
-//	false,
-//	false,
-//	function(err, sql){
-//		console.log(err);
-//		if(!err)
-//			console.log(sql);
-//		process.exit(1);
-//	}
-//);
-//console.log(r);
+
+// 	false,
+// 	false,
+// 	function(err, sql){
+// 		console.log(err);
+// 		if(!err)
+// 			console.log(sql);
+// 		process.exit(1);
+// 	}
+// );
+// console.log(r);
 
 function transformJsonIntoSQL(email, password, appName, json, isFilter, shouldGeneralize, callback){
 	getDatabaseInformation(email, password, appName, function(err, sqlSchema){
@@ -361,7 +361,7 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 //     }
 //   }];
 
-	 //  var sqlSchema = [
+	 // var sqlSchema = [
 	 //  	{ 
 	 //  		"name" : "Employees", 
 	 //  		"dbName": "blabla", 
@@ -862,7 +862,10 @@ function generateQueryConditional(qc, table, column){
 		if (!validValueOfType(comparand, t)){
 			throw "not a valid constant for column " + column + " of table " + (table.dbName ? table.dbName : table.name);
 		}
-		generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand, t) : escapeValueOfType(comparand, t);
+		if (comparisonOperator != "$like")
+			generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand, t) : escapeValueOfType(comparand, t);
+		else
+			generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand, t) : comparand;
 	}
 	else if (Array.isArray(comparand)){ // array
 		generatedComparand = comparand;
@@ -893,6 +896,10 @@ function generateQueryConditional(qc, table, column){
 		return mysqlOperator[comparisonOperator] + " ( SPATIALCOLUMNBACKAND, " +  
 			"ST_GeomFromText('POINT( " + generatedComparand[0][0] + " " + generatedComparand[0][1] + " )')" +
 			" ) <= " + generatedComparand[1] + factor;
+	}
+	else if (comparisonOperator == "$like"){
+		console.log(generatedComparand);
+		return mysqlOperator[comparisonOperator] + " ( '" + '%' + generatedComparand + '%' + "' ) ";
 	}
 	else 
 		return mysqlOperator[comparisonOperator] + " " + generatedComparand;

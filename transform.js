@@ -158,7 +158,7 @@ var escalationTable = TAFFY([
 var mapToKnexTypes = 
 {
 	"float": "float(50, 2)",
-	"string": "varchar(255)",
+	"string": "varchar(2048)",
 	"boolean": "bit(1)",
 	"text": "text",
 	"binary": "blob",
@@ -166,6 +166,42 @@ var mapToKnexTypes =
 	"date": "date",
 	"point": "point"
 };
+
+// var r = transform(
+// 	[],
+// 	[
+
+// { name: '_User',
+//   fields: 
+//    { email: { type: 'string' },
+//      emailVerified: { type: 'boolean' },
+//      password: { type: 'string' },
+//      username: { type: 'string' },
+//      _Role_users: { object: '_Role' } } },
+// { name: '_Role',
+//   fields: 
+//    { name: { type: 'string' },
+//      roles: { collection: '_Role', via: '_Role_roles' },
+//      users: { collection: '_User', via: '_Role_users' },
+//      _Role_roles: { object: '_Role' } } },
+// { name: 'post',
+//   fields: 
+//    { content: { type: 'string' },
+//      date: { type: 'datetime' },
+//      location: { type: 'point' },
+//      myComments: { collection: 'comment', via: 'post_myComments' },
+//      photo: { type: 'string' },
+//      title: { type: 'string' },
+//      comment_source: { collection: 'comment', via: 'source' } } },
+// { name: 'comment',
+//   fields: 
+//    { content: { type: 'string' },
+//      source: { object: 'post' },
+//      post_myComments: { object: 'post' } } }
+
+
+// 	],
+// 1, true);
 
 // var r = transform(
 // 	[{
@@ -234,7 +270,7 @@ var mapToKnexTypes =
 // });
 
 
-function transform(oldSchema, newSchema, severity){
+function transform(oldSchema, newSchema, severity, isSpecialPrimary){
 
 	try{
 
@@ -268,7 +304,7 @@ function transform(oldSchema, newSchema, severity){
 	            });
 	    }
 		// Construct an array of the required changes between schemes
-		var alterStatementsArray = createStatements(oldSchema, newSchema, modifications);
+		var alterStatementsArray = createStatements(oldSchema, newSchema, modifications, isSpecialPrimary);
 		
 		// remove created at and updated at columns
 		alterStatementsArray = _.map(alterStatementsArray, function(s){
@@ -510,7 +546,7 @@ function getRelationships(newSchema){
 }
 
 // Transform the array of required changes into SQL alter statements
-function createStatements(oldSchema, newSchema, modifications){
+function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary){
 	var statements = [];
 	var oldRelationships = modifications.oldRelationships;
 	var newRelationships = modifications.newRelationships;
@@ -543,7 +579,16 @@ function createStatements(oldSchema, newSchema, modifications){
 	_.each(addedTables, function(t){
 		var statementsRelationships = [];
 		var statement = knex.schema.createTable(t, function (table) {
-		  table.increments();
+		  if (isSpecialPrimary){
+		  	table.collate("utf8_bin");
+		  }
+		  if (!isSpecialPrimary){
+		  	table.increments();
+		  }
+		  else{
+		  	var idColumn = table.uuid('id');
+		  	idColumn.unique().primary();	  	
+		  }
 		  table.timestamps();
 
 		  var newTableSchema = _.findWhere(newSchema, { name: t });
@@ -662,7 +707,13 @@ function createStatements(oldSchema, newSchema, modifications){
 				// var col = table.integer(name);
 				// col.unsigned();
 		  		// col.references("id").inTable(oneManyRelationship.nRelation);
-		  		var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);
+		  		if (isSpecialPrimary){
+		  			var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+		  		}
+		  		else{
+		  			var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);		  			
+		  		}
+
 		  		if (oneManyRelationship.isCascade){
 		  			col.onDelete("cascade").onUpdate("cascade");
 		  		}	  		
@@ -872,7 +923,12 @@ function createStatements(oldSchema, newSchema, modifications){
 						// var col = table.integer(name);
 						// col.unsigned();
 				  		// col.references("id").inTable(oneManyRelationship.nRelation);
-				  		var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);
+				  		if (isSpecialPrimary){
+				  			var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+				  		}
+				  		else{
+				  			var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);				  			
+				  		}
 				  		if (oneManyRelationship.isCascade){
 				  			col.onDelete("cascade").onUpdate("cascade");
 				  		}	
@@ -963,11 +1019,21 @@ function createStatements(oldSchema, newSchema, modifications){
     				var statement = knex.schema.createTable(relationshipName, function (table) {
 					  table.increments();
 					  table.timestamps();
-					  var colN = table.integer("fk_" + nr.nRelation);
-					  colN.unsigned();
+					  if (isSpecialPrimary){
+					  	var colN = table.uuid("fk_" + nr.nRelation);
+					  }
+					  else{
+					  	var colN = table.integer("fk_" + nr.nRelation);
+					  	colN.unsigned();					  	
+					  }
 				  	  colN.references("id").inTable(nr.nRelation).onDelete("cascade").onUpdate("cascade");
-				  	  var colM = table.integer("fk_" + nr.mRelation);
-				  	  colM.unsigned();
+				  	  if (isSpecialPrimary){
+				  	  	var colM = table.uuid("fk_" + nr.mRelation);
+				  	  }
+				  	  else{
+				  	    var colM = table.integer("fk_" + nr.mRelation);
+				  	    colM.unsigned();				  	  	
+				  	  }
 				  	  colM.references("id").inTable(nr.mRelation).onDelete("cascade").onUpdate("cascade");
 					});
 					var s = statement.toString();
