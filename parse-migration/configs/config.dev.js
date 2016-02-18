@@ -1,6 +1,6 @@
 //var api_url = "https://api.backand.com";
-var api_url = "https://api.backand.com";
-//var api_url = "http://localhost:4110";
+//var api_url = "https://api.backand.com";
+var api_url = "http://localhost:4110";
 //var api_url = "http://10.53.109.128:4110";
 
 // for testing
