@@ -181,6 +181,8 @@ StatusBl.prototype.model = function (schema, token) {
         backandClient.post('/1/model', data).then(function () {
             logger.info('end post the new model');
             deferred.resolve();
+        }).fail(function(err){
+            deferred.reject(err);
         })
     },
     function(err){
