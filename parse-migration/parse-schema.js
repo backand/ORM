@@ -5,6 +5,11 @@ var idTransformer = require('./idTransformer');
 var self = this;
 const NAME_LIMIT = 32;
 const NAME_LIMIT_IN_RELATION = 16;
+const PARSE_USERS = "_User";
+const BACKAND_USERS = "users";
+const bcryptPassword = "bcryptPassword";
+
+var backandUsersColumns = {"firstname":"firstName", "lastname": "lastName", "email": "email", "username": "username"}
 
 function ParseSchema(schema) {
     self.schema = schema;
@@ -20,6 +25,9 @@ function ParseSchema(schema) {
 ParseSchema.prototype = (function() {
     // Private code here
     var getAdjustedClassName = function(parseClass, nameLimit){
+        if (parseClass.className == PARSE_USERS && parseClass.className == PARSE_USERS) {
+            return BACKAND_USERS;
+        }
         var adjustedName = parseClass.className.substr(0,nameLimit);
         if (!self.schemaDictionary[adjustedName])
             return adjustedName;
@@ -36,9 +44,10 @@ ParseSchema.prototype = (function() {
         }
         throw new Error("Could not adjust class name " + parseClass.className + ".");
     };
+
     var adjustClassName = function(parseClass, nameLimit){
         var adjustedName = parseClass.className;
-        if (parseClass.className.length > nameLimit){
+        if (parseClass.className.length > nameLimit || parseClass.className == PARSE_USERS){
             adjustedName = getAdjustedClassName(parseClass, nameLimit);
             delete self.schemaDictionary[parseClass.className];
             parseClass.className = adjustedName;
@@ -70,6 +79,10 @@ ParseSchema.prototype = (function() {
     };
 
     var getAdjustedColumnName = function(parseClass, property, nameLimit) {
+        if (backandUsersColumns[property.toLowerCase()]){
+            return getAdjustedUsersColumnName(parseClass, property);
+        }
+
         var adjustedName = property.substr(0,nameLimit);
         if (!parseClass.fields[adjustedName])
             return adjustedName;
@@ -95,7 +108,23 @@ ParseSchema.prototype = (function() {
         return column;
     };
 
+    function getAdjustedUsersColumnName(parseClass, property) {
+        if (parseClass.className != PARSE_USERS)
+            return property;
 
+        var adjustedName = property;
+
+        if (backandUsersColumns[property.toLowerCase()])
+            adjustedName = backandUsersColumns[property.toLowerCase()];
+
+        return adjustedName;
+    };
+
+    function addRemoveUsersColumns(parseClass){
+        parseClass.fields[bcryptPassword] = {
+            "type": "String"
+        }
+    };
 
     var adjustClassColumnNames = function(parseClass, relations) {
         for (var property in parseClass.fields) {
@@ -108,7 +137,7 @@ ParseSchema.prototype = (function() {
                 if (property.length > nameLimit - 1) {
                     var column = adjustColumnName(parseClass, property, nameLimit - 1);
                 }
-                if (column.targetClass.length > nameLimit) {
+                if (column.targetClass.length > nameLimit || column.targetClass == PARSE_USERS) {
                     if (!relations[column.targetClass]) {
                         relations[column.targetClass] = [];
                     }
@@ -118,10 +147,13 @@ ParseSchema.prototype = (function() {
             }
             else{
                 nameLimit = NAME_LIMIT;
-                if (property.length > nameLimit) {
+                if (property.length > nameLimit || parseClass.className == PARSE_USERS) {
                     adjustColumnName(parseClass, property, nameLimit);
                 }
             }
+        }
+        if (parseClass.className == PARSE_USERS){
+            addRemoveUsersColumns(parseClass);
         }
 
     };
@@ -202,6 +234,7 @@ ParseSchema.prototype = (function() {
 
             return parseClass.fields[relationName].targetClass;
         },
+
         classHasPointers : function(className,errorCallback){
             var parseClass = this.getClass(className, errorCallback);
 
@@ -248,7 +281,6 @@ ParseSchema.prototype = (function() {
 
             return adjustedNames;
         }
-
 
     };
 })();
