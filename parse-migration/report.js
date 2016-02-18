@@ -109,7 +109,6 @@ Report.prototype = (function () {
         write: function () {
 
             var compiled =  _.template(template);
-            console.log(self.data);
 
             // add needed data
             self.data.appName = self.appName;

@@ -25,7 +25,6 @@ Streamer.prototype = (function () {
             var objectId = task.val ?  task.val.objectId : undefined;
 
             var currentCallback = function(){
-                console.log("finsih " + objectId)
                 callback();
                 return;
             }
@@ -35,7 +34,6 @@ Streamer.prototype = (function () {
                 console.log(task.val.objectId);
                 current.jsonIsEmpty = false;
                 task.onData(task.val, function () {
-                    console.log('call finish data ' + task.val.objectId);
                     currentCallback();
                     return;
                 });
