@@ -26,7 +26,9 @@ StatusBl.prototype.connect = function () {
         .then(function () {
             logger.info("success connect to Backand");
             deferred.resolve();
-        });
+        }).fail(function(err){
+             deferred.reject(err);
+         });
 
     return deferred.promise;
 }
@@ -58,6 +60,9 @@ StatusBl.prototype.getNextJob = function () {
                 return;
             }
 
+        })
+        .fail(function(err){
+            deferred.reject(err);
         });
 
     return deferred.promise;
