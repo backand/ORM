@@ -118,6 +118,16 @@ Migrator.prototype = (function () {
                 });
             },
             function (callback) {
+                logger.info('start update users');
+                var updateUsersStep = new UpdateUsersStep();
+                // update data of all classes Relations
+                updateUsersStep.run(bulkRunner, function(){
+                    logger.info('finish step updateUsers');
+                    callback()
+                    return;
+                });
+            },
+            function (callback) {
                 report.log('success finsih migration for appName ' + appName);
                 report.write();
                 finishedCallback();
