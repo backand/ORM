@@ -79,7 +79,7 @@ StatusBl.prototype.takeJob = function (job) {
     var deferred = q.defer();
     logger.info("try take job for app " + job.appName + ' and jobId ' + job.id);
     job.status = 1;
-    job.workerId = this.workerId;
+    job.workerId = self.workerId;
     job.attempts = job.attempts + 1;
 
     backand.put('/1/objects/MigrationJobQueue/' + job.id + '?returnObject=true', job)

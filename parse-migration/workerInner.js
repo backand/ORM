@@ -65,6 +65,7 @@ Worker.prototype.unzipFile = function (filePath) {
 }
 
 Worker.prototype.schemaTransformation = function () {
+    var deferred = q.defer();
     logger.info('start schema transformation');
     //add schema
     var objects = [];
@@ -81,7 +82,13 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    return statusBl.model(objects, self.job.appToken)
+    statusBl.model(objects, self.job.appToken).then(function(){
+        deferred.resolve();
+    }).fail(function(err){
+        deferred.reject(err);
+    })
+
+    return deferred.promise;
 }
 
 Worker.prototype.fillSchemaTable = function () {
