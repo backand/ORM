@@ -908,8 +908,7 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 			  			col.defaultTo(getDefaultValueSql(description)); 
 			  		}
 				}
-				else if (description.object){ // 1 side of 1:n relationship
-		
+				else if (description.object){ // 1 side of 1:n relationship					
 			  		var searchPattern = { oneRelation: tableName, oneAttribute: name };
 			  		
 			  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
@@ -977,30 +976,69 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 		
 			
 			var oldAttributeDescription = oldTableDescription.fields[d];
-			var typeHasChanged = oldAttributeDescription.type != newAttributeDescription.type;
-			var requiredHasChanged =  oldAttributeDescription.required ? !newAttributeDescription.required : newAttributeDescription.required;
-			var uniqueHasChanged = oldAttributeDescription.unique ? !newAttributeDescription.unique : newAttributeDescription.unique;		
-			var defaultHasChanged = oldAttributeDescription.defaultValue != newAttributeDescription.defaultValue;
+
+			if (_.has(oldAttributeDescription, "type") && _.has(newAttributeDescription, "type")){
+
+				var typeHasChanged = oldAttributeDescription.type != newAttributeDescription.type;
+				var requiredHasChanged =  oldAttributeDescription.required ? !newAttributeDescription.required : newAttributeDescription.required;
+				var uniqueHasChanged = oldAttributeDescription.unique ? !newAttributeDescription.unique : newAttributeDescription.unique;		
+				var defaultHasChanged = oldAttributeDescription.defaultValue != newAttributeDescription.defaultValue;
 
 
-			if (typeHasChanged || requiredHasChanged || defaultHasChanged){
-				var typeClause = "alter table " + tableName + " modify " + dbColumnName + " " + mapToKnexTypes[newAttributeDescription.type];
-				var requiredClause = newAttributeDescription.required ? " not null " : " null ";
-				var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default '" + getDefaultValueSql(newAttributeDescription) + "'" : " ";
-				var statement = typeClause + requiredClause + defaultClause;
-				statements.push(statement);
+				if (typeHasChanged || requiredHasChanged || defaultHasChanged){
+					var typeClause = "alter table " + tableName + " modify " + dbColumnName + " " + mapToKnexTypes[newAttributeDescription.type];
+					var requiredClause = newAttributeDescription.required ? " not null " : " null ";
+					var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default '" + getDefaultValueSql(newAttributeDescription) + "'" : " ";
+					var statement = typeClause + requiredClause + defaultClause;
+					statements.push(statement);
+				}
+
+				if (uniqueHasChanged){
+					if (oldAttributeDescription.unique && !newAttributeDescription.unique){
+						var uniqueStatement = "alter table " + tableName + " drop index " + tableName.toLowerCase() + "_" + d + "_unique";
+						statements.push(uniqueStatement);
+
+					}
+					else if (!oldAttributeDescription.unique && newAttributeDescription.unique){
+						var uniqueStatement = "alter table " + tableName + " add unique " + tableName.toLowerCase() + "_" + d + "_unique(" + dbColumnName + ")";
+						statements.push(uniqueStatement);
+					}
+				}
+
 			}
+			else if (_.has(newAttributeDescription, "object")){
+			
+				var searchPattern = { oneRelation: tableName, oneAttribute: d };
+		  		
+		  		var oneManyRelationship = _.findWhere(newRelationships, searchPattern);
+		  		var alreadyCreatedRelationship = _.findWhere(relationships, searchPattern);
+		  		
+		  		if (oneManyRelationship && !alreadyCreatedRelationship){
 
-			if (uniqueHasChanged){
-				if (oldAttributeDescription.unique && !newAttributeDescription.unique){
-					var uniqueStatement = "alter table " + tableName + " drop index " + tableName.toLowerCase() + "_" + d + "_unique";
-					statements.push(uniqueStatement);
 
-				}
-				else if (!oldAttributeDescription.unique && newAttributeDescription.unique){
-					var uniqueStatement = "alter table " + tableName + " add unique " + tableName.toLowerCase() + "_" + d + "_unique(" + dbColumnName + ")";
-					statements.push(uniqueStatement);
-				}
+		  			relationships.push(oneManyRelationship);
+			  		//var col = table.integer("fk_" + t + "_" + oneManyRelationship.nRelation + "_bkname_" + name);
+					// var col = table.integer(name);
+					// col.unsigned();
+			  		// col.references("id").inTable(oneManyRelationship.nRelation);
+			  		
+			  		var relationshipStatement = knex.schema.table(tableName, function (table) {
+
+				  		if (isSpecialPrimary){
+				  			var col = table.uuid(d).references("id").inTable(oneManyRelationship.nRelation);
+				  		}
+				  		else{
+				  			var col = table.integer(d).unsigned().references("id").inTable(oneManyRelationship.nRelation);				  			
+				  		}
+				  		if (oneManyRelationship.isCascade){
+				  			col.onDelete("cascade").onUpdate("cascade");
+				  		}	
+					  
+					});
+			  		statements.push(relationshipStatement.toString());
+
+		  		}
+
 			}
 			
 			
