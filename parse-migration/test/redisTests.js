@@ -24,7 +24,7 @@ describe('can send and get data from redis', () => {
     var redis = new RedisBulk();
     var appName = newObjectId();
     it('can send data', (done) => {
-        redis.setStatus(appName, 'filename', 'objectId')
+        redis.setStatus(appName, 'status,',  'filename', 'objectId')
             .then(() => {
                 done();
             })

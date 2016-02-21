@@ -180,9 +180,9 @@ StatusBl.prototype.model = function (schema, token) {
 
 }
 
-StatusBl.prototype.setCurrentObjectId = function (appName, file, objectId) {
+StatusBl.prototype.setCurrentObjectId = function (appName,statusName, file, objectId) {
     // go to redis set
-    return redisFileStatus.setStatus(appName, file, objectId);
+    return redisFileStatus.setStatus(appName, statusName, file, objectId);
 }
 
 StatusBl.prototype.getCurrentObjectId = function (appName) {
