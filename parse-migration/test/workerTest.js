@@ -5,7 +5,7 @@ var expect = require("chai").expect;
 var _ = require('underscore');
 var MockStatusBl = require('../statusBLMock');
 var expect = require("chai").expect;
-
+var StatusBL = require('../statusBL');
 
 describe('sample test', function () {
     it('ok', function (done) {

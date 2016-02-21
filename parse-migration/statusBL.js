@@ -14,29 +14,33 @@ var redisFileStatus = new RedisBulk();
 var self = this;
 
 function StatusBl(workerId) {
+    var self = this;
     self.workerId = workerId;
     logger.info('start statusBl with workerId ' + workerId);
 }
 
 
 StatusBl.prototype.connect = function () {
+    var self = this;
     var deferred = q.defer();
     logger.info('login with ' + config.username + ' to app ' + config.appName);
     backand.auth({username: config.username, password: config.passworsd, appname: config.appName})
         .then(function () {
             logger.info("success connect to Backand");
             deferred.resolve();
-        }).fail(function(err){
-            deferred.reject(err);
-        });
+        }).fail(function (err) {
+        deferred.reject(err);
+    });
 
     return deferred.promise;
 }
 
 StatusBl.prototype.getNextJob = function () {
+    var self = this;
     logger.info('start get next Job');
     var data = {'workerId': self.workerId};
     var deferred = q.defer();
+
     function getEqualityFilter() {
         return {fieldName: "workerId", operator: "equals", value: self.workerId};
     }
@@ -48,7 +52,8 @@ StatusBl.prototype.getNextJob = function () {
                 return;
             }
 
-            logger.info('found ' + result.length + ' jobs');
+            var firstID = result.length > 0 ? result[0].id : " ";
+            logger.info('found ' + result.length + ' jobs ' + firstID);
 
             if (result.length === 0) {
                 deferred.resolve(undefined);
@@ -61,7 +66,7 @@ StatusBl.prototype.getNextJob = function () {
             }
 
         })
-        .fail(function(err){
+        .fail(function (err) {
             deferred.reject(err);
         });
 
@@ -69,12 +74,14 @@ StatusBl.prototype.getNextJob = function () {
 };
 
 StatusBl.prototype.finishJob = function (job) {
+    var self = this;
     job.status = 2;
     job.FinishTime = new Date();
     return backand.put('/1/objects/MigrationJobQueue/' + job.id, job);
 }
 
 StatusBl.prototype.takeJob = function (job) {
+    var self = this;
     // update job taken
     var deferred = q.defer();
     logger.info("try take job for app " + job.appName + ' and jobId ' + job.id);
@@ -86,15 +93,16 @@ StatusBl.prototype.takeJob = function (job) {
         .then(function (res) {
             logger.info('success take job ' + job.id);
             deferred.resolve(job);
-        }).fail(function(err) {
-            deferred.reject(err);
-        })
+        }).fail(function (err) {
+        deferred.reject(err);
+    })
 
     return deferred.promise;
 
 }
 
 StatusBl.prototype.fillSchemaTable = function (appName, status, tables) {
+    var self = this;
     var deferred = q.defer();
 
     if (status == 1) {
@@ -126,6 +134,7 @@ StatusBl.prototype.fillSchemaTable = function (appName, status, tables) {
 }
 
 StatusBl.prototype.setTableFinish = function (appName, tableName) {
+    var self = this;
     logger.info('start setTableFinish for ' + tableName + ' in ' + appName);
 
     var deferred = q.defer();
@@ -142,7 +151,7 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
                 operator: 'equals',
                 value: tableName
             }]
-    )
+        )
         .then(function (res) {
             var current = res.data[0];
 
@@ -168,6 +177,7 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
 }
 
 StatusBl.prototype.model = function (schema, token) {
+    var self = this;
 
     logger.info('start post the new model ');
 
@@ -181,11 +191,11 @@ StatusBl.prototype.model = function (schema, token) {
             backandClient.post('/1/model', data).then(function () {
                 logger.info('end post the new model');
                 deferred.resolve();
-            }).fail(function(err){
+            }).fail(function (err) {
                 deferred.reject(err);
             })
         },
-        function(err){
+        function (err) {
             logger.error('error post the new model: ' + JSON.stringify(err));
         });
 
@@ -193,7 +203,8 @@ StatusBl.prototype.model = function (schema, token) {
 
 }
 
-StatusBl.prototype.setCurrentObjectId = function (appName,statusName, file, objectId) {
+StatusBl.prototype.setCurrentObjectId = function (appName, statusName, file, objectId) {
+
     // go to redis set
     return redisFileStatus.setStatus(appName, statusName, file, objectId);
 }
@@ -220,6 +231,11 @@ StatusBl.prototype.enqueueSimpleJob = function () {
     };
 
     return backand.post('/1/objects/MigrationJobQueue', data)
+}
+
+StatusBl.prototype.getWorkerId = function(){
+    var self = this;
+    return self.workerId;
 }
 
 /*
