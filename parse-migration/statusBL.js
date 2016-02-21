@@ -22,10 +22,12 @@ function StatusBl(workerId) {
 StatusBl.prototype.connect = function () {
     var deferred = q.defer();
     logger.info('login with ' + config.username + ' to app ' + config.appName);
-     backand.auth({username: config.username, password: config.passworsd, appname: config.appName})
+    backand.auth({username: config.username, password: config.passworsd, appname: config.appName})
         .then(function () {
             logger.info("success connect to Backand");
             deferred.resolve();
+        }).fail(function(err){
+            deferred.reject(err);
         });
 
     return deferred.promise;
@@ -58,6 +60,9 @@ StatusBl.prototype.getNextJob = function () {
                 return;
             }
 
+        })
+        .fail(function(err){
+            deferred.reject(err);
         });
 
     return deferred.promise;
@@ -71,16 +76,22 @@ StatusBl.prototype.finishJob = function (job) {
 
 StatusBl.prototype.takeJob = function (job) {
     // update job taken
+    var deferred = q.defer();
     logger.info("try take job for app " + job.appName + ' and jobId ' + job.id);
     job.status = 1;
-    job.attempts = job.attempts + 1;
-    job.workerId = this.workerId;
+    job.workerId = self.workerId;
     job.attempts = job.attempts + 1;
 
-    return backand.put('/1/objects/MigrationJobQueue/' + job.id + '?returnObject=true', job)
+    backand.put('/1/objects/MigrationJobQueue/' + job.id + '?returnObject=true', job)
         .then(function (res) {
             logger.info('success take job ' + job.id);
+            deferred.resolve(job);
+        }).fail(function(err) {
+            deferred.reject(err);
         })
+
+    return deferred.promise;
+
 }
 
 StatusBl.prototype.fillSchemaTable = function (appName, status, tables) {
@@ -131,7 +142,7 @@ StatusBl.prototype.setTableFinish = function (appName, tableName) {
                 operator: 'equals',
                 value: tableName
             }]
-        )
+    )
         .then(function (res) {
             var current = res.data[0];
 
@@ -167,14 +178,16 @@ StatusBl.prototype.model = function (schema, token) {
     var data = {"newSchema": schema, "severity": 0};
 
     backandClient.basicAuth(token).then(function () {
-        backandClient.post('/1/model', data).then(function () {
-            logger.info('end post the new model');
-            deferred.resolve();
-        })
-    },
-    function(err){
-        logger.error('error post the new model: ' + JSON.stringify(err));
-    });
+            backandClient.post('/1/model', data).then(function () {
+                logger.info('end post the new model');
+                deferred.resolve();
+            }).fail(function(err){
+                deferred.reject(err);
+            })
+        },
+        function(err){
+            logger.error('error post the new model: ' + JSON.stringify(err));
+        });
 
     return deferred.promise;
 

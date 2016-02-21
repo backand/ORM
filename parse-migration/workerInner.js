@@ -71,12 +71,6 @@ Worker.prototype.schemaTransformation = function () {
     var objects = [];
 
     var schemaObj = JSON.parse(self.job.parseSchema);
-    if (!schemaObj) {
-        deferred.reject(new Error("can't jsonParse " + JSON.stringify(self.job)));
-        return deferred.promise;
-    }
-
-
     var parseSchema = new ParseSchema(schemaObj.results);
     parseSchema.adjustNames();
 
@@ -88,9 +82,12 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    statusBl.model(objects, self.job.appToken).then(function () {
-        deferred.resolve(undefined);
+    statusBl.model(objects, self.job.appToken).then(function(){
+        deferred.resolve();
+    }).fail(function(err){
+        deferred.reject(err);
     })
+
     return deferred.promise;
 }
 
