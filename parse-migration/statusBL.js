@@ -10,7 +10,7 @@ var async = require('async');
 var q = require('q');
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
-
+var UserTableCreator = require('./userTableCreator');
 var self = this;
 
 function StatusBl(workerId) {
@@ -220,6 +220,12 @@ StatusBl.prototype.enqueueSimpleJob = function () {
     };
 
     return backand.post('/1/objects/MigrationJobQueue', data)
+}
+
+
+StatusBl.prototype.restoreUserTable = function(token, callback){
+    var userTableCreator = new UserTableCreator(new BackandSDK(globalConfig.api_url), token);
+    userTableCreator.restoreUserTable(callback);
 }
 
 /*
