@@ -86,7 +86,7 @@ ParseSchema.prototype = (function() {
         }
 
         if (property.length <= nameLimit){
-              return property;
+            return property;
         }
 
         var adjustedName = property.substr(0,nameLimit);
