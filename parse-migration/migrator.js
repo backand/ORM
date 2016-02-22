@@ -22,6 +22,8 @@ var connectionRetreiver = require('../get_connection_info');
 var InsertClassStep = require('./steps/insertClassStep');
 var UpdatePointerStep = require('./steps/updatePointerStep');
 var UpdateRelationStep = require('./steps/updateRelationStep');
+var UpdateUsersStep = require('./steps/UpdateUsersStep');
+
 //
 
 
@@ -34,7 +36,7 @@ Migrator.prototype = (function () {
     var current = this;
 
 
-    function runInner(appName, connectionInfo, datalink, strSchema, statusBl, report, finishedCallback,  currentStatus) {
+    function runInner(clientToken, appName, connectionInfo, datalink, strSchema, statusBl, report, finishedCallback,  currentStatus) {
         var schema = JSON.parse(strSchema).results;
 
         // a schema wrapper with helping functions
@@ -119,11 +121,11 @@ Migrator.prototype = (function () {
             },
             function (callback) {
                 logger.info('start update users');
-                var updateUsersStep = new UpdateUsersStep();
-                // update data of all classes Relations
+                var updateUsersStep = new UpdateUsersStep(statusBl,  clientToken);
+                // update users
                 updateUsersStep.run(bulkRunner, function(){
                     logger.info('finish step updateUsers');
-                    callback()
+                    callback();
                     return;
                 });
             },
@@ -152,12 +154,12 @@ Migrator.prototype = (function () {
 
             connectionRetreiver.getConnectionInfoSimple(job.appToken, job.appName, function (err, result) {
                 var job = self.currentJob;
-                runInner(job.appName, result, self.directory, job.parseSchema, self.statusBl, self.report, caller);
+                runInner(job.appToken, job.appName, result, self.directory, job.parseSchema, self.statusBl, self.report, caller);
             });
         },
 
         runTest: function (appName, connectionInfo, datalink, schema, statusBl, finishedCallback, currentStatus) {
-            runInner(appName, connectionInfo, datalink, schema, statusBl,null,  finishedCallback, currentStatus);
+            runInner(undefined, appName, connectionInfo, datalink, schema, statusBl,null,  finishedCallback, currentStatus);
         }
 
     };

@@ -10,7 +10,7 @@ var migrator = new Migrator();
 var globalConfig = require('./configFactory').getConfig();
 var workerId = globalConfig.workerId;
 var statusBl = new StatusBl(workerId);
-var waitInterval = 5 * 1000;
+var waitInterval = 120 * 1000;
 var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
@@ -82,8 +82,12 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    statusBl.model(objects, self.job.appToken).then(function(){
-        deferred.resolve();
+    statusBl.model([], self.job.appToken).then(function(){
+        statusBl.model(objects, self.job.appToken).then(function(){
+            deferred.resolve();
+        }).fail(function(err){
+            deferred.reject(err);
+        })
     }).fail(function(err){
         deferred.reject(err);
     })

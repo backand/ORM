@@ -8,6 +8,8 @@ const NAME_LIMIT_IN_RELATION = 16;
 const PARSE_USERS = "_User";
 const BACKAND_USERS = "users";
 const bcryptPassword = "bcryptPassword";
+const firstName = "firstName";
+const lastName = "lastName";
 
 var backandUsersColumns = {"firstname":"firstName", "lastname": "lastName", "email": "email", "username": "username"}
 
@@ -83,6 +85,10 @@ ParseSchema.prototype = (function() {
             return getAdjustedUsersColumnName(parseClass, property);
         }
 
+        if (property.length <= nameLimit){
+              return property;
+        }
+
         var adjustedName = property.substr(0,nameLimit);
         if (!parseClass.fields[adjustedName])
             return adjustedName;
@@ -122,7 +128,20 @@ ParseSchema.prototype = (function() {
 
     function addRemoveUsersColumns(parseClass){
         parseClass.fields[bcryptPassword] = {
-            "type": "String"
+            "type": "String",
+            "originalName": bcryptPassword
+        }
+        if (!parseClass.fields[firstName]){
+            parseClass.fields[firstName] = {
+                "type": "String",
+                "originalName": firstName
+            }
+        }
+        if (!parseClass.fields[lastName]){
+            parseClass.fields[lastName] = {
+                "type": "String",
+                "originalName": lastName
+            }
         }
     };
 
