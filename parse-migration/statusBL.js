@@ -209,7 +209,7 @@ StatusBl.prototype.setCurrentObjectId = function (appName, statusName, file, obj
     return redisFileStatus.setStatus(appName, statusName, file, objectId);
 }
 
-StatusBl.prototype.getCurrentObjectId = function (appName) {
+StatusBl.prototype.getCurrentJobStatus = function (appName) {
     return redisFileStatus.getStatus(appName);
 }
 

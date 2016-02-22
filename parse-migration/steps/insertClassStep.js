@@ -4,8 +4,8 @@
 var logger = require('../logging/logger').getLogger('insertClass');
 const BULK_SIZE = 1;
 
-function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer, report){
-    this.appName= appName;
+function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer, report) {
+    this.appName = appName;
     this.statusBl = statusBl;
     this.bulkRunner = bulkRunner;
     this.converter = classJsonConverter;
@@ -13,7 +13,7 @@ function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer
     this.report = report;
 }
 
-insertClass.prototype.insertClassInsertToDB = function(className, sql, cb) {
+insertClass.prototype.insertClassInsertToDB = function (className, sql, cb) {
 // check bulk size arrive to size, if true => send to db
     var current = this;
     logger.info('bulkRunner insert ' + sql);
@@ -22,18 +22,19 @@ insertClass.prototype.insertClassInsertToDB = function(className, sql, cb) {
         current.report.insertClassError(className, error);
     }, function () {
         logger.info('bulkRunner finish insert ' + sql);
+
         current.report.insertClassSuccess(className, current.valuesForBulkInserts.length);
         current.valuesForBulkInserts = [];
         cb();
     });
 }
 
-insertClass.prototype.insertClass = function(datalink, fileName, className, callback) {
+insertClass.prototype.insertClass = function (datalink, fileName, className, callback) {
     var current = this;
     current.finishCallback = callback;
 
     function onInsertClassFinish(err) {
-        if (err){
+        if (err) {
             current.report.insertClassError(className, err);
         }
 
@@ -42,9 +43,9 @@ insertClass.prototype.insertClass = function(datalink, fileName, className, call
                 .fail(function (error) {
                     logger.error("can't update " + filename + ' ' + error);
 
-                }).fin(function(){
-                    current.finishCallback();
-                })
+                }).fin(function () {
+                current.finishCallback();
+            })
         }
 
         if (current.valuesForBulkInserts && current.valuesForBulkInserts.length > 0) {
@@ -54,8 +55,6 @@ insertClass.prototype.insertClass = function(datalink, fileName, className, call
             });
         }
         else {
-            logger.info('finsih getData else ' + fileName);
-
             updateTableStatus();
         }
     };
