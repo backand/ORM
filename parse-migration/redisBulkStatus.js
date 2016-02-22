@@ -32,10 +32,10 @@ RedisFileStatus.prototype.getStatus = function (appName) {
     return deferred.promise;
 }
 
-RedisFileStatus.prototype.setStatus = function (appName, fileName, objectId) {
+RedisFileStatus.prototype.setStatus = function (appName, statusName, fileName, objectId) {
     var deferred = q.defer();
 
-    var str = JSON.stringify({'fileName': fileName, 'objectId': objectId });
+    var str = JSON.stringify({'fileName': fileName, 'objectId': objectId, 'statusName' : statusName });
     redisInterface.set(this.getKey(appName), str, function(err, reply){
         if(err){
             deferred.reject(err);
