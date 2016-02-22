@@ -38,12 +38,17 @@ Worker.prototype.takeJob = function (job) {
         self.jobStatus = job.status;
         self.report = new Report("migration.html", job.appName);
 
-        statusBl.takeJob(job).then(function () {
-            // report errors and statistics
+        statusBl.takeJob(job)
+            .then(statusBl.getCurrentJobStatus)
+            .then(function (status) {
+                // check job alredy start in an previous iteration
+                // continue old run
+                if (job.status === 1 && status) {
+                    job.status = status;
+                }
 
-            deferred.resolve(job);
-
-        })
+                deferred.resolve(job);
+            })
     }
     else {
         //  setTimeout(mainRoutine, waitInterval);
@@ -82,9 +87,9 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    statusBl.model(objects, self.job.appToken).then(function(){
+    statusBl.model(objects, self.job.appToken).then(function () {
         deferred.resolve();
-    }).fail(function(err){
+    }).fail(function (err) {
         deferred.reject(err);
     })
 
