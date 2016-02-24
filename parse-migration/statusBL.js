@@ -221,9 +221,14 @@ function StatusBl(workerId) {
             CreationDate: new Date(),
             FinishTime: null
         };
-
         return backand.post('/1/objects/MigrationJobQueue', data);
     };
+
+
+    StatusBl.prototype.getCurrentJobStatus = function (appName) {
+        return redisFileStatus.getStatus(appName);
+    }
+
 
     self.restoreUserTable = function (token, callback) {
         var userTableCreator = new UserTableCreator(new BackandSDK(globalConfig.api_url), token);

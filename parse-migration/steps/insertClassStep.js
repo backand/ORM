@@ -61,7 +61,7 @@ insertClass.prototype.insertClass = function (datalink, fileName, className, cal
         else {
             updateTableStatus();
         }
-    };
+    }
 
     function onData(data, cb) {
         if (!data) {
@@ -86,7 +86,7 @@ insertClass.prototype.insertClass = function (datalink, fileName, className, cal
                 cb();
             }
         }
-    };
+    }
 
     logger.info('start insert class ' + className);
     logger.info('start getData ' + fileName);

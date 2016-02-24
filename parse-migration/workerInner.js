@@ -60,7 +60,7 @@ Worker.prototype.takeJob = function (job) {
 }
 
 Worker.prototype.downloadFile = function () {
-    if(self.job.resumeStatus){
+    if (self.job.resumeStatus) {
         return q(fileUtil.getPath(self.job.appName));
     }
 
@@ -75,7 +75,7 @@ Worker.prototype.unzipFile = function (filePath) {
 }
 
 Worker.prototype.schemaTransformation = function () {
-    if(self.job.resumeStatus){
+    if (self.job.resumeStatus) {
         return q(undefined);
     }
 
