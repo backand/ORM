@@ -104,7 +104,17 @@ UserTableCreator.prototype.restoreUserTable = function (callback) {
 
     console.log('start get users config ');
     backand.basicAuth(self.token)
-        .then(function() { return backand.get('/1/table/config/users', undefined) } )
+        .then(function() {
+            var data = {
+                "usersObjectName" : "users",
+                "emailFieldName" : "email",
+                "firstNameFieldName" : "firstName",
+                "lastNameFieldName" : "lastName",
+                "passwordFieldName" : "password"
+            }
+            return backand.post('/1/user/migrate', data)
+        } )
+        .then(function(result) { return backand.get('/1/table/config/users', undefined) } )
         .then(function (result) {
             console.info('finish get users config ');
             if (!result) {
