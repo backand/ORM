@@ -4,36 +4,41 @@
 var logger = require('../logging/logger').getLogger('insertClass');
 const BULK_SIZE = 1;
 
-function insertClass(appName, statusBl, bulkRunner, classJsonConverter, streamer, report){
-    this.appName= appName;
+function insertClass(firstObjectId, appName, statusBl, bulkRunner, classJsonConverter, streamer, report) {
+    this.appName = appName;
     this.statusBl = statusBl;
     this.bulkRunner = bulkRunner;
     this.converter = classJsonConverter;
     this.streamer = streamer;
     this.report = report;
+    this.firstObjectId = firstObjectId;
+    this.stepName = "insertClass";
 }
 
-insertClass.prototype.insertClassInsertToDB = function(className, sql, cb) {
-// check bulk size arrive to size, if true => send to db
+insertClass.prototype.insertClassInsertToDB = function (objectId, className, sql, cb) {
+    // check bulk size arrive to size, if true => send to db
     var current = this;
     logger.info('bulkRunner insert ' + sql);
-    current.bulkRunner.insert(sql, current.valuesForBulkInserts, function (error) {
+    current.bulkRunner.insert(sql, current.valuesForBulkInserts, function (error) { // error
         logger.error('bulkRunner error ' + sql);
         current.report.insertClassError(className, error);
-    }, function () {
+    }, function () { // success
         logger.info('bulkRunner finish insert ' + sql);
+
+        //appName, statusName, file, objectId
+        current.statusBl.setCurrentObjectId(current.appName, current.stepName, className, objectId);
         current.report.insertClassSuccess(className, current.valuesForBulkInserts.length);
         current.valuesForBulkInserts = [];
         cb();
     });
 }
 
-insertClass.prototype.insertClass = function(datalink, fileName, className, callback) {
+insertClass.prototype.insertClass = function (datalink, fileName, className, callback) {
     var current = this;
     current.finishCallback = callback;
 
-    function onInsertClassFinish(err) {
-        if (err){
+    function onFinish(err) {
+        if (err) {
             current.report.insertClassError(className, err);
         }
 
@@ -42,45 +47,46 @@ insertClass.prototype.insertClass = function(datalink, fileName, className, call
                 .fail(function (error) {
                     logger.error("can't update " + filename + ' ' + error);
 
-                }).fin(function(){
-                    current.finishCallback();
-                })
+                }).fin(function () {
+                current.finishCallback();
+            })
         }
 
         if (current.valuesForBulkInserts && current.valuesForBulkInserts.length > 0) {
-            current.insertClassInsertToDB(className, current.sql, function () {
+            current.insertClassInsertToDB(current.objectId, className, current.sql, function () {
                 logger.info('finish getData ' + fileName);
                 updateTableStatus();
             });
         }
         else {
-            logger.info('finsih getData else ' + fileName);
-
             updateTableStatus();
         }
-    };
+    }
 
-    function onInsertClassData(data, cb) {
+    function onData(data, cb) {
         if (!data) {
             cb();
         }
         else {
             // read each Parse class and insert it into a table
             var json = data;
+
+            // keep objectId as static to have it in finishFunction
+            current.objectId = data.objectId;
+
             var valuesToInsert = current.converter.getValuesToInsertStatement(className, json, function (error) {
                 // error report
             })
 
             current.valuesForBulkInserts.push(valuesToInsert);
             if (current.valuesForBulkInserts.length === BULK_SIZE) {
-                console.log('send data to bulk');
-                current.insertClassInsertToDB(className, current.sql, cb);
+                current.insertClassInsertToDB(current.objectId, className, current.sql, cb);
             }
             else {
                 cb();
             }
         }
-    };
+    }
 
     logger.info('start insert class ' + className);
     logger.info('start getData ' + fileName);
@@ -88,7 +94,13 @@ insertClass.prototype.insertClass = function(datalink, fileName, className, call
     current.sql = current.converter.getInsertStatement(className, function (error) {
         // error report
     })
-    current.streamer.getData(datalink, fileName, onInsertClassData, onInsertClassFinish)
+
+    if (current.firstObjectId) {
+        current.streamer.getDataFromSpecificObjectId(datalink, fileName, current.firstObjectId, onData, onFinish);
+    }
+    else {
+        current.streamer.getData(datalink, fileName, onData, onFinish)
+    }
 };
 
 module.exports = insertClass;

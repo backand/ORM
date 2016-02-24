@@ -4,6 +4,7 @@
 
 
 var q = require('q');
+var logger = require('../logging/logger').getLogger('updateUsers');
 
 var UserTableCreator = function (BackandSdk, token) {
     this.BackandSdk = BackandSdk;
@@ -94,8 +95,8 @@ var UserTableCreator = function (BackandSdk, token) {
         viewTable: "14",
         whereCondition: "true",
         workflowAction: "JavaScript"
-    }
-}
+    };
+};
 
 
 UserTableCreator.prototype.restoreUserTable = function (callback) {
@@ -112,21 +113,23 @@ UserTableCreator.prototype.restoreUserTable = function (callback) {
                 "lastNameFieldName" : "lastName",
                 "passwordFieldName" : "password"
             }
-            return backand.post('/1/user/migrate', data)
+            return backand.post('/1/user/migrate', data);
         } )
-        .then(function(result) { return backand.get('/1/table/config/users', undefined) } )
+        .then(function () {
+            return backand.get('/1/table/config/users', undefined);
+        })
         .then(function (result) {
             console.info('finish get users config ');
             if (!result) {
-                var msg = "no users object";
+                var msg1 = "no users object";
                 callback({message: "no users object"});
-                return q.reject(msg);
+                return q.reject(msg1);
             }
 
             if (!(result.id)) {
-                var msg = "bad format user " + JSON.stringify(result);
-                callback({message: msg});
-                return q.reject(msg);
+                var msg2 = "bad format user " + JSON.stringify(result);
+                callback({message: msg2});
+                return q.reject(msg2);
             }
 
             return q.resolve(result);
@@ -137,13 +140,43 @@ UserTableCreator.prototype.restoreUserTable = function (callback) {
             self.ValidateBackandRegisterUser.viewTable = result.id;
 
             console.log('start post Create Backand Register User ');
-            return backand.post('/1/businessRule', self.CreateBackandRegisterUser);
+            return backand.get('/1/businessRule', undefined, [{
+                    fieldName: "name",
+                    operator: "contains",
+                    value: "Create Backand Register User"
+                }])
+                .then(function (res) {
+                    if (res && res.data && res.data.length === 1) {
+                        logger.info("Create Backand Register User already exist");
+                        return q('undefined');
+                    }
+
+                    return backand.post('/1/businessRule', self.CreateBackandRegisterUser);
+
+                });
+
         })
         .then(function () {
             console.info('finish post Create Backand Register User ');
 
             console.log('start post Validate Backand Register User ');
-            return backand.post('/1/businessRule', self.ValidateBackandRegisterUser);
+
+            return backand.get('/1/businessRule', undefined, [{
+                    fieldName: "name",
+                    operator: "contains",
+                    value: "Validate Backand Register User"
+                }])
+                .then(function (res) {
+
+                    if (res && res.data && res.data.length === 1) {
+                        logger.info("Validate Backand Register User already exist");
+                        return q('undefined');
+                    }
+
+                    return backand.post('/1/businessRule', self.ValidateBackandRegisterUser);
+
+                });
+
         })
         .then(function () {
             console.info('finish post Validate Backand Register User');
@@ -154,15 +187,14 @@ UserTableCreator.prototype.restoreUserTable = function (callback) {
         .then(function () {
             console.info('finish update current User ');
             callback();
-            return;
         })
         .fail(function (err) {
             console.error("fail to post Validate Backand Register User");
             console.error(err);
             callback(err);
-        })
+        });
 
-}
+};
 
 
 module.exports = UserTableCreator;

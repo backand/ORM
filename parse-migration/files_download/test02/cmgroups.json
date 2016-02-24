@@ -1,0 +1,26 @@
+{ "results": [
+	{
+        "avatar": {
+            "__type": "File",
+            "name": "tfss-41432ee6-dd25-428e-9df3-6c71951814bd-logo.png",
+            "url": "http://files.parsetfss.com/77c3a4cd-3b03-4b63-9ad5-f3d6a79186de/tfss-41432ee6-dd25-428e-9df3-6c71951814bd-logo.png"
+        },
+        "cover": {
+            "__type": "File",
+            "name": "tfss-b49fd55b-8eda-4513-9928-d792534626ff-8151863916_d9b8fd1552_h.jpg",
+            "url": "http://files.parsetfss.com/77c3a4cd-3b03-4b63-9ad5-f3d6a79186de/tfss-b49fd55b-8eda-4513-9928-d792534626ff-8151863916_d9b8fd1552_h.jpg"
+        },
+        "createdAt": "2016-02-01T04:26:53.564Z",
+        "description": "Introduction\n\\n\ntChamps envisions a sustainable ecosystem for youth empowerment in Asia through ethical overseas community development.\n\\n\nMission\n\\n\ntChamps supports our overseas educational partner, PSE Cambodia to train their students (aged 18 and above) in community development and youth leadership and help develop and set up a sustainable youth volunteering organisation and system within PSE. \nThrough tChamps, Tembusu students will undergo personal and leadership development and become trainers and mentoring partners of Cambodian students for community development projects in Cambodia. \nCrucially, tChamps also seek to advocate and develop thought leadership in the areas of sustainable and ethical overseas community development in a bid against voluntourism. This will be achieved through research, awareness campaigns, forums and thought leadership speakers’ series.\n\nAction\n\nWe work with Cambodian youths aged 18 and above on skills development, so that they may start sustainable community intervention projects within their own communities. Moreover, we advocate responsible change, promoting the movement of “Doing Good Better”, whereby we aim to create sustainable and self-sustaining projects for real social change.",
+        "foundedDate": {
+            "__type": "Date",
+            "iso": "2016-02-01T04:27:10.735Z"
+        },
+        "headquarter": "",
+        "members": 10,
+        "name": "HelpSeed",
+        "objectId": "gVGmDOfdfm",
+        "updatedAt": "2016-02-05T08:17:24.505Z",
+        "verified": true
+    }
+] }

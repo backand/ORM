@@ -36,6 +36,10 @@ function downloadFile(url, fileName) {
     return deferred.promise;
 }
 
+function getPath(fileName){
+    return q(this.path + '/' + fileName + '.zip');
+}
+
 function unzipFile(fileName, directory) {
     logger.info('start unzip for ' + fileName);
     var deferred = q.defer();
@@ -90,5 +94,7 @@ FileDownloader.prototype.downloadFile = downloadFile;
 FileDownloader.prototype.unzipFile = unzipFile;
 
 FileDownloader.prototype.getFilesList = getFilesList;
+
+FileDownloader.prototype.getPath = getPath;
 
 module.exports = FileDownloader;

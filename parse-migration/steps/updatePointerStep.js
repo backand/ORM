@@ -6,7 +6,7 @@ var logger = require('../logging/logger').getLogger('updatePointer');
 const BULK_SIZE = 1;
 
 function updatePointer(){
-
+    this.stepName = "updatePointer";
 }
 
 updatePointer.prototype.updateInner = function(className, bulkRunner, cb) {
@@ -20,9 +20,11 @@ updatePointer.prototype.updateInner = function(className, bulkRunner, cb) {
             logger.error(command + ' ' + JSON.stringify(error))
             current.report.updatePointerError(className, error);
         }, function () {
-            if (current.valuesForBulkInserts) {
-                current.report.updatePointerSuccess(className, current.valuesForBulkInserts.length);
+            if (current.updateStatetmentBulk) {
+                current.report.updatePointerSuccess(className, current.updateStatetmentBulk.length);
             }
+
+            current.statusBl.setCurrentObjectId(current.appName, current.stepName, className, current.objectId);
             current.updateStatetmentBulk = [];
             cb();
         });
@@ -32,15 +34,18 @@ updatePointer.prototype.updateInner = function(className, bulkRunner, cb) {
     }
 }
 
-updatePointer.prototype.updatePointers = function(streamer, report, datalink, fileName, converter, className, bulkRunner, callback) {
+updatePointer.prototype.updatePointers = function(objectId, appName, statusBl, streamer, report, datalink, fileName, converter, className, bulkRunner, callback) {
 
     var current =this;
     current.report = report;
     current.updateStatetmentBulk = [];
     current.filename = fileName;
     current.finishCallback = callback;
+    current.firstObjectId = objectId;
+    current.statusBl = statusBl;
+    current.appName = appName;
 
-    function updatePointerOnFinish() {
+    function onFinish() {
         logger.info('updatePointerOnFinish for ' + current.filename)
         current.updateInner(className, bulkRunner, function () {
             logger.info('finish updatePointers for ' + current.filename);
@@ -48,10 +53,14 @@ updatePointer.prototype.updatePointers = function(streamer, report, datalink, fi
         })
     }
 
-    function updatePointerOnData(data, cb) {
+    function onData(data, cb) {
         var json = data;
+
+        // keep objectId as static to have it in finishFunction
+        current.objectId = data.objectId;
+
         var sqlArray = converter.getUpdateStatementsForAllPointer(className, json, function (error) {
-            logger.error('getUpdateStatementsForAllPointer for ' + className)
+            logger.error('getUpdateStatementsForAllPointer for ' + className);
 
         })
         if (!sqlArray || sqlArray.length == 0) {
@@ -66,7 +75,15 @@ updatePointer.prototype.updatePointers = function(streamer, report, datalink, fi
             cb();
         }
     }
-    streamer.getData(datalink, fileName, updatePointerOnData, updatePointerOnFinish);
+
+
+    if (current.objectId) {
+        streamer.getDataFromSpecificObjectId(datalink, fileName, current.objectId, onData, onFinish);
+    }
+    else {
+        streamer.getData(datalink, fileName, onData, onFinish);
+    }
+
 
 };
 

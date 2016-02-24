@@ -23,10 +23,19 @@ var RedisFileStatus = function () {
 RedisFileStatus.prototype.getStatus = function (appName) {
     var deferred = q.defer();
     redisInterface.get(this.getKey(appName), function (err, str) {
-        logger.warn(err);
         var data = JSON.parse(str);
         deferred.resolve(data);
         return data;
+    })
+
+    return deferred.promise;
+}
+
+
+RedisFileStatus.prototype.clearStatus = function (appName) {
+    var deferred = q.defer();
+    redisInterface.del(this.getKey(appName), function (err) {
+        deferred.resolve(undefined);
     })
 
     return deferred.promise;

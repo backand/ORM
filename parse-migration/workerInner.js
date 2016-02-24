@@ -10,7 +10,7 @@ var migrator = new Migrator();
 var globalConfig = require('./configFactory').getConfig();
 var workerId = globalConfig.workerId;
 var statusBl = new StatusBl(workerId);
-var waitInterval = 120 * 1000;
+var waitInterval = globalConfig.interval || 120 * 1000;
 var logger = require('./logging/logger').getLogger('worker');
 var FileDownloader = require('./fileDownloader');
 var fileUtil = new FileDownloader('./files_download');
@@ -29,6 +29,7 @@ function Worker(mockStatusBl) {
 
 
 }
+
 Worker.prototype.takeJob = function (job) {
     self.job = job;
     var deferred = q.defer();
@@ -38,12 +39,17 @@ Worker.prototype.takeJob = function (job) {
         self.jobStatus = job.status;
         self.report = new Report("migration.html", job.appName);
 
-        statusBl.takeJob(job).then(function () {
-            // report errors and statistics
+        statusBl.takeJob(job)
+            .then(statusBl.getCurrentJobStatus.bind(null, job.appName))
+            .then(function (status) {
+                // check job alredy start in an previous iteration
+                // continue old run
+                if (job.status === 1 && status) {
+                    job.resumeStatus = status;
+                }
 
-            deferred.resolve(job);
-
-        })
+                deferred.resolve(job);
+            });
     }
     else {
         //  setTimeout(mainRoutine, waitInterval);
@@ -54,6 +60,10 @@ Worker.prototype.takeJob = function (job) {
 }
 
 Worker.prototype.downloadFile = function () {
+    if (self.job.resumeStatus) {
+        return q(fileUtil.getPath(self.job.appName));
+    }
+
     return fileUtil.downloadFile(self.job.parseUrl, self.job.appName);
 }
 
@@ -65,6 +75,10 @@ Worker.prototype.unzipFile = function (filePath) {
 }
 
 Worker.prototype.schemaTransformation = function () {
+    if (self.job.resumeStatus) {
+        return q(undefined);
+    }
+
     var deferred = q.defer();
     logger.info('start schema transformation');
     //add schema
@@ -72,7 +86,7 @@ Worker.prototype.schemaTransformation = function () {
 
     var schemaObj = JSON.parse(self.job.parseSchema);
     var parseSchema = new ParseSchema(schemaObj.results);
-    parseSchema.adjustNames();
+
 
     self.report.pushData('transform', parseSchema.getAdjustedNames());
     var t = transformer(schemaObj);
@@ -82,13 +96,11 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    statusBl.model([], self.job.appToken).then(function(){
-        statusBl.model(objects, self.job.appToken).then(function(){
+    statusBl.model([], self.job.appToken)
+        .then(statusBl.model.bind(self, objects, self.job.appToken))
+        .then(function () {
             deferred.resolve();
-        }).fail(function(err){
-            deferred.reject(err);
-        })
-    }).fail(function(err){
+        }).fail(function (err) {
         deferred.reject(err);
     })
 
@@ -136,7 +148,7 @@ Worker.prototype.finish = function () {
 Worker.prototype.run = function (done) {
     var self = new Worker();
     self.done = done;
-    q.fcall(statusBl.connect)
+    statusBl.connect()
         .then(statusBl.getNextJob)
         .then(self.takeJob)
         .then(self.downloadFile)
