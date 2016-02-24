@@ -12,7 +12,7 @@ function UpdateUsersStep(statusBl, token) {
 UpdateUsersStep.prototype = (function () {
     // Private code here
     var getUpdateStatements = function () {
-        return "update `users` set `email` = `username` where email is null;" +
+        return "update `users` set `email` = if(`username` REGEXP '^[^@]+@[^@]+\.[^@]{2,}$', `username`, concat(`username`, '@parse.com')) where email is null;" +
             "update `users` set `firstName` = SUBSTRING_INDEX(SUBSTRING_INDEX(`email`, '@', 1), ' ', -1) " +
             "where email is not null and firstName is null;" +
             "update `users` set `lastName` = SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(`email`, '@', -1), '.', -2), '.', 1) " +
