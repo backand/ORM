@@ -1,0 +1,42 @@
+{ "results": [
+	{
+        "address": "166 đường Phan Anh, quận Tân Phú, TP.HCM",
+        "byGroup": false,
+        "byUser": "IUDzFrkcwN",
+        "createdAt": "2016-01-10T15:49:43.356Z",
+        "description": "Dự án ươm mầm ước mơ là một dự án để đem lại động lực và một số kỹ năng để các trẻ em nghèo, trẻ em đường phố có sự tự tin và kiến thức cơ bản để theo đuổi ước mơ của mình. Giúp các em định hướng sự nghiệp phù hợp với các em trong tương lai. Nơi thực hiện dự án này sẽ là lớp học tình thương Hòa Hảo.",
+        "endday": {
+            "__type": "Date",
+            "iso": "2016-04-29T17:00:00.000Z"
+        },
+        "groupID": "",
+        "latitude": 10.7640659,
+        "longitude": 106.6203081,
+        "members": 10,
+        "name": "Improving Health in Rural Ugandan Villages",
+        "need": 0,
+        "objectId": "LIWIGXiWFq",
+        "phone": "0939221468",
+        "rep_img": {
+            "__type": "File",
+            "name": "tfss-3d034d85-0170-4096-9098-1af3b2df8fa8-avatar.jpg",
+            "url": "http://files.parsetfss.com/77c3a4cd-3b03-4b63-9ad5-f3d6a79186de/tfss-3d034d85-0170-4096-9098-1af3b2df8fa8-avatar.jpg"
+        },
+        "requestPending": [
+            "a53FCLhtEU"
+        ],
+        "schedules": {
+            "__type": "File",
+            "name": "tfss-7a861ed1-3e57-4833-bace-fd9aac7baa87-schedule.png",
+            "url": "http://files.parsetfss.com/77c3a4cd-3b03-4b63-9ad5-f3d6a79186de/tfss-7a861ed1-3e57-4833-bace-fd9aac7baa87-schedule.png"
+        },
+        "startday": {
+            "__type": "Date",
+            "iso": "2016-01-09T17:00:00.000Z"
+        },
+        "targets": "trẻ em nghèo, trẻ em đường phố",
+        "updatedAt": "2016-02-22T07:41:31.478Z",
+        "verified": false,
+        "website": "naokichau@gmail.com"
+    }
+] }

@@ -3,8 +3,10 @@
  */
 
 var self = this;
+
 var q = require('q');
 function UpdateUsersStep(statusBl, token) {
+    this.stepName = "updateUsers";
     this.statusBl = statusBl;
     this.token = token;
 }

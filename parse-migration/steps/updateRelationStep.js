@@ -7,7 +7,7 @@ var logger = require('../logging/logger').getLogger('updateRelation');
 const BULK_SIZE = 1;
 
 function updateRelationStep () {
-
+    this.stepName = "updateRelation";
 }
 
 updateRelationStep.prototype.updateRelations = function(streamer, report, datalink, converter,

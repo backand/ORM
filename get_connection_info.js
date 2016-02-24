@@ -43,7 +43,7 @@ function getConnectionInfoSimple(accessToken, appName, getCallback){
 					function(error, response, body){
 						if(!error && response.statusCode == 200) {
 							var body = JSON.parse(body);
-							var databaseConnection = body["Database_Connection"];
+							var databaseConnection = body["Database_Connection"] || body["SqlConnectionId"] ;
 							var info = {
 								"multipleStatements": true,
 								host: databaseConnection["ServerName"],
