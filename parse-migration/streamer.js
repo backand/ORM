@@ -81,15 +81,12 @@ Streamer.prototype = (function () {
                 console.log('finish ' + current.path);
                 current.q.push({'val': undefined});
                 return;
-                // assign a callback
-                /*if(current.jsonIsEmpty && current.firstTimeFinish){
-                 current.firstTimeFinish = false;
-                 console.log("finish without any json for " + current.path);
-                 current.finishCallback();
-                 return;
-                 }*/
+
             })
             .pipe(JSONStream.parse(['results', true]))
+            .on('error', function(err){
+                current.finishCallback(err);
+            })
             .pipe(es.mapSync(function (data, cb) {
                 if (!current.canRead && data && data.objectId === startId) {
                     current.canRead = true;
@@ -99,7 +96,10 @@ Streamer.prototype = (function () {
                     current.jsonIsEmpty = false;
                     current.q.push({'val': data, 'onData': current.onData});
                 }
-            }));
+            }))
+        .on('error', function(err){
+            current.finishCallback(err);
+        });
 
         /* a.end()*/
     }
