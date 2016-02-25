@@ -189,7 +189,7 @@ UserTableCreator.prototype.restoreUserTable = function (callback) {
             callback();
         })
         .fail(function (err) {
-            console.error("fail to post Validate Backand Register User");
+            console.error("fail to post Validate Backand Register User " + JSON.stringify(err));
             console.error(err);
             callback(err);
         });

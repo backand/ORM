@@ -190,6 +190,31 @@ function StatusBl(workerId) {
 
     };
 
+    self.updatePkType = function (token, appName) {
+        logger.info('start update pk type ');
+
+        var deferred = q.defer();
+
+        var backandClient = new BackandSDK(globalConfig.api_url);
+
+        var data = {"PkType": "char(36)"};
+
+        backandClient.basicAuth(token).then(function () {
+                backandClient.put('/admin/myApps/' + appName, data).then(function () {
+                    logger.info('end update pk type');
+                    deferred.resolve();
+                }).fail(function (err) {
+                    deferred.reject(err);
+                });
+            },
+            function (err) {
+                logger.error('error update pk type: ' + JSON.stringify(err));
+            });
+
+        return deferred.promise;
+
+    };
+
     self.setCurrentObjectId = function (appName, statusName, file, objectId) {
 
         //logger.info("REDIS " + appName + " " + statusName + " " + file + " " + objectId)
