@@ -6,7 +6,7 @@
 // "http://ec2-52-5-45-182.compute-1.amazonaws.com:8099";
 
 var config = {
-    api_url : "http://api.backand.co:8099",
+    api_url : "http://localhost:4110",
     redis: {
         "port": 10938,
         "hostname": "pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com",

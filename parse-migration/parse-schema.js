@@ -26,6 +26,8 @@ function ParseSchema(schema) {
         var parseClass = self.schema[i];
         self.schemaDictionary[parseClass.className] = parseClass;
     };
+
+    this.adjustNames();
 }
 
 ParseSchema.prototype = (function() {

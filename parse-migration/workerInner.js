@@ -96,7 +96,8 @@ Worker.prototype.schemaTransformation = function () {
     });
 
     // call to backand model
-    statusBl.model([], self.job.appToken)
+    statusBl.updatePkType(self.job.appToken, self.job.appName)
+        .then(statusBl.model([], self.job.appToken))
         .then(statusBl.model.bind(self, objects, self.job.appToken))
         .then(function () {
             deferred.resolve();
