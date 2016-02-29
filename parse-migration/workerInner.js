@@ -129,6 +129,12 @@ Worker.prototype.setJobFinish = function () {
     return statusBl.finishJob(self.job);
 }
 
+Worker.prototype.logErrorMessage = function (errorMessage) {
+    logger.info('job finish ' + self.job.appName);
+    return statusBl.logErrorMessage(self.job, errorMessage);
+}
+
+
 Worker.prototype.startAgain = function () {
     // console.log('start again');
     setTimeout(self.run, waitInterval);
@@ -136,6 +142,7 @@ Worker.prototype.startAgain = function () {
 
 Worker.prototype.logError = function (err) {
     logger.error(err);
+    self.logErrorMessage(err.substr(0,2000));
 }
 
 Worker.prototype.finish = function () {

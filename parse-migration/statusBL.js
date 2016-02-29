@@ -72,6 +72,12 @@ function StatusBl(workerId) {
         });
     };
 
+    self.logErrorMessage = function (job, errorMessage) {
+        return self.clearJobStatus(job.appName).then(function () {
+            return backand.put('/1/objects/MigrationJobQueue/' + job.id, {errorMessage:errorMessage});
+        });
+    };
+
     self.takeJob = function (job) {
         // update job taken
         var deferred = q.defer();
