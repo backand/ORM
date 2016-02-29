@@ -88,6 +88,11 @@ function listFolder(bucket, folder, pathInFolder, callback){
 	});
 }
 
+function deleteFolder(bucket, folder, callback){
+	redisClient.del(bucket + "/" + folder);
+	callback(null);
+}
+
 function storeFolder(bucket, folder, callback){
 	var prefix = folder;
 	var params = { 
@@ -182,6 +187,7 @@ function filterFiles(bucket, folder, pathInFolder, callback){
 
 module.exports.listFolder = listFolder;
 module.exports.storeFolder = storeFolder;
+module.exports.deleteFolder = deleteFolder;
 module.exports.filterFiles = filterFiles;
 
 // listFolder('backandhosting', 'k2', 'assets', function(err, data){
