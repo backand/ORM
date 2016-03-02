@@ -142,7 +142,10 @@ Worker.prototype.startAgain = function () {
 
 Worker.prototype.logError = function (err) {
     logger.error(err);
-    self.logErrorMessage(err.substr(0,2000));
+
+    if(self.job && err) {
+        self.logErrorMessage(err);
+    }
 }
 
 Worker.prototype.finish = function () {
