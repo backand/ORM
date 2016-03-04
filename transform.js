@@ -708,10 +708,16 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 				// col.unsigned();
 		  		// col.references("id").inTable(oneManyRelationship.nRelation);
 		  		if (isSpecialPrimary){
-		  			var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+					var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+		  			if (_.has(description, "required") && description.required)
+		  				col.notNullable();
 		  		}
 		  		else{
 		  			var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);		  			
+		  			if (_.has(description, "required") && description.required){
+		  				col.notNullable();		  		
+		  				console.log('not nullable');
+		  			}
 		  		}
 
 		  		if (oneManyRelationship.isCascade){
@@ -924,10 +930,13 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 				  		// col.references("id").inTable(oneManyRelationship.nRelation);
 				  		if (isSpecialPrimary){
 				  			var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();
 				  		}
 				  		else{
 				  			var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);				  			
-				  		}
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();				  		}
 				  		if (oneManyRelationship.isCascade){
 				  			col.onDelete("cascade").onUpdate("cascade");
 				  		}	
@@ -1023,12 +1032,15 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 			  		// col.references("id").inTable(oneManyRelationship.nRelation);
 			  		
 			  		var relationshipStatement = knex.schema.table(tableName, function (table) {
-
 				  		if (isSpecialPrimary){
 				  			var col = table.uuid(d).references("id").inTable(oneManyRelationship.nRelation);
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();
 				  		}
 				  		else{
 				  			var col = table.integer(d).unsigned().references("id").inTable(oneManyRelationship.nRelation);				  			
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();
 				  		}
 				  		if (oneManyRelationship.isCascade){
 				  			col.onDelete("cascade").onUpdate("cascade");
@@ -1073,6 +1085,8 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 				  	    colM.unsigned();				  	  	
 				  	  }
 				  	  colM.references("id").inTable(nr.mRelation).onDelete("cascade").onUpdate("cascade");
+				  	  if (_.has(description, "required") && description.required)
+		  				col.notNullable();
 					});
 					var s = statement.toString();
 					if (!_.contains(statements, s)){
