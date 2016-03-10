@@ -23,9 +23,23 @@ module.exports.validTypes = validTypes;
 // 		"location": {
 // 			"type": "point",
 // 			"defaultValue": [34.0, 3]
-// 		}
+// 		},
+
 // 	}
-// }
+// },
+// { name: '_User',
+//   fields: 
+//    { email: { type: 'string' },
+//      emailVerified: { type: 'boolean' },
+//      password: { type: 'string' },
+//      username: { type: 'string' },
+//      _Role_users: { object: '_Role', rename: 'kuku' } } },
+// { name: '_Role',
+//   fields: 
+//    { name: { type: 'string' },
+//      roles: { collection: '_Role', via: '_Role_roles' },
+//      users: { collection: '_User', via: '_Role_users' },
+//      _Role_roles: { object: '_Role' } } }
 // ]);
 // console.log(v);
 
@@ -144,6 +158,19 @@ function validRelation(relation){
 		    if (!(/^\w+$/).test(key)){		
 				valid = false;
 				warnings.push("relation: " + relationName + " column:" + key + " - column name should contain only alphanumeric characters and underscore");				
+			}
+			if (value.rename){
+				if (!_.has(value, "type")){
+					warnings.push("relation: " + relationName + " column:" + key + " cannot rename a relationship column");
+				}
+				if (value.rename.length > 32){
+					valid = false;
+					warnings.push("relation: " + relationName + " column:" + key + " cannot be renamed to " + value.rename + " - column name should be no longer than 32 characters");
+				}
+			    if (!(/^\w+$/).test(value.rename)){		
+					valid = false;
+					warnings.push("relation: " + relationName + " column:" + key + " cannot be renamed to " + value.rename + " - column name should contain only alphanumeric characters and underscore");				
+				}				
 			}
 
 			if (!_.has(value, "type")){
