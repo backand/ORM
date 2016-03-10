@@ -1,4 +1,5 @@
 module.exports.transformer = transform;
+module.exports.rename = renameFields;
 
 var _ = require('underscore');
 var TAFFY = require('taffy');
@@ -166,6 +167,62 @@ var mapToKnexTypes =
 	"date": "date",
 	"point": "point"
 };
+
+function renameFields(schema){
+	var newSchema = _.map(schema, function(table){
+		return { 
+			name: table.name, 
+			fields: _.object(_.map(_.pairs(table.fields), function(p) {
+				if (p[1].rename){
+					return [p[1].rename, _.omit(p[1], 'rename')];
+				}
+				else{
+					return p;
+				}
+			}))
+		}
+	});
+	var statements = [];
+	_.each(schema, function(jsonTable){
+		var tableName = jsonTable.dbName ? jsonTable.dbName : jsonTable.name;
+		console.log(tableName);
+		
+	
+		_.each(jsonTable.fields, function(value, key){
+			if (value.rename){	
+				console.log(value, key);			
+				var statement = "ALTER TABLE " + tableName + " CHANGE " + key + " " + value.rename + " " + mapToKnexTypes[value.type];
+				statements.push(statement);
+			}
+		});
+
+		
+		
+	});
+	return({
+		schema: newSchema,
+		statements: statements
+	});
+	
+}
+
+// var result = renameFields([
+// 	{ 
+// 		name: 'r',
+// 		fields: {
+// 			a: { type: 'string', 'rename': 'c' },
+// 			b: { type: 'float', required: true }
+// 		}
+// 	},
+// 	{ 
+// 		name: 's',
+// 		fields: {
+// 			e: { type: 'string' },
+// 			f: { type: 'float', defaultValue: 2 }
+// 		}
+// 	}
+// ]);
+
 
 // var r = transform(
 // 	[],
@@ -708,10 +765,16 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 				// col.unsigned();
 		  		// col.references("id").inTable(oneManyRelationship.nRelation);
 		  		if (isSpecialPrimary){
-		  			var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+					var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+		  			if (_.has(description, "required") && description.required)
+		  				col.notNullable();
 		  		}
 		  		else{
 		  			var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);		  			
+		  			if (_.has(description, "required") && description.required){
+		  				col.notNullable();		  		
+		  				console.log('not nullable');
+		  			}
 		  		}
 
 		  		if (oneManyRelationship.isCascade){
@@ -924,10 +987,13 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 				  		// col.references("id").inTable(oneManyRelationship.nRelation);
 				  		if (isSpecialPrimary){
 				  			var col = table.uuid(name).references("id").inTable(oneManyRelationship.nRelation);
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();
 				  		}
 				  		else{
 				  			var col = table.integer(name).unsigned().references("id").inTable(oneManyRelationship.nRelation);				  			
-				  		}
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();				  		}
 				  		if (oneManyRelationship.isCascade){
 				  			col.onDelete("cascade").onUpdate("cascade");
 				  		}	
@@ -1023,12 +1089,15 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 			  		// col.references("id").inTable(oneManyRelationship.nRelation);
 			  		
 			  		var relationshipStatement = knex.schema.table(tableName, function (table) {
-
 				  		if (isSpecialPrimary){
 				  			var col = table.uuid(d).references("id").inTable(oneManyRelationship.nRelation);
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();
 				  		}
 				  		else{
 				  			var col = table.integer(d).unsigned().references("id").inTable(oneManyRelationship.nRelation);				  			
+				  			if (_.has(description, "required") && description.required)
+		  						col.notNullable();
 				  		}
 				  		if (oneManyRelationship.isCascade){
 				  			col.onDelete("cascade").onUpdate("cascade");
@@ -1073,6 +1142,8 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 				  	    colM.unsigned();				  	  	
 				  	  }
 				  	  colM.references("id").inTable(nr.mRelation).onDelete("cascade").onUpdate("cascade");
+				  	  if (_.has(description, "required") && description.required)
+		  				col.notNullable();
 					});
 					var s = statement.toString();
 					if (!_.contains(statements, s)){

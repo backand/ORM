@@ -23,6 +23,16 @@ var client = s3.createClient({
   },
 });
 
+/**
+ * limit information on file to particular fields
+ * @param {object} file
+ * return {object} reduced file information
+ */
+
+function limitFileInfo(file){
+	return limitedInfoFile = { 'Key': file.Key, 'Size': file.Size, 'LastModified': file.LastModified };
+}
+
 
 /**
  * lists a folder within bucket of AWS S3
@@ -69,7 +79,7 @@ function listFolder(bucket, folder, pathInFolder, callback){
 		var prefixLength = prefix.length + 1;		
 		_.each(data.Contents, function(file){
 			if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
-				rawData.push(file);
+				rawData.push(limitFileInfo(file));
 			}
 			else { // folders in folder
 				var indexOfFolder = file.Key.indexOf("/", prefixLength);
@@ -161,7 +171,7 @@ function filterFiles(bucket, folder, pathInFolder, callback){
 				if (_.startsWith(file.Key,prefix)){
 
 					if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
-						rawData.push(file);
+						rawData.push(limitFileInfo(file));
 					}
 					else { // folders in folder
 						var indexOfFolder = file.Key.indexOf("/", prefixLength);
@@ -204,9 +214,11 @@ module.exports.filterFiles = filterFiles;
 // 	process.exit(0);
 // });
 
-// filterFiles('backandhosting', 'k2', 'assets', function(err, data){
+// filterFiles('backandhosting', 'k2', '', function(err, data){
 // 	console.log("--------");
 // 	console.log(err);
+// 	console.log("--------");
 // 	console.log(data);
+// 	console.log("--------");
 // 	process.exit(0);
 // });
