@@ -882,7 +882,7 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 			  				}
 							break;
 				  		case "float":
-				  			var col = table.float(d, 50, 2);
+				  			var col = table.decimal(d, 50, 8);
 							if (description.required){
 								col.notNullable();
 							}
