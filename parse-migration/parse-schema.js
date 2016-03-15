@@ -114,7 +114,13 @@ ParseSchema.prototype = (function() {
         throw new Error("Could not adjust field " + property + " name.");
     };
 
+    var isId = function(columnName) {
+        return columnName.toLowerCase() == "id";
+    }
+
     var isDuplicateColumn = function(parseClass, columnName) {
+        if (isId(columnName))
+            return true;
         for (var property in parseClass.fields) {
             if (property != columnName && property.toLowerCase() == columnName.toLowerCase())
                 return true;
