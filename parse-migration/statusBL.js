@@ -8,6 +8,8 @@ var BackandSDK = require('backandsdk/backand');
 var backand = new BackandSDK(globalConfig.api_url);
 var async = require('async');
 var q = require('q');
+q.longStackSupport = true;
+
 var RedisBulk = require('./redisBulkStatus');
 var redisFileStatus = new RedisBulk();
 var UserTableCreator = require('./userTableCreator');
@@ -69,6 +71,12 @@ function StatusBl(workerId) {
         job.FinishTime = new Date();
         return self.clearJobStatus(job.appName).then(function () {
             return backand.put('/1/objects/MigrationJobQueue/' + job.id, job);
+        });
+    };
+
+    self.logErrorMessage = function (job, errorMessage) {
+        return self.clearJobStatus(job.appName).then(function () {
+            return backand.put('/1/objects/MigrationJobQueue/' + job.id, {errorMessage:errorMessage});
         });
     };
 
@@ -165,8 +173,8 @@ function StatusBl(workerId) {
         return deferred.promise;
     };
 
-    self.model = function (schema, token) {
-        logger.info('start post the new model ');
+    self.model = function (schema, token, char) {
+        logger.info(char + ' start post the new model ');
 
         var deferred = q.defer();
 
@@ -174,16 +182,15 @@ function StatusBl(workerId) {
 
         var data = {"newSchema": schema, "severity": 0};
 
-        backandClient.basicAuth(token).then(function () {
-                backandClient.post('/1/model', data).then(function () {
-                    logger.info('end post the new model');
-                    deferred.resolve();
-                }).fail(function (err) {
+           backandClient.basicAuth(token)
+            .then(function() {return backandClient.post('/1/model', data)} )
+            .then(function () {
+                            logger.info(char + ' end post the new model');
+                            deferred.resolve();
+                        })
+            .catch(function (err) {
+                    logger.error('end post the new model with error ' + err);
                     deferred.reject(err);
-                });
-            },
-            function (err) {
-                logger.error('error post the new model: ' + JSON.stringify(err));
             });
 
         return deferred.promise;
@@ -192,27 +199,21 @@ function StatusBl(workerId) {
 
     self.updatePkType = function (token, appName) {
         logger.info('start update pk type ');
-
         var deferred = q.defer();
 
         var backandClient = new BackandSDK(globalConfig.api_url);
 
         var data = {"PkType": "char(36)"};
 
-        backandClient.basicAuth(token).then(function () {
-                backandClient.put('/admin/myApps/' + appName, data).then(function () {
+        backandClient.basicAuth(token);
+
+        backandClient.put('/admin/myApps/' + appName, data)
+            .then(function () {
                     logger.info('end update pk type');
                     deferred.resolve();
-                }).fail(function (err) {
-                    deferred.reject(err);
-                });
-            },
-            function (err) {
-                logger.error('error update pk type: ' + JSON.stringify(err));
-            });
+                })
 
         return deferred.promise;
-
     };
 
     self.setCurrentObjectId = function (appName, statusName, file, objectId) {

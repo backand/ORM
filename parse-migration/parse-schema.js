@@ -91,16 +91,18 @@ ParseSchema.prototype = (function() {
             return getAdjustedUsersColumnName(parseClass, property);
         }
 
-        if (property.length <= nameLimit){
-            return property;
-        }
+        var longName = property.length > nameLimit;
+        var adjustedName = property;
+        if (longName)
+            adjustedName = property.substr(0,nameLimit);
 
-        var adjustedName = property.substr(0,nameLimit);
-        if (!parseClass.fields[adjustedName])
+        if (!longName && !isDuplicateColumn(parseClass, adjustedName))
             return adjustedName;
 
+        var startingPoint = longName ? 1 : 0;
+
         var k = 0;
-        for (var j = 1; j <= 4; j++){
+        for (var j = startingPoint; j <= 4; j++){
             for (var i = 0; i <= 9; i++) {
                 k++;
                 var adjustedName = property.substr(0, nameLimit - j);
@@ -111,6 +113,21 @@ ParseSchema.prototype = (function() {
         }
         throw new Error("Could not adjust field " + property + " name.");
     };
+
+    var isId = function(columnName) {
+        return columnName.toLowerCase() == "id";
+    }
+
+    var isDuplicateColumn = function(parseClass, columnName) {
+        if (isId(columnName))
+            return true;
+        for (var property in parseClass.fields) {
+            if (property != columnName && property.toLowerCase() == columnName.toLowerCase())
+                return true;
+        }
+
+        return false;
+    }
 
     var adjustColumnName = function(parseClass, property, nameLimit) {
         var adjustedName = getAdjustedColumnName(parseClass, property, nameLimit);
@@ -159,9 +176,9 @@ ParseSchema.prototype = (function() {
             var nameLimit = NAME_LIMIT;
             if (column.type == "Pointer" || column.type == "Relation"){
                 nameLimit = NAME_LIMIT_IN_RELATION;
-                if (property.length > nameLimit - 1) {
+                //if (property.length > nameLimit - 1) {
                     var column = adjustColumnName(parseClass, property, nameLimit - 1);
-                }
+                //}
                 if (column.targetClass.length > nameLimit || column.targetClass == PARSE_USERS) {
                     if (!relations[column.targetClass]) {
                         relations[column.targetClass] = [];
@@ -169,12 +186,19 @@ ParseSchema.prototype = (function() {
 
                     relations[column.targetClass].push(column);
                 }
+                if (parseClass.className.length > nameLimit || column.targetClass == PARSE_USERS) {
+                    if (!relations[parseClass.className]) {
+                        relations[parseClass.className] = [];
+                    }
+
+                    relations[parseClass.className].push(column);
+                }
             }
             else{
                 nameLimit = NAME_LIMIT;
-                if (property.length > nameLimit || parseClass.className == PARSE_USERS) {
+                //if (property.length > nameLimit || parseClass.className == PARSE_USERS) {
                     adjustColumnName(parseClass, property, nameLimit);
-                }
+                //}
             }
         }
         if (parseClass.className == PARSE_USERS){

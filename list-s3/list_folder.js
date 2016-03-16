@@ -23,6 +23,16 @@ var client = s3.createClient({
   },
 });
 
+/**
+ * limit information on file to particular fields
+ * @param {object} file
+ * return {object} reduced file information
+ */
+
+function limitFileInfo(file){
+	return limitedInfoFile = { 'Key': file.Key, 'Size': file.Size, 'LastModified': file.LastModified };
+}
+
 
 /**
  * lists a folder within bucket of AWS S3
@@ -69,7 +79,7 @@ function listFolder(bucket, folder, pathInFolder, callback){
 		var prefixLength = prefix.length + 1;		
 		_.each(data.Contents, function(file){
 			if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
-				rawData.push(file);
+				rawData.push(limitFileInfo(file));
 			}
 			else { // folders in folder
 				var indexOfFolder = file.Key.indexOf("/", prefixLength);
@@ -86,6 +96,11 @@ function listFolder(bucket, folder, pathInFolder, callback){
 	.on('progress', function(){
 		// console.log('progress', emitter.objectsFound, emitter.dirsFound, emitter.progressAmount);
 	});
+}
+
+function deleteFolder(bucket, folder, callback){
+	redisClient.del(bucket + "/" + folder);
+	callback(null);
 }
 
 function storeFolder(bucket, folder, callback){
@@ -156,7 +171,7 @@ function filterFiles(bucket, folder, pathInFolder, callback){
 				if (_.startsWith(file.Key,prefix)){
 
 					if (file.Key.lastIndexOf("/") <= prefixLength){ // files in folder
-						rawData.push(file);
+						rawData.push(limitFileInfo(file));
 					}
 					else { // folders in folder
 						var indexOfFolder = file.Key.indexOf("/", prefixLength);
@@ -182,6 +197,7 @@ function filterFiles(bucket, folder, pathInFolder, callback){
 
 module.exports.listFolder = listFolder;
 module.exports.storeFolder = storeFolder;
+module.exports.deleteFolder = deleteFolder;
 module.exports.filterFiles = filterFiles;
 
 // listFolder('backandhosting', 'k2', 'assets', function(err, data){
@@ -198,9 +214,11 @@ module.exports.filterFiles = filterFiles;
 // 	process.exit(0);
 // });
 
-// filterFiles('backandhosting', 'k2', 'assets', function(err, data){
+// filterFiles('backandhosting', 'k2', '', function(err, data){
 // 	console.log("--------");
 // 	console.log(err);
+// 	console.log("--------");
 // 	console.log(data);
+// 	console.log("--------");
 // 	process.exit(0);
 // });

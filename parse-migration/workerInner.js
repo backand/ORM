@@ -26,8 +26,6 @@ function Worker(mockStatusBl) {
     self = this;
     statusBl = mockStatusBl || statusBl;
     self.statusBl = statusBl;
-
-
 }
 
 Worker.prototype.takeJob = function (job) {
@@ -87,7 +85,6 @@ Worker.prototype.schemaTransformation = function () {
     var schemaObj = JSON.parse(self.job.parseSchema);
     var parseSchema = new ParseSchema(schemaObj.results);
 
-
     self.report.pushData('transform', parseSchema.getAdjustedNames());
     var t = transformer(schemaObj);
     _.each(t, function (s) {
@@ -97,12 +94,14 @@ Worker.prototype.schemaTransformation = function () {
 
     // call to backand model
     statusBl.updatePkType(self.job.appToken, self.job.appName)
-        .then(statusBl.model([], self.job.appToken))
-        .then(statusBl.model.bind(self, objects, self.job.appToken))
+        .then(function() {return statusBl.model([], self.job.appToken, "empty") })
+        .then(function() {return statusBl.model(objects, self.job.appToken, "full") })
         .then(function () {
+            console.log("c");
             deferred.resolve();
         }).fail(function (err) {
-        deferred.reject(err);
+            logger.error(err);
+            deferred.reject(err);
     })
 
     return deferred.promise;
@@ -129,6 +128,12 @@ Worker.prototype.setJobFinish = function () {
     return statusBl.finishJob(self.job);
 }
 
+Worker.prototype.logErrorMessage = function (errorMessage) {
+    logger.info('log error message: job finish ' + self.job.appName);
+    return statusBl.logErrorMessage(self.job, errorMessage);
+}
+
+
 Worker.prototype.startAgain = function () {
     // console.log('start again');
     setTimeout(self.run, waitInterval);
@@ -136,6 +141,10 @@ Worker.prototype.startAgain = function () {
 
 Worker.prototype.logError = function (err) {
     logger.error(err);
+
+    if(self.job && err) {
+        self.logErrorMessage(err);
+    }
 }
 
 Worker.prototype.finish = function () {

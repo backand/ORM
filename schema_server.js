@@ -487,6 +487,19 @@ router.map(function () {
         });
     });
 
+    this.post('/deleteFolder').bind(function (req, res, data) {
+        logger.info("start deleteFolder");
+        logger.trace(data.bucket, data.folder);
+        s3Folders.deleteFolder(data.bucket, data.folder, function(err) {
+           if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, files);
+            }
+        });
+    });
+
     // smart list with caching of sub folder of app
     this.post('/smartListFolder').bind(function (req, res, data) {
         logger.info("start smartListFolder");
