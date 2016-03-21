@@ -17,6 +17,8 @@ var version = require('./version').version;
 var config = require('./configFactory').getConfig();
 var logger = require('./logging/logger').getLogger("schema_" + config.env);
 
+var bcrypt = require('bcrypt-nodejs');
+
 logger.info("start with config " + config.env);
 
 
@@ -411,7 +413,7 @@ router.map(function () {
             // ContentLength: 0,
             // ContentMD5: 'STRING_VALUE',
             ContentType: contentType,
-            Expires: new Date,// || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
+            Expires: new Date// || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
             // GrantFullControl: 'STRING_VALUE',
             // GrantRead: 'STRING_VALUE',
             // GrantReadACP: 'STRING_VALUE',
@@ -589,6 +591,30 @@ router.map(function () {
 
 
     });
+
+    this.post('/parseCheckPassword').bind(function(req,res,data){
+        console.log(data);
+        var password = data.password
+        var hashedPassword = data.hashedPassword;
+
+        if(!password || !hashedPassword){
+            res.send(500, { error: 'password and hashedPassword must be fulfilled' }, {});
+        }
+
+        bcrypt.compare(password, hashedPassword, function(err, success) {
+            if (err) {
+                res.send(500, { error: err }, {});
+            } else {
+                console.log(success);
+                if(success){
+                    res.send(200, {}, null);
+                }
+                else {
+                    res.send(401, { msg: 'password and hash are not same' }, {});
+                }
+            }
+        });
+    })
 
 
 });
