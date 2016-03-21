@@ -86,7 +86,9 @@ Worker.prototype.schemaTransformation = function () {
     var parseSchema = new ParseSchema(schemaObj.results);
 
     self.report.pushData('transform', parseSchema.getAdjustedNames());
+
     var t = transformer(schemaObj);
+
     _.each(t, function (s) {
         //console.log(s);
         objects.push(s);

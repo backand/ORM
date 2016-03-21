@@ -1,32 +1,30 @@
-
 {
   "name": "schema_transformation",
   "version": "0.0.0",
   "private": true,
-  "scripts":{
-    "test" : "./node_modules/mocha/bin/mocha --recursive"
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
-    "knex": "latest",
-    "mysql": "latest",
-    "underscore": "latest",
-    "taffy": "latest",
-    "request": "latest",
     "async": "latest",
+    "aws-sdk": "latest",
+    "bcrypt-nodejs": "0.0.3",
+    "chai": "latest",
     "journey": "latest",
+    "knex": "latest",
+    "log4js": "latest",
+    "log4js-logstash": "latest",
+    "mocha": "latest",
     "mysql": "latest",
+    "redis": "latest",
+    "request": "latest",
+    "sinon": "latest",
+    "sinon-chai": "latest",
     "socket.io": "1.3.7",
     "socket.io-redis": "0.1.4",
-    "redis": "latest",
-    "async" : "latest",
-    "mocha": "latest",
-    "chai": "latest",
-    "sinon" : "latest",
-    "sinon-chai": "latest",
-    "superagent" : "latest",
-    "aws-sdk" : "latest",
-    "log4js" : "latest",
-    "log4js-logstash" : "latest"
+    "superagent": "latest",
+    "taffy": "latest",
+    "underscore": "latest"
   },
   "devDependencies": {
     "http-console": "latest"
