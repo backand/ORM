@@ -96,6 +96,62 @@ var UserTableCreator = function (BackandSdk, token) {
         whereCondition: "true",
         workflowAction: "JavaScript"
     };
+
+    this.backandAuthOverride = {
+        code: "/* globals\n" +
+        "  $http - service for AJAX calls - $http({method:'GET',url:CONSTS.apiUrl %2B '/1/objects/yourObject' , headers: {'Authorization':userProfile.token}});\n" +
+        "  CONSTS - CONSTS.apiUrl for Backands API URL\n" +
+        "  Config - Global Configuration\n" +
+        "*/\n" +
+        "'use strict';\n" +
+        "function backandCallback(userInput, dbRow, parameters, userProfile) {\n" +
+        "	//Example for SSO in OAuth 2.0 standard\n" +
+        "	//$http({\"method\":\"POST\",\"url\":\"http://www.mydomain.com/api/token\", \"data\":\"grant_type=password&username=\" + userInput.username + \"&password=\" + userInput.password, \"headers\":{\"Content-Type\":\"application/x-www-form-urlencoded\"}});\n" +
+        "\n" +
+        "	//Return results of \"allow\" or \"deny\" to override the Backand auth and provide a denied message\n" +
+        "	//Return ignore to ignore this fucntion and use Backand default authentication\n" +
+        "	//Return additionalTokenInfo that will be added to backand auth result.\n" +
+        "	//You may access this later by using the getUserDetails function of the Backand SDK.\n" +
+        "	var result = \"ignore\";\n" +
+        "	var password = userInput.password;\n" +
+        "	var username = userInput.username;\n" +
+        "	var hashedPassword = null;\n" +
+        "   try{\n" +
+        "       // Get the current user from parse users\n" +
+        "       var response = $http({\n" +
+        "           method: \"GET\",\n" +
+        "           url: CONSTS.apiUrl %2B \"/1/objects/users\",\n" +
+        "           params: {\n" +
+        "               filter: [{\n" +
+        "                   fieldName: \"username\",\n" +
+        "                   operator:\"equals\",\n" +
+        "                   value:username\n" +
+        "               }]\n" +
+        "           },\n" +
+        "           headers: {\"Authorization\": userProfile.token}\n" +
+        "       });\n" +
+        "       // Get the current user encrypted password\n" +
+        "       if (response.data.length == 1 && response.data[0].bcryptPassword){\n" +
+        "           hashedPassword = response.data[0].bcryptPassword;\n" +
+        "       }\n" +
+        "       if (hashedPassword){\n" +
+        "           // compare by encrypt this password and the stored encrypted password\n" +
+        "           var compare = ParseAuth.compare(password, hashedPassword);\n" +
+        "\n" +
+        "           if (compare.result == true){\n" +
+        "               result = \"allow\";\n" +
+        "           }\n" +
+        "       }\n" +
+        "   }\n" +
+        "   catch(err){\n" +
+        "       throw new Error(\"Failed to authenticate Parse hashed password \" %2B err);\n" +
+        "\n" +
+        "   }\n" +
+        "\n" +
+        "   return {\"result\": result, \"message\":\"\", \"additionalTokenInfo\":{}};\n" +
+        "}\n",
+        whereCondition: "true"
+    };
 };
 
 
@@ -186,6 +242,23 @@ UserTableCreator.prototype.restoreUserTable = function (callback) {
         })
         .then(function () {
             console.info('finish update current User ');
+
+            console.log('start getting security action id ');
+            return backand.get('/1/action/config/getSecurityActionId?actionName=backandAuthOverride', undefined)
+                .then(function (res) {
+                    console.info('finish getting security action id ');
+
+                    if (!res) {
+                        return q('undefined');
+                    }
+
+                    console.log('start update backandAuthOverride');
+                    return backand.put('/1/businessRule/' + res.id, self.backandAuthOverride);
+
+                });
+        })
+        .then(function () {
+            console.info('finish update backandAuthOverride ');
             callback();
         })
         .fail(function (err) {

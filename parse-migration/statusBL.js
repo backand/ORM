@@ -189,7 +189,7 @@ function StatusBl(workerId) {
                             deferred.resolve();
                         })
             .catch(function (err) {
-                    logger.error('end post the new model with error ' + err);
+                    logger.error(char + ' end post the new model with error ' + err);
                     deferred.reject(err);
             });
 

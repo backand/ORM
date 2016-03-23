@@ -2,7 +2,7 @@
  * Created by Dell on 2/9/2016.
  */
 var logger = require('../logging/logger').getLogger('insertClass');
-const BULK_SIZE = 1;
+const BULK_SIZE = 100;
 
 function insertClass(firstObjectId, appName, statusBl, bulkRunner, classJsonConverter, streamer, report) {
     this.appName = appName;
