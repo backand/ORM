@@ -680,7 +680,7 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 			  			}
 			  		break;
 			  		case "float":
-			  			var col = table.float(name, 50, 2);
+			  			var col = table.decimal(name, 50, 2);
 			  			if (description.required){
 			  				col.notNullable();
 			  			}
