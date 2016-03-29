@@ -91,6 +91,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                                 }
                             }
                             else {
+                                self.errorStrike = 0;
                                 cb();
                             }
                         });
