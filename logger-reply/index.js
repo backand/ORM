@@ -8,11 +8,14 @@ var redisSource = new RedisSource();
 var CoolaAppender = require('./appenders/cooladataAppender');
 var coolaAppender = new CoolaAppender();
 
+var RabbitAppender = require('./appenders/rabbitAppender');
+var rabbitAppender = new RabbitAppender();
+
 var async = require('async');
 // var logstashApender = new require('./appenders/logstashAppender')();
 var FileApender = require('./appenders/fileAppender');
 var fileAppender = new FileApender();
-var appenders = [fileAppender, coolaAppender];
+var appenders = [fileAppender, coolaAppender, rabbitAppender];
 
 var lastMessageTime = new Date();
 var bulk = [];
