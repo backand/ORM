@@ -16,6 +16,7 @@ var coolaAppender = function () {
 
 
 coolaAppender.prototype.processMessage = function (msgBulk, cb) {
+    //console.log('start bulk');
     var self = this;
     // have to clone it because we have to add new fields.
 
@@ -25,8 +26,9 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
         var newMsg = JSON.parse(msg.origin);
 
         // encrich message
-        newMsg.user_id = newMsg.ID ? newMsg.ID : "NA";
-        newMsg.event_name = newMsg.MethodName ? newMsg.MethodName : "NA";
+        newMsg.user_id = newMsg.ID ? newMsg.ID.replace(/[^\w\s]/gi, '') : "NA";
+        newMsg.event_name = newMsg.MethodName ? newMsg.MethodName.replace(/[^\w\s]/gi, '') : "NA";
+        //console.log(newMsg.event_name);
         newMsg.event_timestamp_epoch = dateConvert(newMsg.Time);
 
         // clean message
@@ -37,7 +39,6 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
         
         newMsgBlk.push(newMsg);
     }
-
 
     var packt = {"events": newMsgBlk};
     packt = JSON.stringify(packt);
@@ -82,8 +83,9 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                                     cb();
                                 }
                             }
-
-                            cb();
+                            else {
+                                cb();
+                            }
                         });
                 }
                 else {
