@@ -6,6 +6,8 @@
     "test": "./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
+    "amqp": "^0.2.4",
+    "amqp-coffee": "^0.1.27",
     "async": "latest",
     "aws-sdk": "latest",
     "bcrypt-nodejs": "0.0.3",
