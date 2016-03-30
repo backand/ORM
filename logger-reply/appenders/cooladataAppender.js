@@ -76,6 +76,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                             }
                             catch (err) {
                                 cb();
+                                return;
                             }
 
                             if (parsed && parsed.status === false) {
@@ -85,19 +86,23 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                                 if (self.errorStrike === ERROR_STRIKE) {
                                     self.errorStrike = 0;
                                     cb('ERROR_MANY_TIMES');
+                                    return;
                                 }
                                 else {
                                     cb();
+                                    return;
                                 }
                             }
                             else {
                                 self.errorStrike = 0;
                                 cb();
+                                return;
                             }
                         });
                 }
                 else {
                     cb();
+                    return;
                 }
 
             }
