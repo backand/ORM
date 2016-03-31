@@ -26,27 +26,33 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
         var newMsg = JSON.parse(msg.origin);
 
         // encrich message
-        newMsg.user_id = newMsg.ID ? newMsg.ID.replace(/[^\w\s]/gi, '') : "NA";
-        newMsg.event_name = newMsg.MethodName ? newMsg.MethodName.replace(/[^\w\s]/gi, '') : "NA";
-        //console.log(newMsg.event_name);
-        newMsg.event_timestamp_epoch = dateConvert(newMsg.Time);
+
 
         // clean message
 
         Object.keys(newMsg).forEach(function (key) {
-            if(newMsg[key] === null){
+            if (newMsg[key] === null) {
                 newMsg[key] = "";
             }
 
-            newMsg[key] = encodeURIComponent(newMsg[key].toString().replace(/["]/g, "'"));
+            newMsg[key] = newMsg[key].toString().replace(/["]/g, "'").replace(/[:]/g, "").trim();
+
+            // if (key === "ClientIP" || key === "Agent" || key === "Languages" || key === "ClientInfo" || key === "FreeText" || key === "ExceptionMessage") {
+            //     newMsg[key] = encodeURI(newMsg[key]);
+            // }
         });
-        
+
+
+        newMsg.event_name = newMsg.ID ? newMsg.ID.replace(/[^\w\s]/gi, '') : "NA";
+        newMsg.user_id = newMsg.Username ? newMsg.Username.replace(/[^\w\s]/gi, '') : "NA";
+        newMsg.event_timestamp_epoch = dateConvert(newMsg.Time);
+
         newMsgBlk.push(newMsg);
     }
 
 
-    var packt = {"events": newMsgBlk};
-    packt = JSON.stringify(packt);
+    var packtBefore = {"events": newMsgBlk};
+    packt = JSON.stringify(packtBefore);
 
     // send to cooladata
     unirest.post(url)
@@ -60,14 +66,36 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                 }
                 catch (err) {
                     cb();
+                    return;
                 }
 
                 // console.log(parsed);
                 if (parsed && parsed.status === false) {
                     console.log('try again');
+
+                    for (var i = 0; i < msgBulk.length; i++) {
+                        var msg = msgBulk[i];
+                        var newMsg = JSON.parse(msg.origin);
+
+
+                        Object.keys(newMsg).forEach(function (key) {
+
+
+                            if (key === "ClientIP" || key === "Agent" || key === "Languages" || key === "ClientInfo" || key === "FreeText" || key === "ExceptionMessage") {
+                                newMsg[key] = "";
+                            }
+                        });
+
+                        newMsgBlk.push(newMsg);
+                    }
+
+
+                    packtBefore = {"events": newMsgBlk};
+                    packt = JSON.stringify(packtBefore);
+
                     // try again
                     unirest.post(url)
-                        .header('Content-Type', 'application/x-www-form-urlencoded')
+                        //.header('Content-Type', 'application/x-www-form-urlencoded')
                         .send(packt)
                         .end(function (res) {
                             console.log(res.raw_body);
@@ -82,7 +110,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                             if (parsed && parsed.status === false) {
 
                                 self.errorStrike++;
-
+                                //console.log(packtBefore);
                                 if (self.errorStrike === ERROR_STRIKE) {
                                     self.errorStrike = 0;
                                     cb('ERROR_MANY_TIMES');
