@@ -88,8 +88,8 @@ function mainFunc() {
 
                 // fail after many attemps to Cooladata,  wait two minutes
                 if (err === 'ERROR_MANY_TIMES') {
-                    logger.warn('wait two minutes');
-                    setTimeout(mainFunc, 2 * 60 * 1000);
+                    logger.warn('wait 30 secs');
+                    setTimeout(mainFunc, 30 * 1000);
 
                 }
                 else {
