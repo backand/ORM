@@ -16,6 +16,7 @@
     "knex": "latest",
     "log4js": "latest",
     "log4js-logstash": "latest",
+    "log4js-node-amqp": "^1.0.2",
     "mocha": "latest",
     "mysql": "latest",
     "redis": "latest",
