@@ -6,6 +6,9 @@ var AWS = require('aws-sdk')
 AWS.config.loadFromPath('./hosting/kornatzky-credentials.json');
 var s3 = new AWS.S3();
 
+var mime = require('mime-types');
+
+
 
 var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
@@ -29,6 +32,11 @@ var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
 
 var s3Folders = require('./list-s3/list_folder');
+
+var createLambda = require('./lambda/create_lambda_function').createLambdaFunctionFromS3;
+var callLambda = require('./lambda/call_lambda_function').callLambdaFunctionFromS3;
+var updateLambda = require('./lambda/update_lambda_function').updateLambdaFunctionFromS3;
+var deleteLambda = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
 
 var fs = require('fs');
 
@@ -354,7 +362,7 @@ router.map(function () {
     // upload a content file to S3
     this.post('/uploadFile').bind(function (req, res, data) {
         logger.info('start uploadFile');
-        logger.trace(data.fileName + ' ' + ' ' +data.dir);
+        logger.trace(data.fileName + ' ' + data.dir);
         var s = data.fileName.toLowerCase();
         var extPosition = s.lastIndexOf('.');
         if (extPosition > -1) {
@@ -364,36 +372,9 @@ router.map(function () {
             ext = '';
         }
         var contentType = data.fileType;
+
         if (!contentType) {
-            switch (true) {
-                case /css/.test(ext):
-                    contentType = "text/css";
-                    break;
-                case /js/.test(ext):
-                    contentType = "text/js";
-                    break;
-                case /jpg/.test(ext):
-                    contentType = "image/jpg";
-                    break;
-                case /ico/.test(ext):
-                    contentType = "image/x-icon";
-                    break;
-                case /jpeg/.test(ext):
-                    contentType = "image/jpg";
-                    break;
-                case /gif/.test(ext):
-                    contentType = "image/gif";
-                    break;
-                case /png/.test(ext):
-                    contentType = "image/png";
-                    break;
-                case /html/.test(ext):
-                    contentType = "text/html";
-                    break;
-                default:
-                    contentType = "text/plain";
-                    break;
-            }
+            contentType = getContentType(data.fileName);
         }
 
         logger.trace('uploadFile contentType is ' + contentType);
@@ -521,6 +502,52 @@ router.map(function () {
         });
     });
 
+    this.post('/createLambda').bind(function (req, res, data) {
+        createLambda(data.bucket, data.folder, data.fileName, data.functionName, data.handlerName, data.callFunctionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.post('/callLambda').bind(function (req, res, data) {
+        callLambda(data.folder, data.functionName, data.payload, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.post('/updateLambda').bind(function (req, res, data) {
+        updateLambda(data.bucket, data.folder, data.fileName, data.functionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+
+    this.post('/deleteLambda').bind(function (req, res, data) {
+        deleteLambda(data.folder, data.functionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+
     // send push messages 
     // data has fields: 
     // devices - array of { deviceType, deviceId }
@@ -610,4 +637,15 @@ function getToken(headers) {
     else {
         return null;
     }
+}
+
+function getContentType(fileName){
+
+    var cType = mime.lookup(fileName);
+
+    if(!cType){
+        cType = "text/plain";
+    }
+
+    return cType;
 }

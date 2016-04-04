@@ -39,7 +39,9 @@
   "bugs": {
     "url": "https://github.com/caolan/async/issues"
   },
-  "dependencies": {},
+  "dependencies": {
+    "aws-sdk": "latest"
+  },
   "description": "Higher-order functions and common patterns for asynchronous code",
   "devDependencies": {
     "lodash": ">=2.4.1",

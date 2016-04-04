@@ -97,7 +97,7 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 	    				if (!withIdColumn && (item.name == "id" || item.name == "Id")){
 	    					callback(null, null);
 	    				}
-	    				else if (item.name == "createAt" || item.name == "updatedAt"){
+	    				else if (item.name == "createdAt" || item.name == "updatedAt"){
 	    					callback(null, null);
 	    				}
 	    				else{

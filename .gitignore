@@ -42,3 +42,5 @@ test/.awspublish*
 test/.backand-credentials.json
 test/src
 list-s3/node_modules/
+ambda/*.zip
+lambda/src-*/node_modules/
