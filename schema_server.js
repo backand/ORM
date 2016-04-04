@@ -85,9 +85,10 @@ router.map(function () {
     // transform one json schema into another json schema
     this.post('/transform').bind(function (req, res, data) {
         logger.info("start transform");
-        logger.trace("transform", data.oldSchema, data.newSchema, data.severity);
+        logger.trace("transform" + " " +  "oldSchema:" + data.oldSchema + " newSchema:" +  data.newSchema + " severity:" + data.severity);
         var isValidNewSchema = validator(data.newSchema);
         logger.trace("isValidNewSchema", isValidNewSchema);
+
         if (isValidNewSchema.error) {
             logger.info("transform error " + isValidNewSchema.error);
             res.send(500, {error: isValidNewSchema.error}, {});
@@ -96,6 +97,7 @@ router.map(function () {
             var isSpecialPrimary = false;
             if (data.isSpecialPrimary)
                 isSpecialPrimary = true;
+
             result = transformer(data.oldSchema, data.newSchema, data.severity, isSpecialPrimary);
             logger.trace(result);
 
@@ -111,6 +113,7 @@ router.map(function () {
         else {
             isValidNewSchema.valid = "never";
             logger.info("transform OK never");
+
             res.send(200, {}, isValidNewSchema);
         }
     });
@@ -126,7 +129,7 @@ router.map(function () {
                     res.send(400, {error: err}, null);
                 }
                 else {
-                    logger.trace("transformer", oldSchema, data.newSchema, data.severity)
+                    logger.trace("transformer" + " " + oldSchema + " newSchema:" +  data.newSchema + " severity:" +  data.severity)
                     if (data.withoutValidation) {
                         result = transformer(oldSchema, data.newSchema, data.severity)
                         logger.trace(result);

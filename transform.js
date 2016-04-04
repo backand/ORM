@@ -338,8 +338,6 @@ function transform(oldSchema, newSchema, severity, isSpecialPrimary){
 		var validity = isValidTransformation(oldSchema, newSchema, modifications);
 		// console.log(validity);
 
-
-
 		if (severity == 0 && validity.valid != "always"){
 			return validity;
 		}
