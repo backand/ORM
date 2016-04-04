@@ -1,0 +1,54 @@
+{ "results": [
+	{
+        "ACL": {
+            "*": {
+                "read": true
+            },
+            "kl1WjGZ7m3": {
+                "write": true
+            },
+            "role:admin": {
+                "write": true
+            },
+            "role:staff": {
+                "write": true
+            }
+        },
+        "createdAt": "2016-02-07T20:00:27.006Z",
+        "name": "Admin Topic",
+        "objectId": "4aL3335wKF",
+        "text": "This topic is created as admin.",
+        "updatedAt": "2016-02-07T20:00:27.006Z",
+        "user": {
+            "__type": "Pointer",
+            "className": "_User",
+            "objectId": "kl1WjGZ7m3"
+        }
+    },
+	{
+        "ACL": {
+            "*": {
+                "read": true
+            },
+            "5r8XZYqwZ7": {
+                "write": true
+            },
+            "role:admin": {
+                "write": true
+            },
+            "role:staff": {
+                "write": true
+            }
+        },
+        "createdAt": "2016-02-07T20:00:27.541Z",
+        "name": "User Topic",
+        "objectId": "NaPEZM3BMe",
+        "text": "This topic is created as user.",
+        "updatedAt": "2016-02-07T20:00:27.541Z",
+        "user": {
+            "__type": "Pointer",
+            "className": "_User",
+            "objectId": "5r8XZYqwZ7"
+        }
+    }
+] }

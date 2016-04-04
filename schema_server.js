@@ -20,6 +20,8 @@ var version = require('./version').version;
 var config = require('./configFactory').getConfig();
 var logger = require('./logging/logger').getLogger("schema_" + config.env);
 
+var bcrypt = require('bcrypt-nodejs');
+
 logger.info("start with config " + config.env);
 
 
@@ -91,9 +93,10 @@ router.map(function () {
     // transform one json schema into another json schema
     this.post('/transform').bind(function (req, res, data) {
         logger.info("start transform");
-        logger.trace("transform", data.oldSchema, data.newSchema, data.severity);
+        logger.trace("transform" + " " +  "oldSchema:" + data.oldSchema + " newSchema:" +  data.newSchema + " severity:" + data.severity);
         var isValidNewSchema = validator(data.newSchema);
         logger.trace("isValidNewSchema", isValidNewSchema);
+
         if (isValidNewSchema.error) {
             logger.info("transform error " + isValidNewSchema.error);
             res.send(500, {error: isValidNewSchema.error}, {});
@@ -102,6 +105,7 @@ router.map(function () {
             var isSpecialPrimary = false;
             if (data.isSpecialPrimary)
                 isSpecialPrimary = true;
+
             result = transformer(data.oldSchema, data.newSchema, data.severity, isSpecialPrimary);
             logger.trace(result);
 
@@ -117,6 +121,7 @@ router.map(function () {
         else {
             isValidNewSchema.valid = "never";
             logger.info("transform OK never");
+
             res.send(200, {}, isValidNewSchema);
         }
     });
@@ -132,7 +137,7 @@ router.map(function () {
                     res.send(400, {error: err}, null);
                 }
                 else {
-                    logger.trace("transformer", oldSchema, data.newSchema, data.severity)
+                    logger.trace("transformer" + " " + oldSchema + " newSchema:" +  data.newSchema + " severity:" +  data.severity)
                     if (data.withoutValidation) {
                         result = transformer(oldSchema, data.newSchema, data.severity)
                         logger.trace(result);
@@ -392,7 +397,7 @@ router.map(function () {
             // ContentLength: 0,
             // ContentMD5: 'STRING_VALUE',
             ContentType: contentType,
-            Expires: new Date,// || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
+            Expires: new Date// || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
             // GrantFullControl: 'STRING_VALUE',
             // GrantRead: 'STRING_VALUE',
             // GrantReadACP: 'STRING_VALUE',
@@ -459,6 +464,19 @@ router.map(function () {
         logger.info("start listFolder");
         logger.trace(data.bucket, data.folder, data.pathInFolder);
         s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
+           if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, files);
+            }
+        });
+    });
+
+    this.post('/deleteFolder').bind(function (req, res, data) {
+        logger.info("start deleteFolder");
+        logger.trace(data.bucket, data.folder);
+        s3Folders.deleteFolder(data.bucket, data.folder, function(err) {
            if (err){
                 res.send(500, { error: err }, {});
             }
@@ -603,6 +621,30 @@ router.map(function () {
 
 
     });
+
+    this.post('/parseCheckPassword').bind(function(req,res,data){
+        console.log(data);
+        var password = data.password
+        var hashedPassword = data.hashedPassword;
+
+        if(!password || !hashedPassword){
+            res.send(500, { error: 'password and hashedPassword must be fulfilled' }, {});
+        }
+
+        bcrypt.compare(password, hashedPassword, function(err, success) {
+            if (err) {
+                res.send(500, { error: err }, {});
+            } else {
+                console.log(success);
+                if(success){
+                    res.send(200, {}, null);
+                }
+                else {
+                    res.send(401, { msg: 'password and hash are not same' }, {});
+                }
+            }
+        });
+    })
 
 
 });

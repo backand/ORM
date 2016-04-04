@@ -22,29 +22,30 @@ Streamer.prototype = (function () {
         current.onData = onData;
         current.firstTimeFinish = true;
         current.q = async.queue(function (task, callback) {
-            var objectId = task.val ?  task.val.objectId : undefined;
+            var objectId = task.val ? task.val.objectId : undefined;
 
-            var currentCallback = function(){
+            var currentCallback = function () {
                 callback();
                 return;
             }
 
             // handle case of empty file
-            if(task.val) {
+            if (task.val) {
                 console.log(task.val.objectId);
                 current.jsonIsEmpty = false;
                 task.onData(task.val, function () {
                     currentCallback();
                     return;
                 });
-            }else{
+            } else {
                 currentCallback();
                 return;
             }
         }, 1);
 
-        current.q.drain = function() {
-            current.q.drain = function(){};
+        current.q.drain = function () {
+            current.q.drain = function () {
+            };
             console.log('all items have been processed ' + current.path);
             current.firstTimeFinish = false;
             current.finishCallback();
@@ -61,34 +62,31 @@ Streamer.prototype = (function () {
             fs.accessSync(path, fs.R_OK);
             current.fileExist = true;
         }
-        catch(err){
-            console.log('error in streamer ' , err);
+        catch (err) {
+            console.log('error in streamer ', err);
             console.log(current.finishCallback)
             current.firstTimeFinish = false;
             current.finishCallback(err);
             return;
         }
 
-        if(!current.fileExist){
+        if (!current.fileExist) {
             console.log('nope');
             return;
         }
 
         console.log("start read " + current.path);
         fs.createReadStream(current.path)
-            .on('close',function(){
-                console.log('finish '  + current.path);
-                current.q.push({'val' : undefined});
+            .on('close', function () {
+                console.log('finish ' + current.path);
+                current.q.push({'val': undefined});
                 return;
-                // assign a callback
-                /*if(current.jsonIsEmpty && current.firstTimeFinish){
-                    current.firstTimeFinish = false;
-                    console.log("finish without any json for " + current.path);
-                    current.finishCallback();
-                    return;
-                }*/
-            } )
-            .pipe(JSONStream.parse(['results',true]))
+
+            })
+            .pipe(JSONStream.parse(['results', true]))
+            .on('error', function(err){
+                current.finishCallback(err);
+            })
             .pipe(es.mapSync(function (data, cb) {
                 if (!current.canRead && data && data.objectId === startId) {
                     current.canRead = true;
@@ -96,11 +94,14 @@ Streamer.prototype = (function () {
 
                 if (current.canRead) {
                     current.jsonIsEmpty = false;
-                    current.q.push({'val' : data, 'onData' : current.onData});
+                    current.q.push({'val': data, 'onData': current.onData});
                 }
-            }));
+            }))
+        .on('error', function(err){
+            current.finishCallback(err);
+        });
 
-       /* a.end()*/
+        /* a.end()*/
     }
 
     return {

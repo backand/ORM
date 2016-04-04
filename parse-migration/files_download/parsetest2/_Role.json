@@ -1,0 +1,35 @@
+{ "results": [
+	{
+        "ACL": {
+            "*": {
+                "read": true
+            }
+        },
+        "createdAt": "2016-02-07T20:00:24.555Z",
+        "name": "moderator",
+        "objectId": "3FZNSdODig",
+        "updatedAt": "2016-02-07T20:00:25.633Z"
+    },
+	{
+        "ACL": {
+            "*": {
+                "read": true
+            }
+        },
+        "createdAt": "2016-02-07T20:00:24.566Z",
+        "name": "staff",
+        "objectId": "IlrosgrxMG",
+        "updatedAt": "2016-02-07T20:00:25.972Z"
+    },
+	{
+        "ACL": {
+            "*": {
+                "read": true
+            }
+        },
+        "createdAt": "2016-02-07T20:00:24.145Z",
+        "name": "admin",
+        "objectId": "O1tATIygVM",
+        "updatedAt": "2016-02-07T20:00:25.586Z"
+    }
+] }

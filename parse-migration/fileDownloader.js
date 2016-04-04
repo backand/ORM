@@ -7,12 +7,14 @@ var request = require('request');
 var fs = require('fs');
 var q = require('q');
 var logger = require('./logging/logger').getLogger('FileUtil');
-var Zip = require("adm-zip");
+//var Zip = require("adm-zip");
 var mkdirp = require('mkdirp');
-var Utils = require("adm-zip/util");
+//var Utils = require("adm-zip/util");
 var pth = require("path");
+var Zip = require('node-7z'); // Name the class as you want!
 
-String.prototype.replaceAll = function(search, replacement) {
+
+String.prototype.replaceAll = function (search, replacement) {
     var target = this;
     return target.replace(new RegExp(search, 'g'), replacement);
 };
@@ -36,10 +38,15 @@ function downloadFile(url, fileName) {
     return deferred.promise;
 }
 
+function getPath(fileName) {
+    return q(this.path + '/' + fileName + '.zip');
+}
+
 function unzipFile(fileName, directory) {
-    logger.info('start unzip for ' + fileName);
     var deferred = q.defer();
-    var zip = new Zip(fileName);
+
+    logger.info('start unzip for ' + fileName);
+
     var path = this.path + '/' + directory;
     mkdirp(path, function (err) {
         if (err) {
@@ -47,37 +54,28 @@ function unzipFile(fileName, directory) {
             return;
         }
 
-        try {
-
-            zip.getEntries().forEach(function(entry) {
-                var entryName = entry.entryName.toString().replaceAll(":","_");
-                var targetPath = pth.resolve(path, entryName);
-                if (entry.isDirectory) {
-                    Utils.makeDir(pth.resolve(targetPath,entryName));
-                    return;
-                }
-                var content = entry.getData();
-                if (!content) {
-                    throw Utils.Errors.CANT_EXTRACT_FILE + "2";
-                }
-                Utils.writeFileTo(targetPath, content, true);
+        var myTask = new Zip();
+        myTask.extractFull(fileName, path)
+            // When all is done
+            .then(function () {
+                console.log('Extracting done!');
+                logger.info('finish unzip for ' + path);
+                deferred.resolve(path);
             })
-           // zip.extractAllTo(path, true);
-            logger.info('finish unzip for ' + path);
-            deferred.resolve(path);
-        } catch (err2) {
-            deferred.reject(err2);
-        }
-
+            // On error
+            .catch(function (err) {
+                deferred.reject(err);
+            });
     });
+
     return deferred.promise;
 }
 
-function getFilesList(directory){
-  logger.info('Get list of files for folder ' + directory);
+function getFilesList(directory) {
+    logger.info('Get list of files for folder ' + directory);
 
-  //this assume flat folder
-  return fs.readdirSync(directory);
+    //this assume flat folder
+    return fs.readdirSync(directory);
 
 }
 
@@ -90,5 +88,7 @@ FileDownloader.prototype.downloadFile = downloadFile;
 FileDownloader.prototype.unzipFile = unzipFile;
 
 FileDownloader.prototype.getFilesList = getFilesList;
+
+FileDownloader.prototype.getPath = getPath;
 
 module.exports = FileDownloader;
