@@ -3,7 +3,7 @@ var journey = require('journey');
 var async = require('async');
 var _ = require('underscore');
 var AWS = require('aws-sdk')
-AWS.config.loadFromPath('./hosting/kornatzky-credentials.json');
+AWS.config.loadFromPath('./hosting/aws-credentials.json');
 var s3 = new AWS.S3();
 
 var mime = require('mime-types');
