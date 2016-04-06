@@ -12,6 +12,7 @@ var mime = require('mime-types');
 
 var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
+var renamer = require('./transform').rename;
 var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
@@ -105,8 +106,8 @@ router.map(function () {
             var isSpecialPrimary = false;
             if (data.isSpecialPrimary)
                 isSpecialPrimary = true;
-
-            result = transformer(data.oldSchema, data.newSchema, data.severity, isSpecialPrimary);
+            renamedOldSchema = rename(data.oldSchema);
+            result = transformer(renamedOldSchema, data.newSchema, data.severity, isSpecialPrimary);
             logger.trace(result);
 
             if (result.error) {
