@@ -106,7 +106,7 @@ router.map(function () {
             var isSpecialPrimary = false;
             if (data.isSpecialPrimary)
                 isSpecialPrimary = true;
-            renamedOldSchema = rename(data.oldSchema);
+            renamedOldSchema = renamer(data.oldSchema);
             result = transformer(renamedOldSchema, data.newSchema, data.severity, isSpecialPrimary);
             logger.trace(result);
 
