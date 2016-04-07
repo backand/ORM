@@ -1,5 +1,6 @@
 module.exports.transformer = transform;
 module.exports.rename = renameFields;
+module.exports.applyRename = applyRename;
 
 var _ = require('underscore');
 var TAFFY = require('taffy');
@@ -184,20 +185,13 @@ function renameFields(schema){
 	});
 	var statements = [];
 	_.each(schema, function(jsonTable){
-		var tableName = jsonTable.dbName ? jsonTable.dbName : jsonTable.name;
-		console.log(tableName);
-		
-	
+		var tableName = jsonTable.dbName ? jsonTable.dbName : jsonTable.name;	
 		_.each(jsonTable.fields, function(value, key){
-			if (value.rename){	
-				console.log(value, key);			
+			if (value.rename){			
 				var statement = "ALTER TABLE " + tableName + " CHANGE " + key + " " + value.rename + " " + mapToKnexTypes[value.type];
 				statements.push(statement);
 			}
 		});
-
-		
-		
 	});
 	return({
 		schema: newSchema,
@@ -206,59 +200,42 @@ function renameFields(schema){
 	
 }
 
-// var result = renameFields([
-// 	{ 
-// 		name: 'r',
-// 		fields: {
-// 			a: { type: 'string', 'rename': 'c' },
-// 			b: { type: 'float', required: true }
-// 		}
-// 	},
-// 	{ 
-// 		name: 's',
-// 		fields: {
-// 			e: { type: 'string' },
-// 			f: { type: 'float', defaultValue: 2 }
-// 		}
-// 	}
-// ]);
+
+/**
+ * given a schema with renaming applies the renaming to the given schema
+ * @param  {[object]} schemaWithRenaming JSON schema
+ * @param  {[object]} schema JSON schema
+ * @return {[object]}  renamed new schema
+ */
+function applyRename(schemaWithRenaming, schema){
+
+	var renamedNewSchema = _.map(schema, function(table){
+		var oldTable = _.findWhere(schemaWithRenaming, { name: table.name });
+		if (!oldTable){
+			return table;
+		}
+		else{
+
+			return { 
+				name: table.name, 
+				fields: _.object(_.map(_.pairs(table.fields), function(p) {
 
 
-// var r = transform(
-// 	[],
-// 	[
+					if (oldTable.fields[p[0]] && oldTable.fields[p[0]].rename){
+						return [oldTable.fields[p[0]].rename, p[1]];
+					}
+					else{
+						return p;
+					}
+				}))
+			}
 
-// { name: '_User',
-//   fields: 
-//    { email: { type: 'string' },
-//      emailVerified: { type: 'boolean' },
-//      password: { type: 'string' },
-//      username: { type: 'string' },
-//      _Role_users: { object: '_Role' } } },
-// { name: '_Role',
-//   fields: 
-//    { name: { type: 'string' },
-//      roles: { collection: '_Role', via: '_Role_roles' },
-//      users: { collection: '_User', via: '_Role_users' },
-//      _Role_roles: { object: '_Role' } } },
-// { name: 'post',
-//   fields: 
-//    { content: { type: 'string' },
-//      date: { type: 'datetime' },
-//      location: { type: 'point' },
-//      myComments: { collection: 'comment', via: 'post_myComments' },
-//      photo: { type: 'string' },
-//      title: { type: 'string' },
-//      comment_source: { collection: 'comment', via: 'source' } } },
-// { name: 'comment',
-//   fields: 
-//    { content: { type: 'string' },
-//      source: { object: 'post' },
-//      post_myComments: { object: 'post' } } }
+		}
 
+	});
+	return renamedNewSchema;
 
-// 	],
-// 1, true);
+}
 
 // var r = transform(
 // 	[{
