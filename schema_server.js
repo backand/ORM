@@ -109,7 +109,7 @@ router.map(function () {
                 isSpecialPrimary = true;
 
             // get the statements for the rename
-            var resultPlainRename = renameFields(data.newSchema);
+            var resultPlainRename = renamer(data.newSchema);
             // how will the old schema look after the rename
             var renamedOldSchema = applyRename(data.newSchema, data.oldSchema);
             // how will the new schema look after the rename
