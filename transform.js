@@ -797,11 +797,10 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 				if (oldTableDescription.fields[d] && !_.has(oldTableDescription.fields[d], "collection")){
 					// remove foreign key constraints on column before removing column
 					if (_.has(oldTableDescription.fields[d], "object")){
-						var statementString = "alter table " + tableName + " drop foreign key " + tableName + "_" + d.toLowerCase() +  "_foreign";
+						var statementString = "alter table " + tableName + " drop foreign key " + tableName.toLowerCase() + "_" + d.toLowerCase() +  "_foreign";
 						var correspondingOneRelationship = _.findWhere(oldRelationships, { oneRelation: tableName, oneAttribute: d });
-
 						var pattern = tableName.toLowerCase() + '_' + d.toLowerCase() + '_foreign';
-						var replacement = oldTableDescription.fields[d].object  + "_" + d.toLowerCase() + "_bkname_" + correspondingOneRelationship.nAttribute.toLowerCase();
+						var replacement = oldTableDescription.fields[d].object  + "_" + d.toLowerCase() + "_bkname_" + correspondingOneRelationship.nAttribute;
 						statementString = statementString.replace(pattern, replacement);
 						if (!_.contains(statements, statementString)){
 							statements.push(statementString);
