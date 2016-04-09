@@ -1029,7 +1029,8 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 					var typeClause = "alter table " + tableName + " modify " + dbColumnName + " " + mapToKnexTypes[newAttributeDescription.type];
 					var requiredClause = newAttributeDescription.required ? " not null " : " null ";
 					var defaultClause = !_.isUndefined(newAttributeDescription.defaultValue) ?  " default '" + getDefaultValueSql(newAttributeDescription) + "'" : " ";
-					var statement = typeClause + requiredClause + defaultClause;
+					defaultClause = defaultClause.replace(/('b'0'')/, "b'0'").replace(/('b'1'')/, "b'1'");
+ 					var statement = typeClause + requiredClause + defaultClause;
 					statements.push(statement);
 				}
 
