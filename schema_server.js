@@ -12,6 +12,8 @@ var mime = require('mime-types');
 
 var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
+var renamer = require('./transform').rename;
+var applyRename = require('./transform').applyRename;
 var fetcher = require('./backand_to_object').fetchTables;
 var executer = require('./execute_sql').executer;
 var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
@@ -105,8 +107,18 @@ router.map(function () {
             var isSpecialPrimary = false;
             if (data.isSpecialPrimary)
                 isSpecialPrimary = true;
-            
-            result = transformer(data.oldSchema, data.newSchema, data.severity, isSpecialPrimary);
+
+            // get the statements for the rename
+            var resultPlainRename = renamer(data.newSchema);
+            // how will the old schema look after the rename
+            var renamedOldSchema = applyRename(data.newSchema, data.oldSchema);
+            // how will the new schema look after the rename
+            var renamedNewSchema = applyRename(data.newSchema, data.newSchema); 
+            // transform when both sides already renames so it is the standard transform
+            result = transformer(renamedOldSchema, renamedNewSchema, data.severity, isSpecialPrimary);
+            // precede the alteration statemtns with the rename stamtents
+            result.alter =  resultPlainRename.statements.concat(result.alter);
+
             logger.trace(result);
 
             if (result.error) {
