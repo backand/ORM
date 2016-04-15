@@ -188,7 +188,7 @@ function renameFields(schema){
 		var tableName = jsonTable.dbName ? jsonTable.dbName : jsonTable.name;	
 		_.each(jsonTable.fields, function(value, key){
 			if (value.rename){			
-				var statement = "ALTER TABLE " + tableName + " CHANGE " + key + " " + value.rename + " " + mapToKnexTypes[value.type];
+				var statement = "ALTER TABLE " + tableName + " CHANGE `" + key + "` `" + value.rename + "` " + mapToKnexTypes[value.type];
 				statements.push(statement);
 			}
 		});
