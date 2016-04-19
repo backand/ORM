@@ -52,11 +52,12 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
 
 
     var packtBefore = {"events": newMsgBlk};
-    packt = JSON.stringify(packtBefore);
+    packt = encodeURIComponent(JSON.stringify(packtBefore)).replace(/'/g,"%27").replace(/"/g,"%22");
+    //obj.value = encodeURIComponent(unencoded).replace(/'/g,"%27").replace(/"/g,"%22");
 
     // send to cooladata
     unirest.post(url)
-        //.header('Content-Type', 'application/x-www-form-urlencoded')
+        .header('Content-Type', 'application/x-www-form-urlencoded')
         .send(packt)
         .end(function (res) {
 
@@ -72,6 +73,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                 // console.log(parsed);
                 if (parsed && parsed.status === false) {
                     console.log('try again');
+                    console.log(packt);
 
                     for (var i = 0; i < msgBulk.length; i++) {
                         var msg = msgBulk[i];
@@ -95,7 +97,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
 
                     // try again
                     unirest.post(url)
-                        //.header('Content-Type', 'application/x-www-form-urlencoded')
+                        .header('Content-Type', 'application/x-www-form-urlencoded')
                         .send(packt)
                         .end(function (res) {
                             console.log(res.raw_body);
@@ -110,7 +112,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                             if (parsed && parsed.status === false) {
 
                                 self.errorStrike++;
-                                //console.log(packtBefore);
+                                console.log(packtBefore);
                                 if (self.errorStrike === ERROR_STRIKE) {
                                     self.errorStrike = 0;
                                     cb('ERROR_MANY_TIMES');
