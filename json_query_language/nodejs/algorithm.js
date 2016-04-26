@@ -207,7 +207,6 @@ var valuesArray =[];
 // 		process.exit(1);
 // 	}
 // );
-// console.log(r);
 
 function transformJsonIntoSQL(email, password, appName, json, isFilter, shouldGeneralize, callback){
 	getDatabaseInformation(email, password, appName, function(err, sqlSchema){
@@ -609,14 +608,24 @@ function generateSingleTableQuery(query){
 		var aggregate = query.aggregate;	
 		var realQueryFields = _.map(query.fields, function(f){
 			if (!aggregate){
-				return table.fields[f].dbName ? table.fields[f].dbName : f;
+				if (table.fields[f])	
+					return table.fields[f].dbName ? table.fields[f].dbName : f;
+				else if (f == 'id')
+					return f;
+				else
+					throw "Fields should include only existing fields";
 			}
 			else{
 				if (_.has(aggregate, f)){
 					return mysqlOperator[aggregate[f]] + "(" + (table.fields[f].dbName ? table.fields[f].dbName : f) + ") AS " + (table.fields[f].dbName ? table.fields[f].dbName : f);
 				}
 				else{
-					return table.fields[f].dbName ? table.fields[f].dbName : f;
+					if (table.fields[f])	
+						return table.fields[f].dbName ? table.fields[f].dbName : f;
+					else if (f == 'id')
+						return f;
+					else
+						throw "Fields should include only existing fields";
 				}
 			}
 		});
@@ -625,7 +634,6 @@ function generateSingleTableQuery(query){
 	else{
 		var selectClause = "SELECT " + "*";
 	}
-
 	whereClause = generateExp(query.q, table);
 	var variablesArray = _.map(_.range(1, variableName + 1), function(i){ return encloseVariable(s.repeat(variableSeed, i)); });
 	var sqlQuery = { 
@@ -637,6 +645,7 @@ function generateSingleTableQuery(query){
 		order: orderByClause,
 		limit: limitClause
 	};
+
 	if (parserState.shouldGeneralize){
 		sqlQuery["variables"] = variablesArray;
 		sqlQuery["values"] = _.object(variablesArray, valuesArray)
@@ -647,7 +656,10 @@ function generateSingleTableQuery(query){
 	}
 	if (_.has(query, "fields")){
 		var queryFields = _.map(query.fields, function(f){
-			return table.fields[f].type;
+			if (table.fields[f])
+				return table.fields[f].type;
+			else if (f == 'id')
+				return 'id';
 		});
 	}
 	else{	
@@ -898,7 +910,6 @@ function generateQueryConditional(qc, table, column){
 			" ) <= " + generatedComparand[1] + factor;
 	}
 	else if (comparisonOperator == "$like"){
-		console.log(generatedComparand);
 		return mysqlOperator[comparisonOperator] + " ( '" + '%' + generatedComparand + '%' + "' ) ";
 	}
 	else 
