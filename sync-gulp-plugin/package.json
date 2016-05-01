@@ -32,7 +32,7 @@
   ],
   "private": false,
   "dependencies": {
-    /*"aws-sdk": "latest",
+    "aws-sdk": "latest",
     "del": "latest",
     "gulp": "latest",
     "gulp-awspublish": "latest",
@@ -51,6 +51,6 @@
     "concurrent-transform": "latest",
     "async": "latest",
     "gulp-async-func-runner": "latest",
-    "request": "latest"*/
+    "request": "latest"
   }
 }
