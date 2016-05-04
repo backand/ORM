@@ -10,7 +10,7 @@ function zipS3Folder(bucket, folder, zipFileName,  callback){
 
     var zipper = new S3Zipper(config);
     zipper.calculateFileName = function(f){
-        console.log(f);
+        // console.log("file", f.Key);
         var rootFolder = folder.split("/");
         var name = f.Key.split("/");
         for (var i = 0; i < rootFolder.length; i++){
@@ -18,17 +18,17 @@ function zipS3Folder(bucket, folder, zipFileName,  callback){
         }
         name = name.join("/");
         return name;
-    }
+    };
 
     /// if no path is given to S3 zip file then it will be placed in the same folder
     zipper.zipToS3File (folder, null, zipFileName,function(err,result){
-        var fileName = null;
+        //var fileName = null;
         if(err)
             console.error(err);
         else{
-            var lastFile = result.zippedFiles[result.zippedFiles.length-1];
-            if(lastFile)
-                console.log('last key ', lastFile.Key); // next time start from here
+            //var lastFile = result.zippedFiles[result.zippedFiles.length-1];
+            // if(lastFile)
+            //     console.log('last key ', lastFile.Key); // next time start from here
         }
         callback(err, result);
     });
