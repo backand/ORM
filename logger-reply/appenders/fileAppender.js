@@ -7,14 +7,37 @@ var fs = require('fs');
 // use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
 
 
-
 var fileAppender = function () {
 
 };
 
 
+function checkFileExist(path) {
+    try {
+        fs.accessSync(path, fs.F_OK);
+        return true;
+        // Do something
+    } catch (e) {
+        return false;
+        // It isn't accessible
+    }
+}
+
+function getFileName() {
+    var path = 'log_0.txt';
+    var i = 0;
+    while (checkFileExist(path)) {
+        path = 'log_' + (i++) + '.txt';
+    }
+
+    return path;
+
+}
+
+var fileName = getFileName();
+
 fileAppender.prototype.processMessage = function (msgBulk, cb) {
-    var logStream = fs.createWriteStream('log.txt', {'flags': 'a'});
+    var logStream = fs.createWriteStream(fileName, {'flags': 'a'});
 
     for (var i = 0; i < msgBulk.length; i++) {
         var msg = msgBulk[i];

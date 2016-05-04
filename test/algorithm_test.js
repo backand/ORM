@@ -173,10 +173,10 @@ describe("algorithm", function(){
 			expect(result).to.deep.equal(
 
 				{ 
-					str: 'SELECT * FROM `items` WHERE (`items`.`name` = \'kuku\' AND ST_Distance ( `items`.`p`, ST_GeomFromText(\'POINT( 32.063813 34.774539 )\') ) <= 0.45026897988212605)   ',
+					str: 'SELECT * FROM `items` WHERE (`items`.`name` = \'kuku\' AND ST_Distance ( `items`.`p`, ST_GeomFromText(\'POINT( 32.063813 34.774539 )\') ) <= 50000 /(1609.344 * 69) )   ',
 					select: 'SELECT *',
 					from: 'FROM `items`',
-					where: '`items`.`name` = \'kuku\' AND ST_Distance ( `items`.`p`, ST_GeomFromText(\'POINT( 32.063813 34.774539 )\') ) <= 0.45026897988212605',
+					where: '`items`.`name` = \'kuku\' AND ST_Distance ( `items`.`p`, ST_GeomFromText(\'POINT( 32.063813 34.774539 )\') ) <= 50000 /(1609.344 * 69) ',
 					group: '',
 					order: '',
 					limit: '' 
@@ -341,7 +341,7 @@ describe("algorithm", function(){
 			expect(result).to.deep.equal(
 
 				{ 
-					sql: 'SELECT `blabla`.`GROUP_CONCAT(Location)` AS `Location`,`blabla`.`country` FROM `blabla` WHERE (( `blabla`.`Budget` > 20 ) OR ( `blabla`.`Location` LIKE \'Tel Aviv\' )) GROUP BY `blabla`.`country` ORDER BY `blabla`.`X` asc , `blabla`.`Budget` desc  UNION SELECT `Person`.`City`,`Person`.`country` FROM `Person` WHERE (`Person`.`name` = \'john\')   LIMIT 11',
+					sql: 'SELECT `blabla`.`GROUP_CONCAT(Location)` AS `Location`,`blabla`.`country` FROM `blabla` WHERE (( `blabla`.`Budget` > 20 ) OR ( `blabla`.`Location` LIKE ( \'%Tel Aviv%\' )  )) GROUP BY `blabla`.`country` ORDER BY `blabla`.`X` asc , `blabla`.`Budget` desc  UNION SELECT `Person`.`City`,`Person`.`country` FROM `Person` WHERE (`Person`.`name` = \'john\')   LIMIT 11',
 					select: '',
 					from: '',
 					where: '',
