@@ -800,7 +800,7 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 						var statementString = "alter table " + tableName + " drop foreign key " + tableName.toLowerCase() + "_" + d.toLowerCase() +  "_foreign";
 						var correspondingOneRelationship = _.findWhere(oldRelationships, { oneRelation: tableName, oneAttribute: d });
 						var pattern = tableName.toLowerCase() + '_' + d.toLowerCase() + '_foreign';
-						var replacement = oldTableDescription.fields[d].object  + "_" + d.toLowerCase() + "_bkname_" + correspondingOneRelationship.nAttribute;
+						var replacement = oldTableDescription.fields[d].object.toLowerCase()  + "_" + d.toLowerCase() + "_bkname_" + correspondingOneRelationship.nAttribute;
 						statementString = statementString.replace(pattern, replacement);
 						if (!_.contains(statements, statementString)){
 							statements.push(statementString);
