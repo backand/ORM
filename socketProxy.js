@@ -21,6 +21,8 @@ httpProxy.createServer({
   ws : true,
   target: 'https://'+ otherServerAddress +':4000',
   secure: false // Depends on your needs, could be false.
+}).on('error', function(e) {
+  console.log(JSON.stringify(e, null, ' '))
 }).listen(4000);
 
 /*
