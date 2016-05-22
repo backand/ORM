@@ -762,8 +762,9 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 		var statementString = statement.toString().replace(/('b'0'')/, "b'0'").replace(/('b'1'')/, "b'1'");
 		_.each(relationships, function(r){
 			var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign';
+			var newPattern = 'constraint `' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign`';
 			var replacement = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute.toLowerCase();
-			statementString = statementString.replace(pattern, replacement);
+			statementString = statementString.replace(pattern, replacement).replace(newPattern, replacement);;
 		});
 		var createStatementsArray = statementString.replace("\n", "").split(";");
 		_.each(createStatementsArray, function(s){
@@ -800,8 +801,9 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 						var statementString = "alter table " + tableName + " drop foreign key " + tableName.toLowerCase() + "_" + d.toLowerCase() +  "_foreign";
 						var correspondingOneRelationship = _.findWhere(oldRelationships, { oneRelation: tableName, oneAttribute: d });
 						var pattern = tableName.toLowerCase() + '_' + d.toLowerCase() + '_foreign';
+						var newPattern = '`' + tableName.toLowerCase() + '_' + d.toLowerCase() + '_foreign`';
 						var replacement = oldTableDescription.fields[d].object.toLowerCase()  + "_" + d.toLowerCase() + "_bkname_" + correspondingOneRelationship.nAttribute.toLowerCase();
-						statementString = statementString.replace(pattern, replacement);
+						statementString = statementString.replace(pattern, replacement).replace(newPattern, replacement);;
 						if (!_.contains(statements, statementString)){
 							statements.push(statementString);
 						}	
@@ -983,7 +985,10 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 			if(a != ""){
 			    var statementString = a.toString();
 			    _.each(relationships, function(r){
-					statementString = statementString.replace('constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign', "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute.toLowerCase());
+					var pattern = 'constraint ' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign';
+					var newPattern = 'constraint `' + r.oneRelation.toLowerCase() + '_' + r.oneAttribute.toLowerCase() + '_foreign`';
+					var replacment = "constraint " + r.nRelation.toLowerCase() + "_" + r.oneAttribute.toLowerCase() + "_bkname_" + r.nAttribute.toLowerCase();
+					statementString = statementString.replace(pattern, replacment).replace(newPattern, replacment);
 				});
 				if (!_.contains(statements, statementString)){
 					statements.push(statementString);
