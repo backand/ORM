@@ -7,7 +7,7 @@ var unirest = require('unirest');
 var url = 'https://api.cooladata.com/v3/ti9p1pqxkanzqrvs8wdz94jv8jcaatag/track';
 var dateConvert = require('../utils/timeUtil');
 
-var ERROR_STRIKE = 3; // if fail on 3 consecutive call, wait after next run;
+var ERROR_STRIKE = 5; // if fail on 3 consecutive call, wait after next run;
 
 
 var coolaAppender = function () {
