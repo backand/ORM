@@ -4,6 +4,7 @@
 
 
 var unirest = require('unirest');
+var winston = require('winston');
 var url = 'https://api.cooladata.com/v3/ti9p1pqxkanzqrvs8wdz94jv8jcaatag/track';
 var dateConvert = require('../utils/timeUtil');
 
@@ -14,6 +15,16 @@ var coolaAppender = function () {
     this.errorStrike = 0;
 };
 
+var logger = new (winston.Logger)({
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: './cooladata-logs.log' })
+
+    ],
+    exceptionHandlers: [
+        new winston.transports.File({ filename: './cooladata-exceptions.log' })
+    ]
+});
 
 coolaAppender.prototype.processMessage = function (msgBulk, cb) {
     //console.log('start bulk');
@@ -70,10 +81,10 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                     return;
                 }
 
-                // console.log(parsed);
+                // logger.log(parsed);
                 if (parsed && parsed.status === false) {
-                    console.log('try again');
-                    console.log(packt);
+                    logger.info('try again');
+                    logger.warn(packt);
 
                     for (var i = 0; i < msgBulk.length; i++) {
                         var msg = msgBulk[i];
@@ -100,7 +111,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                         .header('Content-Type', 'application/x-www-form-urlencoded')
                         .send(packt)
                         .end(function (res) {
-                            console.log(res.raw_body);
+                            logger.warn(res.raw_body);
                             try {
                                 parsed = JSON.parse(res.raw_body);
                             }
@@ -112,7 +123,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                             if (parsed && parsed.status === false) {
 
                                 self.errorStrike++;
-                                console.log(packtBefore);
+                                logger.info(packtBefore);
                                 if (self.errorStrike === ERROR_STRIKE) {
                                     self.errorStrike = 0;
                                     cb('ERROR_MANY_TIMES');
