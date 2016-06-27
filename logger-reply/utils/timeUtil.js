@@ -9,9 +9,10 @@ var fromStringToEpoch = function (timeTxt) {
         return null;
     }
 
-    return moment(timeTxt, 'MM/DD/YYYY h:mm:ss a').valueOf();
+    return moment(timeTxt +'Z', 'MM/DD/YYYY h:mm:ss aZ').valueOf();
+
+
 };
 
 
 module.exports = fromStringToEpoch;
-
