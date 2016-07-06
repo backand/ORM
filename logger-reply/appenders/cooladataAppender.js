@@ -4,27 +4,16 @@
 
 
 var unirest = require('unirest');
-var winston = require('winston');
 var url = 'https://api.cooladata.com/v3/ti9p1pqxkanzqrvs8wdz94jv8jcaatag/track';
 var dateConvert = require('../utils/timeUtil');
 
-var ERROR_STRIKE = 5; // if fail on 3 consecutive call, wait after next run;
+var ERROR_STRIKE = 3; // if fail on 3 consecutive call, wait after next run;
 
 
 var coolaAppender = function () {
     this.errorStrike = 0;
 };
 
-var logger = new (winston.Logger)({
-    transports: [
-        new winston.transports.Console(),
-        new winston.transports.File({ filename: './cooladata-logs.log' })
-
-    ],
-    exceptionHandlers: [
-        new winston.transports.File({ filename: './cooladata-exceptions.log' })
-    ]
-});
 
 coolaAppender.prototype.processMessage = function (msgBulk, cb) {
     //console.log('start bulk');
@@ -45,8 +34,8 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
             if (newMsg[key] === null) {
                 newMsg[key] = "";
             }
-
-            newMsg[key] = newMsg[key].toString().replace(/["]/g, "'").replace(/[:]/g, "").trim();
+			if(key!='Time')
+				newMsg[key] = newMsg[key].toString().replace(/["]/g, "'").replace(/[:]/g, "").trim();
 
             // if (key === "ClientIP" || key === "Agent" || key === "Languages" || key === "ClientInfo" || key === "FreeText" || key === "ExceptionMessage") {
             //     newMsg[key] = encodeURI(newMsg[key]);
@@ -56,6 +45,10 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
 
         newMsg.event_name = newMsg.ID ? newMsg.ID.replace(/[^\w\s]/gi, '') : "NA";
         newMsg.user_id = newMsg.Username ? newMsg.Username.replace(/[^\w\s]/gi, '') : "NA";
+		if(newMsg.user_id=='Guest') {
+			newMsg.user_id = newMsg.user_id + '@' + newMsg.event_name;
+			newMsg.Username  = newMsg.user_id
+		}
         newMsg.event_timestamp_epoch = dateConvert(newMsg.Time);
 
         newMsgBlk.push(newMsg);
@@ -81,10 +74,10 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                     return;
                 }
 
-                // logger.log(parsed);
+                // console.log(parsed);
                 if (parsed && parsed.status === false) {
-                    logger.info('try again');
-                    logger.warn(packt);
+                    console.log('try again');
+                    console.log(packt);
 
                     for (var i = 0; i < msgBulk.length; i++) {
                         var msg = msgBulk[i];
@@ -111,7 +104,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                         .header('Content-Type', 'application/x-www-form-urlencoded')
                         .send(packt)
                         .end(function (res) {
-                            logger.warn(res.raw_body);
+                            console.log(res.raw_body);
                             try {
                                 parsed = JSON.parse(res.raw_body);
                             }
@@ -123,7 +116,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                             if (parsed && parsed.status === false) {
 
                                 self.errorStrike++;
-                                logger.info(packtBefore);
+                                console.log(packtBefore);
                                 if (self.errorStrike === ERROR_STRIKE) {
                                     self.errorStrike = 0;
                                     cb('ERROR_MANY_TIMES');
