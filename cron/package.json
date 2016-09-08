@@ -1,0 +1,10 @@
+{
+  "name": "backand-cron",
+  "version": "1.0.0",
+  "description": "Schedule to invoke lambda",
+  "author": "Relly Rivlin",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "latest"
+  }
+}

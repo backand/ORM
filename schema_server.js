@@ -42,6 +42,10 @@ var callLambda = require('./lambda/call_lambda_function').callLambdaFunctionFrom
 var updateLambda = require('./lambda/update_lambda_function').updateLambdaFunctionFromS3;
 var deleteLambda = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
 
+var putCron = require('./cron/put_cron').putCron;
+var deleteCron = require('./cron/delete_cron').deleteCron;
+var getCron = require('./cron/get_cron').getCron;
+
 var fs = require('fs');
 
 fs.watchFile(__filename, function (curr, prev) {
@@ -577,6 +581,38 @@ router.map(function () {
         })
     });
 
+    this.post('/putCron').bind(function (req, res, data) {
+        putCron(data.name, data.schedule, data.lambdaArn, data.name, data.input, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.post('/deleteCron').bind(function (req, res, data) {
+        deleteCron(data.name, data.name, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.post('/getCron').bind(function (req, res, data) {
+        getCron(data.namePrefix, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
 
     // send push messages 
     // data has fields: 
