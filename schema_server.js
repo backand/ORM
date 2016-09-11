@@ -582,7 +582,7 @@ router.map(function () {
     });
 
     this.post('/putCron').bind(function (req, res, data) {
-        putCron(data.name, data.schedule, data.lambdaArn, data.name, data.input, function(err, data){
+        putCron(data.name, data.schedule, data.lambdaArn, data.name, data.input, data.active, data.description, function(err, data){
             if (err){
                 res.send(500, { error: err }, {});
             }

@@ -7,14 +7,15 @@ var schedule = "rate(1 minute)";
 var lambdaArn = "arn:aws:lambda:us-east-1:328923390206:function:backandCron01";
 var id = "a2a";
 var input = {
-    "options":{
-        "hostname": "api.backand.com",
-        "path": "/1/objects/action/items/?name=SendEmailMandrill&parameters={subject:'DD'}",
-        "method": "GET",
-        "headers": {
-            "Authorization": "Basic ZjI3MThjYzQtZGIwYi00YmRhLWI5YTktZmE4NjJhMjlkMjRmOjJmMjdjNzgwLTY0YjYtMTFlNi1hMzlmLTBlZDcwNTM0MjZjYg=="
-        }
-    }
+    // "options":{
+    //     "hostname": "api.backand.com",
+    //     "path": "/1/objects/action/items/?name=SendEmailMandrill&parameters={subject:'DD'}",
+    //     "method": "GET",
+    //     "headers": {
+    //         "Authorization": "Basic ZjI3MThjYzQtZGIwYi00YmRhLWI5YTktZmE4NjJhMjlkMjRmOjJmMjdjNzgwLTY0YjYtMTFlNi1hMzlmLTBlZDcwNTM0MjZjYg=="
+    //     }
+    // }
+    "cronId":7
 };
 
 var putCron = require("./put_cron").putCron;

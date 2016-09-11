@@ -2,7 +2,7 @@
  * Created by Dell on 9/7/2016.
  */
 
-var AWS = require('aws-sdk')
+var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./hosting/aws-credentials.json');
 AWS.config.update({ 'region': 'us-east-1' });
 var cloudwatchevents = new AWS.CloudWatchEvents();
