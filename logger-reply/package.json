@@ -15,7 +15,6 @@
     "redis": "^2.6.0-0",
     "request": "^2.69.0",
     "unirest" : "latest",
-    "amqp-coffee" : "latest",
-    "winston":"latest"
+    "amqp-coffee" : "latest"
   }
 }
