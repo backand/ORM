@@ -2,7 +2,7 @@ process.chdir(__dirname);
 var journey = require('journey');
 var async = require('async');
 var _ = require('underscore');
-var AWS = require('aws-sdk')
+var AWS = require('aws-sdk');
 AWS.config.loadFromPath('./hosting/aws-credentials.json');
 var s3 = new AWS.S3();
 
@@ -41,6 +41,10 @@ var createLambda = require('./lambda/create_lambda_function').createLambdaFuncti
 var callLambda = require('./lambda/call_lambda_function').callLambdaFunctionFromS3;
 var updateLambda = require('./lambda/update_lambda_function').updateLambdaFunctionFromS3;
 var deleteLambda = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
+
+var putCron = require('./cron/put_cron').putCron;
+var deleteCron = require('./cron/delete_cron').deleteCron;
+var getCron = require('./cron/get_cron').getCron;
 
 var fs = require('fs');
 
@@ -113,7 +117,7 @@ router.map(function () {
             // how will the old schema look after the rename
             var renamedOldSchema = applyRename(data.newSchema, data.oldSchema);
             // how will the new schema look after the rename
-            var renamedNewSchema = applyRename(data.newSchema, data.newSchema); 
+            var renamedNewSchema = applyRename(data.newSchema, data.newSchema);
             // transform when both sides already renames so it is the standard transform
             result = transformer(renamedOldSchema, renamedNewSchema, data.severity, isSpecialPrimary);
             // precede the alteration statemtns with the rename stamtents
@@ -301,7 +305,7 @@ router.map(function () {
 
     });
 
-    // substitute variables into query 
+    // substitute variables into query
     // req should contain sql - the sql statement, and assignment - variable assignment
     this.post('/substitution').bind(function (req, res, data) {
         logger.info("start substitution");
@@ -476,7 +480,7 @@ router.map(function () {
         logger.info("start listFolder");
         logger.trace(data.bucket, data.folder, data.pathInFolder);
         s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
-           if (err){
+            if (err){
                 res.send(500, { error: err }, {});
             }
             else{
@@ -489,7 +493,7 @@ router.map(function () {
         logger.info("start deleteFolder");
         logger.trace(data.bucket, data.folder);
         s3Folders.deleteFolder(data.bucket, data.folder, function(err) {
-           if (err){
+            if (err){
                 res.send(500, { error: err }, {});
             }
             else{
@@ -503,7 +507,7 @@ router.map(function () {
         logger.info("start smartListFolder");
         logger.trace(data.bucket, data.folder, data.pathInFolder);
         s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesOutput) {
-           if (err){
+            if (err){
                 if (err != "not stored"){
                     res.send(500, { error: err }, {});
                 }
@@ -516,10 +520,10 @@ router.map(function () {
                         else{ // fetch our path
                             s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesAfterStoreFolderOutput){
                                 if (err){
-                                   res.send(500, { error: err }, {}); 
+                                    res.send(500, { error: err }, {});
                                 }
                                 else{
-                                   res.send(200, {}, filterFilesAfterStoreFolderOutput);
+                                    res.send(200, {}, filterFilesAfterStoreFolderOutput);
                                 }
                             });
                         }
@@ -577,6 +581,38 @@ router.map(function () {
         })
     });
 
+    this.post('/putCron').bind(function (req, res, data) {
+        putCron(data.name, data.schedule, data.lambdaArn, data.name, data.input, data.active, data.description, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.post('/deleteCron').bind(function (req, res, data) {
+        deleteCron(data.name, data.name, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.post('/getCron').bind(function (req, res, data) {
+        getCron(data.namePrefix, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
 
     // send push messages 
     // data has fields: 
