@@ -35,7 +35,7 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
                 newMsg[key] = "";
             }
 			if(key!='Time')
-				newMsg[key] = newMsg[key].toString().replace(/["]/g, "'").replace(/[:]/g, "").trim();
+                newMsg[key] = newMsg[key].toString().replace(/["]/g, "'").replace(/[:]/g, "").trim();
 
             // if (key === "ClientIP" || key === "Agent" || key === "Languages" || key === "ClientInfo" || key === "FreeText" || key === "ExceptionMessage") {
             //     newMsg[key] = encodeURI(newMsg[key]);
