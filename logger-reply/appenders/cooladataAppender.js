@@ -34,8 +34,8 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
             if (newMsg[key] === null) {
                 newMsg[key] = "";
             }
-
-            newMsg[key] = newMsg[key].toString().replace(/["]/g, "'").replace(/[:]/g, "").trim();
+			if(key!='Time')
+                newMsg[key] = newMsg[key].toString().replace(/["]/g, "'").replace(/[:]/g, "").trim();
 
             // if (key === "ClientIP" || key === "Agent" || key === "Languages" || key === "ClientInfo" || key === "FreeText" || key === "ExceptionMessage") {
             //     newMsg[key] = encodeURI(newMsg[key]);
@@ -45,6 +45,10 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
 
         newMsg.event_name = newMsg.ID ? newMsg.ID.replace(/[^\w\s]/gi, '') : "NA";
         newMsg.user_id = newMsg.Username ? newMsg.Username.replace(/[^\w\s]/gi, '') : "NA";
+		if(newMsg.user_id=='Guest') {
+			newMsg.user_id = newMsg.user_id + '@' + newMsg.event_name;
+			newMsg.Username  = newMsg.user_id
+		}
         newMsg.event_timestamp_epoch = dateConvert(newMsg.Time);
 
         newMsgBlk.push(newMsg);
