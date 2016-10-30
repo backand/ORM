@@ -82,19 +82,19 @@ var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;
 var option = redisConfig.option;
 
-var redis = require('redis'),
-    RedisStore = require('socket.io-redis'),
-    pub = redis.createClient(redisPort, redisHostname, option),
-    sub = redis.createClient(redisPort, redisHostname, option),
-    client = redis.createClient(redisPort, redisHostname, option);
-var redisInterface = redis.createClient(redisPort, redisHostname, option);
+// var redis = require('redis'),
+//     RedisStore = require('socket.io-redis'),
+//     pub = redis.createClient(redisPort, redisHostname, option),
+//     sub = redis.createClient(redisPort, redisHostname, option),
+//     client = redis.createClient(redisPort, redisHostname, option);
+// var redisInterface = redis.createClient(redisPort, redisHostname, option);
 
-redisInterface.on('connect', function () {
-    console.log('redis is connected');
-    runSocket();
-});
+// redisInterface.on('connect', function () {
+//     console.log('redis is connected');
+//     runSocket();
+// });
 
-httpd.listen(serverPort);
+// httpd.listen(serverPort);
 
 
 function runSocket() {

@@ -237,6 +237,26 @@ function applyRename(schemaWithRenaming, schema){
 
 }
 
+var r = transform(
+	[],
+	[{
+		"name": "R",
+
+		"fields" : {
+			"name": {
+				"type": "string",
+				"defaultValue": "nnn"
+			},
+
+			"description": {
+				"type": "text",
+				"defaultValue": "ddd"
+			}
+		}
+
+
+	}], 1);
+
 // var r = transform(
 // 	[{
 // 		"name": "R",
@@ -297,11 +317,11 @@ function applyRename(schemaWithRenaming, schema){
 // ]
 
 // , 1);
-// console.log("statements");
-// console.log(r);
-// _.each(r.alter, function(s){
-// 	console.log(s + ";");
-// });
+console.log("statements");
+console.log(r);
+_.each(r.alter, function(s){
+	console.log(s + ";");
+});
 
 
 function transform(oldSchema, newSchema, severity, isSpecialPrimary){
