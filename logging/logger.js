@@ -9,22 +9,22 @@ log4js.configure({
         {
             type: 'console'
         },
-        // {
-        //     type: 'log4js-node-amqp',
-        //     connection: {
-        //         url: "amqp://guest:guest@ec2-52-6-131-8.compute-1.amazonaws.com:5672"
-        //     },
-        //     queue: {
-        //         name: "nodeLog",
-        //         durable: true,
-        //         autoDelete: false
-        //     },
-        //     // this is a space for you to add custom bits to every log message
-        //     additionalInfo: {
-        //         machine: require("os").hostname(),
-        //         applicationName: 'nodeServer'
-        //     }
-        // }
+        {
+            type: 'log4js-node-amqp',
+            connection: {
+                url: "amqp://guest:guest@ec2-52-6-131-8.compute-1.amazonaws.com:5672"
+            },
+            queue: {
+                name: "nodeLog",
+                durable: true,
+                autoDelete: false
+            },
+            // this is a space for you to add custom bits to every log message
+            additionalInfo: {
+                machine: require("os").hostname(),
+                applicationName: 'nodeServer'
+            }
+        }
     ]
 });
 //

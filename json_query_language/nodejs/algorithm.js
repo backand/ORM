@@ -13,11 +13,10 @@ var fetchTables = require("../../backand_to_object").fetchTables;
 var validTypes = require("../../validate_schema").validTypes;
 
 var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like", "$within", 
-	"$withinMeters", "$withinKilometers", "$withinMiles", "$withinFeet", "$or"];
+	"$withinMeters", "$withinKilometers", "$withinMiles", "$withinFeet"];
 var aggregationOperators = ["$max", "$min", "$sum", "$count", "$concat", "$avg"];
 
 var mysqlOperator = {
-	"$or": "IN",
 	"$in": "IN",
 	"$nin": "NOT IN",
 	"$lt": "<",
@@ -58,36 +57,6 @@ var valuesArray =[];
 // var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
-// 	{ 
-// 	 	"object": "dr_persons", 
-// 	 	"q": { 
-// 	 		"first_name": "joe",
-// 	 		"last_name": {
-// 				"$or": ["smith", "brown"]
-// 	 		}
-// 		}, 
-// 		"fields": ["first_name", "last_name"] 
-// 	},
-
-
-
-
-	//  { "object": "dr_persons", 
-	//  	"q": { 
-	//  		"$or" : [
-	// 			{
-	// 			"id" : 17
-	// 			},
-	// 			{
-	// 			"id" : 18
-	// 			}
-	// 		]
-	// 	}
-	// 	, 
-	// 	"fields": ["first_name", "last_name"] 
-	// },
-
-
 
 // 	{
 // 		"object": "scores",
@@ -229,8 +198,8 @@ var valuesArray =[];
 	// 	]
 	// },
 
-// 	true,
-// 	true,
+// 	false,
+// 	false,
 // 	function(err, sql){
 // 		console.log(err);
 // 		if(!err)
@@ -352,23 +321,6 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	try { 
 
 // var sqlSchema = [
-//  { 
-//  	"name": "dr_persons", 
-//  	"fields": { 
-//  		"person_type" : {
-//  			"type": "float"
-//  		},
-
-// 		"first_name": {
-// 			"type": "string"
-// 		},
-
-// 		"last_name": {
-// 			"type": "string"
-// 		}
-// 	}
-// }];
-
 // 	{ 
 // 		"name": "scores",
 // 		"fields": {
@@ -915,23 +867,6 @@ function generateQueryConditional(qc, table, column){
 	}
 	else if (s.startsWith(comparisonOperator,"$within") && table.fields[column].type != "point"){
 		throw comparisonOperator + " is not valid for column " + column + " of table " + table.name + " because it is not a point column";
-	}
-	else if (comparisonOperator == "$or"){
-		if (!Array.isArray(comparand) || !_.every(comparand, isConstant)){
-			throw comparisonOperator + " requires an array of constants";
-		}
-		else{
-			var t = getType(table, column);
-			if (!_.every(comparand, function(e) { return validValueOfType(e, t); })){
-				throw "not a valid constant for column " + column + " of table " + (table.dbName ? table.dbName : table.name);
-			}
-			else{
-				generatedComparand = _.reduce(comparand, function(acc,e){ 
-					var value = escapeValueOfType(e, t);
-					return acc? acc + ", " + value : value; 
-				}, "");
-			}
-		}
 	}	
 	else if (isConstant(comparand)){
 		// constant value
@@ -976,9 +911,6 @@ function generateQueryConditional(qc, table, column){
 	}
 	else if (comparisonOperator == "$like"){
 		return mysqlOperator[comparisonOperator] + " ( '" + '%' + generatedComparand + '%' + "' ) ";
-	}
-	else if (comparisonOperator == "$or"){
-		return mysqlOperator[comparisonOperator] + " ( "  + generatedComparand + " ) ";
 	}
 	else 
 		return mysqlOperator[comparisonOperator] + " " + generatedComparand;
