@@ -58,6 +58,20 @@ var valuesArray =[];
 // var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
+
+// 	{ 
+// 	 	"object": "dr_persons", 
+// 	 	"q": { 
+	 		
+// 	 		"$or": [
+// 				{ "last_name": "smith", "first_name": "joe" }, 
+// 				{ "last_name": "brown" }
+// 	 		]
+// 		}, 
+// 		"fields": ["first_name", "last_name"] 
+// 	},
+
+
 	// { 
 	// 	"object": "properties",
 	// 	"q": { 
