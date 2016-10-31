@@ -58,16 +58,46 @@ var valuesArray =[];
 // var appName = "testsql";
 
 // transformJsonIntoSQL(email, password, appName, 
-// 	{ 
-// 	 	"object": "dr_persons", 
-// 	 	"q": { 
-// 	 		"first_name": "joe",
-// 	 		"last_name": {
-// 				"$or": ["smith", "brown"]
-// 	 		}
-// 		}, 
-// 		"fields": ["first_name", "last_name"] 
-// 	},
+	// { 
+	// 	"object": "properties",
+	// 	"q": { 
+	// 		"propertyTypeId": { "$in": [2] }, 
+	// 		"$or" : [ 
+	// 			{ 
+	// 			"city" : { "$like" : 'xx'} 
+	// 			}, 
+	// 			{ 
+	// 			"property_title" : { "$like" : 'xx'} 
+	// 			}, 
+	// 			{ 
+	// 			"zip" : { "$like" : 'xx'} 
+	// 			} 
+	// 		] 
+	// 	}
+	// },
+
+	// { 
+	//  	"object": "dr_persons", 
+	//  	"q": { 
+	//  		"first_name": "joe",
+	//  		"$or": [
+	// 			{ "last_name": "smith" }, 
+	// 			{ "last_name": "brown" }
+	//  		]
+	// 	}, 
+	// 	"fields": ["first_name", "last_name"] 
+	// },
+
+	// { 
+	//  	"object": "dr_persons", 
+	//  	"q": { 
+	//  		"first_name": "joe",
+	//  		"last_name": {
+	// 			"$or": ["smith", "brown"]
+	//  		}
+	// 	}, 
+	// 	"fields": ["first_name", "last_name"] 
+	// },
 
 
 
@@ -350,6 +380,28 @@ function transformJson(json, sqlSchema, isFilter, shouldGeneralize, callback) {
 	var result = null;
 	var err = null;
 	try { 
+
+// var sqlSchema = [
+//  { 
+//  	"name": "properties", 
+//  	"fields": { 
+//  		"propertyTypeId" : {
+//  			"type": "float"
+//  		},
+
+// 		"city": {
+// 			"type": "string"
+// 		},
+
+// 		"property_title": {
+// 			"type": "string"
+// 		},
+
+// 		"zip": {
+// 			"type": "string"
+// 		}
+// 	}
+// }];
 
 // var sqlSchema = [
 //  { 
@@ -792,14 +844,18 @@ function generateLimit(limit){
 	return "LIMIT " + limit;
 }
 
+function generateOrExp(exp, table){
+	var orExpArray = exp["$or"].map(function(a){
+		return generateExp(a, table);
+	});
+	return "(" + orExpArray.map(function(o){
+		return "( " + o + " )";
+	}).join(" OR ") + ")"; 
+}
+
 function generateExp(exp, table){
 	if (isOrExp(exp)){ // OrExp
-		var orExpArray = exp["$or"].map(function(a){
-			return generateExp(a, table);
-		});
-		return orExpArray.map(function(o){
-			return "( " + o + " )";
-		}).join(" OR ");
+		return generateOrExp(exp, table);
 	}
 	else if (isValidAndExp(exp)) { // AndExp
 		var keys = Object.keys(exp)
@@ -862,6 +918,9 @@ function generateKeyValueExp(kv, table){
 			var subquery = generateQuery(kv[column]);
 			return "EXISTS (" + subquery.sql.str + " )";
 		}
+	}
+	else if (column == "$or") { // or expression
+		return generateOrExp(kv, table);
 	}
 	else{
 		var realTableName = _.has(table, "dbName") ? table.dbName : table.name;
