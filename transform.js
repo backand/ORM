@@ -160,7 +160,7 @@ var escalationTable = TAFFY([
 var mapToKnexTypes = 
 {
 	"float": "decimal(18, 8)",
-	"string": "varchar(2048)",
+	"string": "varchar(255)",
 	"boolean": "bit(1)",
 	"text": "text",
 	"binary": "blob",
