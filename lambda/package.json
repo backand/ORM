@@ -9,7 +9,6 @@
   "author": "Yoram Kornatzky",
   "license": "ISC",
   "dependencies": {
-    "aws-s3-zipper": "backand/aws-s3-zipper",
     "aws-sdk": "latest"
   }
 }
