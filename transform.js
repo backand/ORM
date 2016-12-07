@@ -1071,12 +1071,12 @@ function createStatements(oldSchema, newSchema, modifications, isSpecialPrimary)
 			  		var relationshipStatement = knex.schema.table(tableName, function (table) {
 				  		if (isSpecialPrimary){
 				  			var col = table.uuid(d).references("id").inTable(oneManyRelationship.nRelation);
-				  			if (_.has(description, "required") && description.required)
+				  			if (_.has(newAttributeDescription, "required") && newAttributeDescription.required)
 		  						col.notNullable();
 				  		}
 				  		else{
 				  			var col = table.integer(d).unsigned().references("id").inTable(oneManyRelationship.nRelation);				  			
-				  			if (_.has(description, "required") && description.required)
+				  			if (_.has(newAttributeDescription, "required") && newAttributeDescription.required)
 		  						col.notNullable();
 				  		}
 				  		if (oneManyRelationship.isCascade){
