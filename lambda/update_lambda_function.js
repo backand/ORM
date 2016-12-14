@@ -16,8 +16,15 @@ function updateLambdaFunctionFromS3(bucket, folder, fileName, functionName, call
     // ZipFile: new Buffer('...') || 'STRING_VALUE'
   };
   lambda.updateFunctionCode(params, function(err, data) {
-    if (err) console.error(err, err.stack); // an error occurred
-    else     console.log(data);           // successful response
+    if (err) {
+      console.error(err, err.stack);
+      if (err.message == "Error occurred while GetObject. S3 Error Code: NoSuchKey. S3 Error Message: The specified key does not exist."){
+        err.message = "Please make sure that you are using the latest Backand CLI version";
+      }
+    } // an error occurred
+    else     {
+      console.log(data);
+    }           // successful response
     console.log("updateLambdaFunctionFromS3 ended");
     callback(err, data);
   });
