@@ -1,18 +1,20 @@
-
 {
   "name": "test",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "test orm",
   "author": "Yoram Kornatzky",
   "dependencies": {
-    "mocha": "latest",
-    "chai": "latest",
-    "sinon" : "latest",
-    "sinon-chai": "latest",
-    "superagent" : "latest",
-    "underscore" : "latest",
-    "request": "latest",
+    "async": "latest",
+    "aws-sdk": "latest",
     "backand": "latest",
-    "request-json": "latest"
+    "chai": "latest",
+    "del": "latest",
+    "mocha": "latest",
+    "request": "latest",
+    "request-json": "latest",
+    "sinon": "latest",
+    "sinon-chai": "latest",
+    "superagent": "latest",
+    "underscore": "latest"
   }
 }

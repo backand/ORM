@@ -2,37 +2,13 @@ var expect = require("chai").expect;
 var exec = require('child_process').exec;
 var request = require('request');
 var fs = require('fs');
+var async = require('async');
+var del = require('del');
 
 describe("backand cli", function(){
 
-	it.only("get model", function(done){
-		this.timeout(4000);
- 		var command = 'node_modules/backand/bin/backand get --master  b83f5c3d-3ed8-417b-817f-708eeaf6a945   --user 757e33ac-ad5a-11e5-be83-0ed7053426cb   --app  cli --object items';	
-		exec(command, function(err, stdout, stderr) {
-			if (err) throw err;
-			var positionBody = stdout.indexOf('responseBody:');
-			var raw = stdout.substr(positionBody + 'responseBody:'.length);
-			var t = raw.trim();
-			var r = t.replace(/[^\x00-\x7F]/g, "").replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-			try{
-				var p = JSON.parse(r);
-			}
-			catch(exp){
-				console.log(exp);
-				throw exp;
-			}
-		  	expect(p).to.deep.equal({
-			    "totalRows": 0,
-			    "data": []
-			});
-		    done();
-		});
-
-// expect(result).to.deep.equal();
-	});
-
 	it("sync", function(done){
-		this.timeout(8000);
+		this.timeout(32000);
 		var r = Math.random();
 		fs.writeFileSync('./src/x.js', '' + r);
 		var command = 'node_modules/backand/bin/backand sync --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 757e33ac-ad5a-11e5-be83-0ed7053426cb  --app cli --folder ./src';	
@@ -47,5 +23,72 @@ describe("backand cli", function(){
 		});
 	});
 
-	
+	it("lambda", function(done){
+		this.timeout(64000);	
+		async.waterfall([
+		    function(callback) { 
+		        del.sync(['items', '*.zip']); // delete existing file system folder of action
+
+		        // see if lambda exists
+		        request.get('https://api.backand.com/1/businessRule?filter=[{fieldName:"Name",operator:"equals",value:"lambda"}]', 
+		        	{
+		        		auth: {
+							'user': 'b83f5c3d-3ed8-417b-817f-708eeaf6a945',
+							'pass': '757e33ac-ad5a-11e5-be83-0ed7053426cb'
+						} 	
+		        	},
+		        	function(err, response, body){
+		        		callback(err, JSON.parse(body));	        	
+		        	}
+		        );
+		    },
+
+		    function(body, callback) { // delete lambda if it exists
+		     	if (body.totalRows > 0){
+			        request.delete('https://api.backand.com/1/businessRule/' + body.data[0]["iD"], 
+			        	{
+			        		auth: {
+								'user': 'b83f5c3d-3ed8-417b-817f-708eeaf6a945',
+								'pass': '757e33ac-ad5a-11e5-be83-0ed7053426cb'
+							} 	
+			        	},
+			        	function(err, response, body){
+			        		callback(err);	        	
+			        	}
+			        );		     		
+		     	}
+		     	else{
+		     		callback(null);
+		     	}
+		    },
+
+		    function(callback) { // init action  
+		        var commandActionInit = 'node_modules/backand/bin/backand action init --object items --action lambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 757e33ac-ad5a-11e5-be83-0ed7053426cb  --app cli';	
+				exec(commandActionInit, function(err, stdout, stderr) {
+					callback(err);  	    
+				});
+		        
+		    },
+		    function(callback) { // deploy action  
+		        var commandActionDeploy = 'node_modules/backand/bin/backand action deploy --object items --action lambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 757e33ac-ad5a-11e5-be83-0ed7053426cb  --app cli --folder ./items/lambda';	
+				exec(commandActionDeploy, function(err, stdout, stderr) {
+					callback(err, 'deploy');
+				});		        
+		    },
+		],
+		// optional callback
+		function(err, result) {
+			// clean by deleting existing action folder
+			del.sync(['items', '*.zip']);	    
+		    if (err){
+		    	throw (err);
+		    }
+		    else{
+		    	done();
+		    }
+		});
+
+		
+	});
+
 });
