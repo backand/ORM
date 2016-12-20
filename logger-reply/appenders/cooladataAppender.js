@@ -50,7 +50,10 @@ coolaAppender.prototype.processMessage = function (msgBulk, cb) {
 			newMsg.Username  = newMsg.user_id
 		}
         newMsg.event_timestamp_epoch = dateConvert(newMsg.Time);
-
+	// for cooladata geo reports
+	newMsg.session_ip = newMsg.ClientIP;
+	newMsg.session_dua = newMsg.RequestTime;
+	    
         newMsgBlk.push(newMsg);
     }
 
