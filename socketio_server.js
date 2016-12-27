@@ -87,7 +87,7 @@ var redis = require('redis'),
     pub = redis.createClient(redisPort, redisHostname, option),
     sub = redis.createClient(redisPort, redisHostname, option),
     client = redis.createClient(redisPort, redisHostname, option);
-var redisInterface = redis.createClient(redisPort, redisHostname, option);
+var redisInterface = redis.createClient(redisPort, redisHostname, {});
 
 redisInterface.on('connect', function () {
     console.log('redis is connected');
