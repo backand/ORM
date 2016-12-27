@@ -80,7 +80,7 @@ var redisConfig = require('./configFactory').getConfig().redis;
 
 var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;
-var option = redisConfig.option;
+var option =  {return_buffers: true};
 
 var redis = require('redis'),
     RedisStore = require('socket.io-redis'),
