@@ -82,7 +82,10 @@ function redisBl(redisInterface){
                     return;
                 }
 
-                redisInterface.del(id);
+                redisInterface.del(id,  function(err, reply) {
+                    logger.debug('removeSocket del:' + JSON.stringify(err));
+                });
+
 
                 // value exist in redis
                 var appName = data;
@@ -159,7 +162,11 @@ function redisBl(redisInterface){
                     var ind = keys.length;
 
                     _.each(keys, function(k){
-                        redisInterface.del(k);
+                        redisInterface.del(k, function(err){
+                            if (err){
+                                logger.debug(err);
+                            }
+                        });
                         ind--;
                     });
 
