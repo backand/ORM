@@ -120,7 +120,7 @@ function runSocket() {
                     io.to(u.socketId).emit(event, message);
                 });
 
-                logger.info('sendMultiple',users, event, message);
+                logger.info('sendMultiple', event, message);
 
             }
 
