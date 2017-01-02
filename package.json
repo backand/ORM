@@ -1,40 +1,34 @@
-
 {
   "name": "schema_transformation",
   "version": "0.0.0",
   "private": true,
-  "scripts":{
-    "test" : "./node_modules/mocha/bin/mocha --recursive"
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha --recursive"
   },
   "dependencies": {
     "amqp": "^0.2.4",
     "amqp-coffee": "^0.1.27",
     "async": "latest",
     "aws-sdk": "latest",
-    "chai": "latest",
     "bcrypt-nodejs": "0.0.3",
     "chai": "latest",
     "journey": "latest",
     "knex": "latest",
+    "lodash": "^4.17.4",
     "log4js": "latest",
     "log4js-logstash": "latest",
     "log4js-node-amqp": "^1.0.2",
-    "mocha": "latest",
-    "knex": "latest",
-    "log4js": "latest",
-    "log4js-logstash": "latest",
     "mime-types": "^2.1.10",
     "mocha": "latest",
     "mysql": "latest",
+    "redis": "latest",
+    "request": "^2.79.0",
+    "sinon": "latest",
+    "sinon-chai": "latest",
     "socket.io": "1.3.7",
     "socket.io-redis": "2.0.1",
-    "redis": "latest",
-    "async" : "latest",
-    "mocha": "latest",
-    "chai": "latest",
-    "sinon" : "latest",
-    "sinon-chai": "latest",
-    "superagent" : "latest"
+    "superagent": "latest",
+    "taffy": "^2.6.2"
   },
   "devDependencies": {
     "http-console": "latest"

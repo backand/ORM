@@ -10,6 +10,7 @@ process.chdir(__dirname);
 var version = require('./version').version;
 
 var fs = require('fs');
+var _ = require('lodash');
 var socketBl = require('./web_sockets/redis_bl')
 var config = require('./configFactory').getConfig();
 var redisConfig = config.redis;
@@ -52,11 +53,11 @@ function handler(req, res) {
             res.end(data);
         }
     );
-    console.log(req.url);
+    logger.debug(req.url);
 }
 
 if (httpsConfig.useCertificate) {
-    console.log('user certificate');
+    logger.debug('user certificate');
     var options = {
         pfx: fs.readFileSync(httpsConfig.pfxPath),
         passphrase: '123456'
@@ -80,8 +81,8 @@ var redisConfig = require('./configFactory').getConfig().redis;
 
 var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;
-var option =  {return_buffers: true};
-
+var option = _.assign(redisConfig.option, {return_buffers: true});
+logger.debug(option);
 var redis = require('redis'),
     RedisStore = require('socket.io-redis'),
     pub = redis.createClient(redisPort, redisHostname, option),
@@ -90,7 +91,7 @@ var redis = require('redis'),
 var redisInterface = redis.createClient(redisPort, redisHostname, {});
 
 redisInterface.on('connect', function () {
-    console.log('redis is connected');
+    logger.debug('redis is connected');
     runSocket();
 });
 
@@ -100,106 +101,123 @@ httpd.listen(serverPort);
 function runSocket() {
 
     var redisBl = new socketBl.BusinessLogic(redisInterface);
-
+    logger.debug('before adapter');
     io.adapter(new RedisStore({
         pubClient: pub,
         subClient: sub,
         redisClient: client
     }));
+    logger.debug('after adapter');
 
-    io.sockets.on('connection', function (socket) {
-        function sendMultiple(socket, users, event, message) {
-            if (users === null || users.length === 0) {
-                return;
-            }
-
-            _.each(users, function (u) {
-                io.to(u.socketId).emit(event, message);
-            });
-
-            logger.info('sendMultiple',users, event, message);
-
-        }
-
-        console.log("received connection");
-
-        socket.on('login', function (token, anonymousToken, appName) {
-            logger.info('login', token, anonymousToken, appName);
-            getUserDetails(token, anonymousToken, appName, function (err, details) {
-
-
-
-                // handle anonymous case
-                if (appName === null && details !== null) {
-                    appName = details.appName;
-                }
-
-                if (err || appName === null) {
-                    socket.emit("notAuthorized");
+    try {
+        io.sockets.on('connection', function (socket) {
+            function sendMultiple(socket, users, event, message) {
+                if (users === null || users.length === 0) {
                     return;
                 }
 
-                logger.info('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
+                _.each(users, function (u) {
+                    io.to(u.socketId).emit(event, message);
+                });
 
+                logger.info('sendMultiple',users, event, message);
 
-                console.log('auth');
-                redisBl.login(socket, appName, details.username, details.role);
-            });
-        });
-
-        socket.on('disconnect', function () {
-            var id = socket.id;
-            redisBl.removeSocket(id);
-            logger.info('success disconnect to id ' + id) ;
-
-        })
-
-        socket.on('internalAll', function (internal) {
-            var eventName = internal.eventName;
-            var appName = internal.appName;
-            io.to(appName).emit(eventName, internal.data);
-            logger.info(appName + ' io:' + io.to(appName));
-            logger.info('internalAll'  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
-        });
-
-        socket.on('internalRole', function (internal) {
-            var appName = internal.appName,
-                eventName = internal.eventName,
-                role = internal.role,
-                data = internal.data;
-
-            if (!appName || !eventName || !role || !eventName) {
-                return;
             }
 
-            redisBl.getAllUsersByRole(appName, role, function (err, users) {
-                sendMultiple(appName, users, eventName, data);
+            logger.debug("received connection");
+
+            socket.on('login', function (token, anonymousToken, appName) {
+                logger.info('login', token, anonymousToken, appName);
+                getUserDetails(token, anonymousToken, appName, function (err, details) {
+
+                    if (err){
+                        logger.debug('login err:' + JSON.stringify(err));
+                    }
+
+                    // handle anonymous case
+                    if (appName === null && details !== null) {
+                        appName = details.appName;
+                    }
+
+                    if (err || appName === null) {
+                        socket.emit("notAuthorized");
+                        return;
+                    }
+
+                    logger.info('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
+
+
+                    logger.debug('auth');
+                    redisBl.login(socket, appName, details.username, details.role);
+                });
             });
 
-            logger.info('internalRole ' +  eventName + JSON.stringify(internal.data));
+            socket.on('disconnect', function () {
+                var id = socket.id;
+                redisBl.removeSocket(id);
+                logger.info('success disconnect to id ' + id) ;
 
-        });
+            })
 
-        socket.on('internalUsers', function (internal) {
-            var appName = internal.appName;
-            var eventName = internal.eventName;
-            var users = internal.users;
-            var data = internal.data;
-
-            if (!appName || !eventName || !users || !eventName) {
-                return;
-            }
-
-            redisBl.getUserByList(appName, users, function (err, users) {
-                sendMultiple(appName, users, eventName, data);
+            socket.on('internalAll', function (internal) {
+                var eventName = internal.eventName;
+                var appName = internal.appName;
+                io.to(appName).emit(eventName, internal.data);
+                logger.info(appName + ' io:' + io.to(appName));
+                logger.info('internalAll'  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
             });
 
-            logger.info('internalUsers ' +  eventName + JSON.stringify(internal.data));
+            socket.on('internalRole', function (internal) {
+                var appName = internal.appName,
+                    eventName = internal.eventName,
+                    role = internal.role,
+                    data = internal.data;
+
+                if (!appName || !eventName || !role || !eventName) {
+                    return;
+                }
+
+                redisBl.getAllUsersByRole(appName, role, function (err, users) {
+                    if (err){
+                        logger.debug('internalRole getAllUsersByRole err:' + JSON.stringify(err));
+                    }
+                    else{
+                       sendMultiple(appName, users, eventName, data); 
+                    }              
+                });
+
+                logger.info('internalRole ' +  eventName + JSON.stringify(internal.data));
+
+            });
+
+            socket.on('internalUsers', function (internal) {
+                var appName = internal.appName;
+                var eventName = internal.eventName;
+                var users = internal.users;
+                var data = internal.data;
+
+                if (!appName || !eventName || !users || !eventName) {
+                    return;
+                }
+
+                redisBl.getUserByList(appName, users, function (err, users) {
+                    if (err){
+                        logger.debug('internalUsers getUserByList err:' + JSON.stringify(err));
+                    }
+                    else{
+                        sendMultiple(appName, users, eventName, data);
+                    }         
+                });
+
+                logger.info('internalUsers ' +  eventName + JSON.stringify(internal.data));
+
+            });
+
 
         });
-
-
-    });
-
+    }
+    catch(e){
+        logger.debug(e);
+    }
 }
 

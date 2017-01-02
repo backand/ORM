@@ -4,6 +4,8 @@
 
 var async = require('async');
 var _ = require('underscore');
+var config = require('../configFactory').getConfig();
+var logger = require('../logging/logger').getLogger("socketio_" + config.env);
 
 
 function redisBl(redisInterface){
@@ -16,10 +18,17 @@ function redisBl(redisInterface){
             redisInterface.lrange(this.createKey(appName), 0, -1, function (err, reply) {
                 var object = [];
 
+                if (err){
+                    logger.debug('getAllUsers lrange err:' + JSON.stringify(err));
+                }
+
                 // we have to serialize again all users
-                _.each(reply, function (str) {
-                    object.push(JSON.parse(str));
-                });
+                if (!err){
+                   _.each(reply, function (str) {
+                        object.push(JSON.parse(str));
+                    });                 
+                }
+
 
                 if (typeof(callback) === "function") {
                     callback(err, object);
@@ -30,7 +39,13 @@ function redisBl(redisInterface){
 
         getAllUsersByRole: function (appName, role, callback) {
             this.getAllUsers(appName, function (err, object) {
-                var filtered = _.where(object, {"role": role});
+                var filtered = null;
+                if (!err){
+                    filtered = _.where(object, {"role": role});
+                }
+                else{
+                    logger.debug('getAllUsersByRole err:' + JSON.stringify(err));
+                }
 
                 if (typeof(callback) == "function") {
                     callback(err, filtered);
@@ -40,11 +55,16 @@ function redisBl(redisInterface){
 
         getUserByList: function (appName, userList, callback) {
             this.getAllUsers(appName, function (err, object) {
-
+                var filtered = null;
                 // create intersection between userList and users from store
-                var filtered = _.filter(object, function (user) {
-                    return _.contains(userList, user.username);
-                });
+                if (!err){
+                    var filtered = _.filter(object, function (user) {
+                        return _.contains(userList, user.username);
+                    });                    
+                }
+                else{
+                  logger.debug('getUserByList err:' + JSON.stringify(err));  
+                }
 
                 if (typeof(callback) == "function") {
                     callback(err, filtered);
@@ -55,6 +75,9 @@ function redisBl(redisInterface){
         removeSocket: function (id, callback) {
             var self = this;
             redisInterface.get(id, function (err, data) {
+                if (err){
+                    logger.debug('removeSocket err:' + JSON.stringify(err));
+                }
                 if (err || data === null) {
                     return;
                 }
@@ -65,6 +88,10 @@ function redisBl(redisInterface){
                 var appName = data;
 
                 self.getAllUsers(appName, function (err, list) {
+                    if (err){
+                        logger.debug('removeSocket getAllUsers:' + JSON.stringify(err));
+                        return;
+                    }
                     var found = _.find(list, function (d) {
                         return d.socketId == id
                     });
@@ -75,6 +102,9 @@ function redisBl(redisInterface){
                     }
 
                     redisInterface.lrem(self.createKey(appName), -1, JSON.stringify(found), function (err, data) {
+                        if (err){
+                            logger.debug('lrem err:' + JSON.stringify(err));
+                        }
                         if (typeof(callback) == "function") {
                             callback(err, data);
                         }
@@ -91,37 +121,61 @@ function redisBl(redisInterface){
                 username: username,
                 role: role,
             };
+            var that = this;
+            redisInterface.set(socketId, appName, function (err, reply) {
+                if (err){
+                    logger.debug('saveUser set err:' + JSON.stringify(err));
+                    callback(err);
+                }
+                else{
+                    redisInterface.rpush([that.createKey(appName), JSON.stringify(user)], function(err) {
+                        if (err){
+                            logger.debug('saveUser rpush err:' + JSON.stringify(err));
+                            callback(err);
+                        } 
+                        callback(null);
+                    });
+                }
+            });
 
-            redisInterface.set(socketId, appName);
-            redisInterface.rpush([this.createKey(appName), JSON.stringify(user)], callback);
         },
 
         login: function (socket, appName, username, role) {
-            this.saveUser(appName, socket.id, username, role);
-            socket.join(appName);
-            socket.room = appName;
-            socket.emit("authorized");
-            console.log("authorized");
+            this.saveUser(appName, socket.id, username, role, function(err){
+                logger.debug(err);
+                if (!err){
+                    socket.join(appName);
+                    socket.room = appName;
+                    socket.emit("authorized");
+                    logger.debug("authorized"); 
+                }
+            });
         },
 
         cleanUp: function (callback) {
             redisInterface.keys("*", function (err, keys) {
 
-                var ind = keys.length;
+                if (!err){
+                    var ind = keys.length;
 
-                _.each(keys, function(k){
-                    redisInterface.del(k);
-                    ind--;
-                });
+                    _.each(keys, function(k){
+                        redisInterface.del(k);
+                        ind--;
+                    });
 
 
-                // block everything!
-                while(ind > 0){
+                    // block everything!
+                    while(ind > 0){
 
+                    }                   
+                }
+                else{
+                    logger.debug('cleanUp keys err:' + JSON.stringify(err));
                 }
 
+
                 if (typeof (callback) == 'function') {
-                    console.log('done');
+                    logger.debug('done');
                     callback();
                 }
 
