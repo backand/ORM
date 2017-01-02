@@ -2,7 +2,7 @@
  * Created by backand on 1/11/16.
  */
 function getConfig(environment){
-    var env = environment; // || process.env.ENV;
+    var env = environment || process.env.ENV;
 
     if(env == undefined){
         env = "dev";
