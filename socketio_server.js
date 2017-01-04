@@ -81,8 +81,7 @@ var redisConfig = require('./configFactory').getConfig().redis;
 
 var redisPort = redisConfig.port;
 var redisHostname = redisConfig.hostname;
-var option = _.assign(redisConfig.option, {return_buffers: true});
-logger.debug(option);
+var option = {return_buffers: true};
 var redis = require('redis'),
     RedisStore = require('socket.io-redis'),
     pub = redis.createClient(redisPort, redisHostname, option),
@@ -155,8 +154,6 @@ function runSocket() {
             socket.on('disconnect', function () {
                 var id = socket.id;
                 redisBl.removeSocket(id);
-                logger.info('success disconnect to id ' + id) ;
-
             })
 
             socket.on('internalAll', function (internal) {
