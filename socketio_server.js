@@ -108,113 +108,110 @@ function runSocket() {
     }));
     logger.debug('after adapter');
 
-    try {
-        io.sockets.on('connection', function (socket) {
-            function sendMultiple(socket, users, event, message) {
-                if (users === null || users.length === 0) {
-                    return;
-                }
 
-                _.each(users, function (u) {
-                    io.to(u.socketId).emit(event, message);
-                });
-
-                logger.info('sendMultiple', event, message);
-
+    io.sockets.on('connection', function (socket) {
+        function sendMultiple(socket, users, event, message) {
+            if (users === null || users.length === 0) {
+                return;
             }
 
-            logger.debug("received connection");
-
-            socket.on('login', function (token, anonymousToken, appName) {
-                logger.info('login', token, anonymousToken, appName);
-                getUserDetails(token, anonymousToken, appName, function (err, details) {
-
-                    if (err){
-                        logger.debug('login err:' + JSON.stringify(err));
-                    }
-
-                    // handle anonymous case
-                    if (appName === null && details !== null) {
-                        appName = details.appName;
-                    }
-
-                    if (err || appName === null) {
-                        socket.emit("notAuthorized");
-                        return;
-                    }
-
-                    logger.info('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
-
-
-                    logger.debug('auth');
-                    redisBl.login(socket, appName, details.username, details.role);
-                });
+            _.each(users, function (u) {
+                io.to(u.socketId).emit(event, message);
             });
 
-            socket.on('disconnect', function () {
-                var id = socket.id;
-                redisBl.removeSocket(id);
-            })
+            logger.info('sendMultiple', event, message);
 
-            socket.on('internalAll', function (internal) {
-                var eventName = internal.eventName;
-                var appName = internal.appName;
-                io.to(appName).emit(eventName, internal.data);
-                logger.info(appName + ' io:' + io.to(appName));
-                logger.info('internalAll'  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
-            });
+        }
 
-            socket.on('internalRole', function (internal) {
-                var appName = internal.appName,
-                    eventName = internal.eventName,
-                    role = internal.role,
-                    data = internal.data;
+        logger.debug("received connection");
 
-                if (!appName || !eventName || !role || !eventName) {
+        socket.on('login', function (token, anonymousToken, appName) {
+            logger.info('login', token, anonymousToken, appName);
+            getUserDetails(token, anonymousToken, appName, function (err, details) {
+
+                if (err){
+                    logger.debug('login err:' + JSON.stringify(err));
+                }
+
+                // handle anonymous case
+                if (appName === null && details !== null) {
+                    appName = details.appName;
+                }
+
+                if (err || appName === null) {
+                    socket.emit("notAuthorized");
                     return;
                 }
 
-                redisBl.getAllUsersByRole(appName, role, function (err, users) {
-                    if (err){
-                        logger.debug('internalRole getAllUsersByRole err:' + JSON.stringify(err));
-                    }
-                    else{
-                       sendMultiple(appName, users, eventName, data); 
-                    }              
-                });
-
-                logger.info('internalRole ' +  eventName + JSON.stringify(internal.data));
-
+                logger.info('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
+                redisBl.login(socket, appName, details.username, details.role);
             });
+        });
 
-            socket.on('internalUsers', function (internal) {
-                var appName = internal.appName;
-                var eventName = internal.eventName;
-                var users = internal.users;
-                var data = internal.data;
+        socket.on('disconnect', function () {
+            var id = socket.id;
+            redisBl.removeSocket(id, function(err, data){
+                logger.debug(err);
+            });
+        })
 
-                if (!appName || !eventName || !users || !eventName) {
-                    return;
+        socket.on('internalAll', function (internal) {
+            var eventName = internal.eventName;
+            var appName = internal.appName;
+            io.to(appName).emit(eventName, internal.data);
+            logger.info('internalAll ' + appName  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
+        });
+
+        socket.on('internalRole', function (internal) {
+            var appName = internal.appName,
+                eventName = internal.eventName,
+                role = internal.role,
+                data = internal.data;
+
+            if (!appName || !eventName || !role || !eventName) {
+                return;
+            }
+
+            redisBl.getAllUsersByRole(appName, role, function (err, users) {
+                if (err){
+                    logger.debug('internalRole getAllUsersByRole err:' + JSON.stringify(err));
                 }
-
-                redisBl.getUserByList(appName, users, function (err, users) {
-                    if (err){
-                        logger.debug('internalUsers getUserByList err:' + JSON.stringify(err));
-                    }
-                    else{
-                        sendMultiple(appName, users, eventName, data);
-                    }         
-                });
-
-                logger.info('internalUsers ' +  eventName + JSON.stringify(internal.data));
-
+                else{
+                   sendMultiple(appName, users, eventName, data); 
+                   logger.info('internalRole ' + appName + ' ' +  eventName +  ' ' + JSON.stringify(internal.data));
+                }              
             });
 
+            
 
         });
-    }
-    catch(e){
-        logger.debug(e);
-    }
+
+        socket.on('internalUsers', function (internal) {
+            var appName = internal.appName;
+            var eventName = internal.eventName;
+            var users = internal.users;
+            var data = internal.data;
+
+            if (!appName || !eventName || !users || !eventName) {
+                return;
+            }
+
+            redisBl.getUserByList(appName, users, function (err, users) {
+                if (err){
+                    logger.debug('internalUsers getUserByList err:' + JSON.stringify(err));
+                }
+                else{
+                    sendMultiple(appName, users, eventName, data);
+                    logger.info('internalUsers ' + appName + ' ' + eventName + ' ' + JSON.stringify(internal.data));
+                }         
+            });
+
+            
+
+        });
+
+
+    });
+
 }
 

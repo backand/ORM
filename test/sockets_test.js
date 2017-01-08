@@ -29,6 +29,8 @@ var login = function (email, password, appName, callback) {
             appname: appName,
             grant_type: "password"
         }).end(function (err, res) {
+            // console.log(err);
+            // console.log(res);
             callback(err, "bearer" + " " + res.body.access_token);
         });
 };
@@ -37,23 +39,24 @@ var anonymousLogin = function (token, callback) {
     request.get(api_url + '/api/account/profile')
         .set('AnonymousToken', token)
         .end(function (err, res) {
-            //console.log(res);
-            callback(err, res.body);
+            console.log(err);
+            // console.log(res);
+            callback(err, res);
         });
 };
 
-function sendEventToServer(sendData) {
+function sendEventToServer(sendData, callback) {
     request.post('http://localhost:9000/socket/emit')
         .send(sendData)
         .set('app', appName)
         .end(function (err, res) {
 
             if (!err) {
-                //console.log('yay got ' + JSON.stringify(res.body));
+                console.log('yay got ' + JSON.stringify(res.body));
             } else {
                 console.log('Oh no! error ' + err);
             }
-
+            callback(err, res);
         })
 };
 
@@ -62,7 +65,8 @@ var socket = require('socket.io-client')(socketServerAddress);
 var socket2 = require('socket.io-client')(socketServerAddress);
 
 describe("end-to-end-work one user", function () {
-    this.timeout(30000);
+    this.timeout(300000);
+
 
     var spy1 = sinon.spy();
 
@@ -75,22 +79,32 @@ describe("end-to-end-work one user", function () {
         });
 
         socket.on(eventName, function (data) {
-            console.log("Here");
+            console.log("Here", eventName);
             spy1();
             done();
         });
 
         socket.on('authorized', function () {
             console.log('authorized');
-            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"});
+            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"}, function(err){
+                if (err){
+                    throw new Error("fail sendEventToServer");
+                }
+            });
+
         });
 
-      login("ygalbel@gmail.com", "bell1234", "ionic1", function(err, token) {
-          socket.emit('login',
-                token,
-                '',
-                'ionic1'
-          );
+      login("ygalbel@gmail.com", "bell1234", appName, function(err, token) {
+          if (!err){
+              socket.emit('login',
+                    token,
+                    '',
+                    appName
+              );            
+          }
+          else{
+            throw new Error("fail login");
+          }
       });
 
     })
@@ -103,7 +117,7 @@ describe("end-to-end-work one user", function () {
 
 describe("end-to-end-work two users", function () {
     it("all users get notification", function (done) {
-        this.timeout(30000);
+        this.timeout(180000);
 
         var eventName = "testMessage";
 
@@ -119,23 +133,25 @@ describe("end-to-end-work two users", function () {
 
         var token1 = '';
         var token2 = '';
-        login("ygalbel@gmail.com", "bell1234", "ionic1", function(err,token){
+        login("ygalbel@gmail.com", "bell1234", appName, function(err,token){
+            console.log(err);
             token1 = token;
 
-            login("ygalbel@gmail.com", "bell1234", "ionic1", function(err,token) {
+            login("ygalbel@gmail.com", "bell1234", appName, function(err,token) {
+                console.log(err);
                 token2 = token;
 
                     socket.emit('login',
                         token1,
                         'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
-                        'ionic1'
+                        appName
                     );
 
 
                 socket2.emit('login',
                     token2,
                     'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
-                    'ionic1'
+                    appName
                 );
 
                 socket.on(eventName, messageArrived);
@@ -143,14 +159,14 @@ describe("end-to-end-work two users", function () {
 
                 request.post('http://localhost:9000/socket/emit')
                     .send({"data": "123", "eventName": eventName, "mode": "All"})
-                    .set('app', 'ionic1')
+                    .set('app', appName)
                     .end(function (err, res) {
                         if (res.ok) {
-                            //console.log('yay got OK');
+                            console.log('yay got OK');
                         } else {
                             console.log('Oh no! error ' + res.text);
                         }
-
+                        done();
                     })
             });
 
@@ -160,7 +176,7 @@ describe("end-to-end-work two users", function () {
 });
 
 describe("user with anonymous token can get messages", function(){
-    this.timeout(5000);
+    this.timeout(180000);
 
     var spy1 = sinon.spy();
 
@@ -173,33 +189,45 @@ describe("user with anonymous token can get messages", function(){
         });
 
         socket.on(eventName, function (data) {
-            console.log("Here");
+            console.log("Here", data);
             spy1();
             done();
+ 
         });
 
         socket.on('authorized', function () {
-            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"});
+            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "All"}, function(err, res){
+                console.log(err);
+                if (err){
+                    throw new Error("fail sendEventToServer");
+                }
+            });
         });
 
         anonymousLogin('f0a0f62f-65ea-457e-93e8-ea7d21c07abf', function(err, token){
-            socket.emit('login',
-                null,
-                'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
-                null
-            );
+            if (!err){
+                socket.emit('login',
+                    null,
+                    'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
+                    appName
+                );                
+            }
+            else{
+                throw new Error("fail login");
+            }
         });
     })
 
     it('message arrived', function(done){
         spy1.should.have.been.called;
         done();
+        console.log('next anonymous test');
     })
 });
 
-describe("user with anonymous token can get messages by role", function(){
-    this.timeout(30000);
-
+describe.only("user with anonymous token can get messages by role", function(){
+    this.timeout(300000);
+    socket.connect();
     var spy1 = sinon.spy();
 
     before(function (done) {
@@ -214,18 +242,34 @@ describe("user with anonymous token can get messages by role", function(){
             console.log("Here");
             spy1();
             done();
+            socket.disconnect();
         });
 
         socket.on('authorized', function () {
-            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "Role", "Role" : "User"});
+            console.log('authorized');
+            sendEventToServer({"data": "test user itay", "eventName": eventName, "mode": "Role", "Role" : "User"}, function(err, res){
+                if (err){
+                   throw new Error("fail sendEventToServer"); 
+                }
+                else {
+                    spy1();
+                    done();
+                }
+            });
         });
 
         anonymousLogin('f0a0f62f-65ea-457e-93e8-ea7d21c07abf', function(err, token){
-            socket.emit('login',
-                null,
-                'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
-                null
-            );
+            console.log('anonymousLogin', err);
+            if (!err){
+                socket.emit('login',
+                    null,
+                    'f0a0f62f-65ea-457e-93e8-ea7d21c07abf',
+                    appName
+                );                
+            }
+            else{
+                throw new Error("fail login");
+            }
         });
 
 

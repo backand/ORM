@@ -77,9 +77,10 @@ function redisBl(redisInterface){
             redisInterface.get(id, function (err, data) {
                 if (err){
                     logger.debug('removeSocket err:' + JSON.stringify(err));
+                    callback(err);
                 }
-                if (err || data === null) {
-                    return;
+                if (data === null) {
+                    callback(null);
                 }
 
                 redisInterface.del(id,  function(err, reply) {
@@ -88,29 +89,29 @@ function redisBl(redisInterface){
 
 
                 // value exist in redis
+                logger.debug('data for socket:' + JSON.stringify(data));
                 var appName = data;
 
                 self.getAllUsers(appName, function (err, list) {
                     if (err){
                         logger.debug('removeSocket getAllUsers:' + JSON.stringify(err));
-                        return;
+                        callback(err);
                     }
                     var found = _.find(list, function (d) {
-                        return d.socketId == id
+                        return d.socketId == id;
                     });
 
                     // socket doesn't exist in app Set
-                    if (found === undefined) {
-                        return;
+                    if (!found) {
+                        callback(null);
                     }
 
                     redisInterface.lrem(self.createKey(appName), -1, JSON.stringify(found), function (err, data) {
                         if (err){
                             logger.debug('lrem err:' + JSON.stringify(err));
-                        }
-                        if (typeof(callback) == "function") {
-                            callback(err, data);
-                        }
+                            callback(err);
+                        }                      
+                        callback(err, data);
                     });
                 });
 

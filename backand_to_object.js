@@ -1,10 +1,13 @@
 process.chdir(__dirname);
 module.exports.fetchTables = fetchTables;
 module.exports.getUserDetails = getUserDetails;
+module.exports.signup = signup;
+module.exports.signin = signin;
 
 var request = require('request');
 var async = require('async');
 var _ = require('underscore');
+var querystring = require('querystring');
 
 
 var api_url = require('./configFactory').getConfig().api_url;
@@ -12,6 +15,9 @@ var tokenUrl = api_url + "/token";
 var tableUrl = api_url + "/1/table/config/";
 var columnsUrl = api_url + "/1/table/config/";
 var getUserUrl = api_url + "/api/account/profile";
+var signupUrl = api_url + '/1/user/signup';
+var tokenUrl = api_url + '/token';
+
 
 var backandToJsonType = {
 	"Numeric": "float",
@@ -25,7 +31,120 @@ var backandToJsonType = {
 	"Point": "point"
 };
 
+function signup(signUpToken, email, password, confirmPassword, firstName, lastName, callback) {
+
+    var creds = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            password: password,
+            confirmPassword: confirmPassword
+    };
+
+    var headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'SignUpToken': signUpToken
+    }
+
+    request(
+        {
+            url: signupUrl,
+            headers: headers,
+            method: 'POST',
+            json: creds
+        },
+
+        function (error, response, body) {
+            console.log(error);
+            console.log(body);
+            console.log(response.statusCode);
+            if (!error && response.statusCode == 200) {
+                // var body = JSON.parse(body);
+                if (body.username != '') {
+                    callback(false, body);
+                }
+                else {
+                    callback(true, null);
+                }
+            }
+            else {
+                callback(error, null);
+            }
+        }
+    );
+
+}
+
+// signup('third@aol.com', '123456', '123456', 'two', 'sw', function(err, result){
+//     console.log(err);
+//     console.log(result);
+//     process.exit(0);
+// });
+
+function signin(appName, username, password, callback) {    
+
+    var creds = {
+        username: username,
+        password: password,
+        appName: appName,
+        grant_type: 'password'
+    };
+    
+
+    var headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    
+
+    request(
+        {
+            url: tokenUrl,
+            headers: headers,
+            method: 'POST',
+            form: querystring.stringify(creds)
+        },
+
+        function (error, response, body) {
+            console.log(error);
+            console.log(body);
+            console.log(response.statusCode);
+            if (!error && response.statusCode == 200) {
+                // var body = JSON.parse(body);
+                if (body.username != '') {
+                    callback(false, body);
+                }
+                else {
+                    callback(true, null);
+                }
+            }
+            else {
+                callback(error, null);
+            }
+        }
+    );
+       
+}
+
+// signin('stress', 'third@aol.com', '123456', function(err, result){
+//     console.log(err);
+//     console.log(result);
+//     process.exit(0);
+// });
+
+// getUserDetails(
+//     'VTluQRAn4YueaWb87GX5K2iIxDqikQoaJyddoqJzNmCpiVbFAqInUCj5iELZp2ZmpEFdJVp7hGrEkEqQabFtqvd7X0gsJYqKZhfX8ZNgtSKoHqfAqMcRZ5mvzHaIcr6zobjS7p-nwhdxh2g5qqHGbSlno4B6LKQWGRKWFFtf_UbyQvsdcBQYKdCXJGbEOBnZlYl-RefonCLZsMpILEco2Dd21g77Ee_yAJ_NAcP5R0ftNt-x9PaRbSSL_51UrAXZ',
+//     null,
+//     'stress',
+//     function(err, data){
+//         console.log(err);
+//         console.log(data);
+//         process.exit(1);
+//     }
+// );
+
 function getUserDetails(accessToken, anonymousToken, appName, callback) {
+    console.log('getUserDetails', accessToken, anonymousToken, appName);
     function isEmpty(str) {
         // source: http://stackoverflow.com/questions/1812245/what-is-the-best-way-to-test-for-an-empty-string-with-jquery-out-of-the-box/33672308#33672308
         return typeof str == 'string' && !str.trim() || typeof str == 'undefined' || str === null;
@@ -54,8 +173,11 @@ function getUserDetails(accessToken, anonymousToken, appName, callback) {
         },
 
         function (error, response, body) {
+            console.log(error);
+            console.log(response.statusCode);
             if (!error && response.statusCode == 200) {
                 var body = JSON.parse(body);
+                console.log('getUserDetails', body);
                 if (body.username != '') {
                     callback(false, body);
                 }
@@ -65,6 +187,7 @@ function getUserDetails(accessToken, anonymousToken, appName, callback) {
 
             }
             else {
+                console.log('getUserDetails err:', error);
                 callback(true, null);
             }
         }
