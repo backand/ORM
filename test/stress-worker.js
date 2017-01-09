@@ -8,34 +8,33 @@ var signUpToken = 'a8362e8c-b4e4-4cf4-b217-3d6ffac2346c';
 var anonymousToken = '337f502c-1ef8-48fd-bb98-e45f47472469';
 var appName = 'stress';
 
-var username = process.argv[2];
-var password = process.argv[3];
+var username = process.argv.length > 2 ? process.argv[2] : null;
+var password = process.argv.length > 2 ? process.argv[3]: null;
 
 console.log('worker', username, password);
 
 
 socket.on('connect', function(){
     logger.debug('connected');
-    // login user
-
-	signin(appName, username, password, function(err, data){
-		
-
-		if (err){
-			logger.debug('cannot signin:' + username + ' ' + password + ' ' + JSON.stringify(err));
-		}
-		else{
-			logger.debug('signin', data);
-			var d = JSON.parse(data);
-			var token = d.access_token;
-			// console.log(token);
-
-			socket.emit('login', 'bearer ' + token, null, appName);
-		}
-
-
-	});
     
+    if (username){
+	    // login user
+		signin(appName, username, password, function(err, data){
+			if (err){
+				logger.debug('cannot signin:' + username + ' ' + password + ' ' + JSON.stringify(err));
+			}
+			else{
+				logger.debug('signin', data);
+				var d = JSON.parse(data);
+				var token = d.access_token;
+				// console.log(token);
+				socket.emit('login', 'bearer ' + token, null, appName);
+			}
+		}); 
+    }
+    else{
+    	socket.emit('login', null, anonymousToken, appName);
+    }
 });
 
 socket.on('disconnect', function(){

@@ -16,43 +16,58 @@ var numWorkers = 200;
 // generate multiple workers
 async.times(numWorkers, function(n, next) {
 
-	// register user
-	// var d = Date.now();
-	// Generate a v4 UUID (random) 
-	const uuidV4 = require('uuid/v4');
-	var d = uuidV4(); // -> '110ec58a-a0f2-4ac4-8393-c866d813b8d1' 
-	var username = 'e' + d.replace('-','_') + '@aol.com';
-	var password = 'secret';
-    signup(signUpToken, username, password, password, 'f' + d, 'l' + d, function(err, user) {
-    	if (!err){
-    		// generate a worker for each user
-	    	var child = spawn('node', ['./test/stress-worker.js', username, password]); 
+	var r = Math.random();
+	if (r < 0.3){
+		// register user
+		// var d = Date.now();
+		// Generate a v4 UUID (random) 
+		const uuidV4 = require('uuid/v4');
+		var d = uuidV4(); // -> '110ec58a-a0f2-4ac4-8393-c866d813b8d1' 
+		var username = 'e' + d.replace('-','_') + '@aol.com';
+		var password = 'secret';
+	    signup(signUpToken, username, password, password, 'f' + d, 'l' + d, function(err, user) {
+	    	if (!err){
+	    		createChild(username, password, next);
+	    	}
+	    	else{
+	    		console.log('error in signup:' + JSON.stringify(err));
+	    		next();
+	    	}
+	    });
+	}
+	else{ // anonymous
+		createChild(null, null, next);
+	}
 
-	    	child.stdout.on('data', (data) => {
-			  console.log(`stdout: ${data}`);
-			});
-
-			child.stderr.on('data', (data) => {
-			  console.log(`stderr: ${data}`);
-			});
-
-			child.on('close', (code) => {
-			  console.log(`child process exited with code ${code}`);
-			  next(code);
-			}); 
-    	}
-    	else{
-    		console.log('error in signup:' + JSON.stringify(err));
-    	}
-    	
-
-    });
 }, function(err, users) {
     // we should now have 5 users
 });
 
 
+function createChild(username, password, next) {
+	// generate a worker for each user
+	
+	var commandLine = username ? ['./test/stress-worker.js', username, password] : ['./test/stress-worker.js'];
+	var child = spawn('node', commandLine); 
+	
+	if (child){
+		child.stdout.on('data', (data) => {
+		  console.log(`stdout: ${data}`);
+		});
 
+		child.stderr.on('data', (data) => {
+		  console.log(`stderr: ${data}`);
+		});
+
+		child.on('close', (code) => {
+		  console.log(`child process exited with code ${code}`);
+		  next(code);
+		}); 
+	}
+	else{
+		console.log('no child', username, password);
+	}
+}
 
 
 
