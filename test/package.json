@@ -15,6 +15,7 @@
     "sinon": "latest",
     "sinon-chai": "latest",
     "superagent": "latest",
-    "underscore": "latest"
+    "underscore": "latest",
+    "uuid": "^3.0.1"
   }
 }

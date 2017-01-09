@@ -11,21 +11,26 @@ var appName = 'stress';
 var username = process.argv[2];
 var password = process.argv[3];
 
+console.log('worker', username, password);
+
 
 socket.on('connect', function(){
     logger.debug('connected');
     // login user
 
 	signin(appName, username, password, function(err, data){
-		logger.debug('signin', err, data, (typeof data));
+		
+
 		if (err){
-			logger.debug('cannot signin:' + JSON.stringify(err));
+			logger.debug('cannot signin:' + username + ' ' + password + ' ' + JSON.stringify(err));
 		}
 		else{
+			logger.debug('signin', data);
 			var d = JSON.parse(data);
 			var token = d.access_token;
-			console.log(token);
-			socket.emit('login', token, null, appName);
+			// console.log(token);
+
+			socket.emit('login', 'bearer ' + token, null, appName);
 		}
 
 
@@ -46,7 +51,7 @@ socket.on('error', function(error){
 });
 
 socket.on('items_updated', function(data){
-	logger.debug('items_updated', data);
+	logger.debug('items_updated', username, data);
 });
 
 

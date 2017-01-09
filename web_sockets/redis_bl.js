@@ -79,42 +79,41 @@ function redisBl(redisInterface){
                     logger.debug('removeSocket err:' + JSON.stringify(err));
                     callback(err);
                 }
-                if (data === null) {
+                else if (!data) {
                     callback(null);
                 }
-
-                redisInterface.del(id,  function(err, reply) {
-                    logger.debug('removeSocket del:' + JSON.stringify(err));
-                });
-
-
-                // value exist in redis
-                logger.debug('data for socket:' + JSON.stringify(data));
-                var appName = data;
-
-                self.getAllUsers(appName, function (err, list) {
-                    if (err){
-                        logger.debug('removeSocket getAllUsers:' + JSON.stringify(err));
-                        callback(err);
-                    }
-                    var found = _.find(list, function (d) {
-                        return d.socketId == id;
+                else{
+                    redisInterface.del(id,  function(err, reply) {
+                        logger.debug('removeSocket del:' + JSON.stringify(err));
                     });
 
-                    // socket doesn't exist in app Set
-                    if (!found) {
-                        callback(null);
-                    }
+                    // value exist in redis
+                    logger.debug('data for socket:' + JSON.stringify(data));
+                    var appName = data;
 
-                    redisInterface.lrem(self.createKey(appName), -1, JSON.stringify(found), function (err, data) {
+                    self.getAllUsers(appName, function (err, list) {
                         if (err){
-                            logger.debug('lrem err:' + JSON.stringify(err));
+                            logger.debug('removeSocket getAllUsers:' + JSON.stringify(err));
                             callback(err);
-                        }                      
-                        callback(err, data);
-                    });
-                });
+                        }
+                        var found = _.find(list, function (d) {
+                            return d.socketId == id;
+                        });
 
+                        // socket doesn't exist in app Set
+                        if (!found) {
+                            callback(null);
+                        }
+
+                        redisInterface.lrem(self.createKey(appName), -1, JSON.stringify(found), function (err, data) {
+                            if (err){
+                                logger.debug('lrem err:' + JSON.stringify(err));
+                                callback(err);
+                            }                      
+                            callback(err, data);
+                        });
+                    });
+                }
             });
 
         },

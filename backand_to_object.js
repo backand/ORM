@@ -56,9 +56,9 @@ function signup(signUpToken, email, password, confirmPassword, firstName, lastNa
         },
 
         function (error, response, body) {
-            console.log(error);
-            console.log(body);
-            console.log(response.statusCode);
+            // console.log(error);
+            // console.log(body);
+            // console.log(response.statusCode);
             if (!error && response.statusCode == 200) {
                 // var body = JSON.parse(body);
                 if (body.username != '') {
@@ -107,7 +107,7 @@ function signin(appName, username, password, callback) {
 
         function (error, response, body) {
             console.log(error);
-            console.log(body);
+            // console.log(body);
             console.log(response.statusCode);
             if (!error && response.statusCode == 200) {
                 // var body = JSON.parse(body);
@@ -126,25 +126,33 @@ function signin(appName, username, password, callback) {
        
 }
 
-// signin('stress', 'third@aol.com', '123456', function(err, result){
+// signin('stress', 'third@aol.com', '123456', function(err, data){
 //     console.log(err);
-//     console.log(result);
-//     process.exit(0);
+//     console.log(data);
+//     if (!err){
+//         var d = JSON.parse(data);
+//         console.log(d.access_token);
+//         getUserDetails(
+//             'bearer ' + d.access_token,
+//             null,
+//             'stress',
+//             function(err, result){
+//                 console.log(err);
+//                 console.log(result);
+//                 process.exit(1);
+//             }
+//         );
+//     }
+//     else{
+//        process.exit(0); 
+//     }
+    
 // });
 
-// getUserDetails(
-//     'VTluQRAn4YueaWb87GX5K2iIxDqikQoaJyddoqJzNmCpiVbFAqInUCj5iELZp2ZmpEFdJVp7hGrEkEqQabFtqvd7X0gsJYqKZhfX8ZNgtSKoHqfAqMcRZ5mvzHaIcr6zobjS7p-nwhdxh2g5qqHGbSlno4B6LKQWGRKWFFtf_UbyQvsdcBQYKdCXJGbEOBnZlYl-RefonCLZsMpILEco2Dd21g77Ee_yAJ_NAcP5R0ftNt-x9PaRbSSL_51UrAXZ',
-//     null,
-//     'stress',
-//     function(err, data){
-//         console.log(err);
-//         console.log(data);
-//         process.exit(1);
-//     }
-// );
+
 
 function getUserDetails(accessToken, anonymousToken, appName, callback) {
-    console.log('getUserDetails', accessToken, anonymousToken, appName);
+    // console.log('getUserDetails', accessToken, anonymousToken, appName);
     function isEmpty(str) {
         // source: http://stackoverflow.com/questions/1812245/what-is-the-best-way-to-test-for-an-empty-string-with-jquery-out-of-the-box/33672308#33672308
         return typeof str == 'string' && !str.trim() || typeof str == 'undefined' || str === null;
@@ -173,11 +181,11 @@ function getUserDetails(accessToken, anonymousToken, appName, callback) {
         },
 
         function (error, response, body) {
-            console.log(error);
-            console.log(response.statusCode);
+            // console.log(error);
+            // console.log(response.statusCode);
             if (!error && response.statusCode == 200) {
                 var body = JSON.parse(body);
-                console.log('getUserDetails', body);
+                // console.log('getUserDetails', body);
                 if (body.username != '') {
                     callback(false, body);
                 }
