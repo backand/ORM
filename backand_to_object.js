@@ -69,7 +69,12 @@ function signup(signUpToken, email, password, confirmPassword, firstName, lastNa
                 }
             }
             else {
-                callback(error, null);
+                if (error){
+                    callback(error, null);
+                }
+                else{
+                    callback(true, null);
+                }
             }
         }
     );
@@ -119,7 +124,12 @@ function signin(appName, username, password, callback) {
                 }
             }
             else {
-                callback(error, null);
+                if (error){
+                    callback(error, null);
+                }
+                else{
+                    callback(true, null);
+                }
             }
         }
     );
