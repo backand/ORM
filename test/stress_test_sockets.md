@@ -19,6 +19,10 @@ Wait 10 minutes. Look at number of concurrent processess running
 
     node worker.js
 
+In Linux you get it with, 
+
+    watch 'ps uax|grep worker.js|grep -v grep|wc -l'
+
 This number is set at the top of stress-test-socket-server.js, 
 
     var numWorkers = 200;
@@ -27,4 +31,6 @@ So it should be as specified in the file.
 
 4. test/test_emit.js
 Testing emit continously with no delay
+
+
     
