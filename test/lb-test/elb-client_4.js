@@ -3,9 +3,9 @@ var socket = require('socket.io-client')('http://yariv-495407567.us-east-1.elb.a
 	//QA-Socket-1441320464.us-east-1.elb.amazonaws.com:80');
 
 socket.on('connect', function(){
-    console.log('connected first');
+    console.log('connected four');
     var r = Math.random();
-	socket.emit('clientMessage', 'first ' + r);
+	socket.emit('clientMessage', 'four ' + r);
 });
 
 socket.on('disconnect', function(){
@@ -19,7 +19,7 @@ socket.on('reconnecting', function(){
 socket.on('reconnect', function(){
     console.log('reconnect');
     var r = Math.random();
-	socket.emit('clientMessage', 'first ' + r);
+	socket.emit('clientMessage', 'four ' + r);
 });
 
 socket.on('error', function(error){
@@ -27,7 +27,7 @@ socket.on('error', function(error){
 });
 
 socket.on('serverMessage', function(data){
-	console.log('echo first:', data);
+	console.log('echo four:', data);
 });
 
 
