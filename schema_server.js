@@ -694,6 +694,52 @@ router.map(function () {
         });
     })
 
+    this.post('/security/compare').bind(function(req,res,data){
+        console.log(data);
+        var password = data.password
+        var hashedPassword = data.hashedPassword;
+
+        if(!password || !hashedPassword){
+            res.send(500, { error: 'password and hashedPassword must be fulfilled' }, {});
+        }
+
+        bcrypt.compare(password, hashedPassword, function(err, success) {
+            if (err) {
+                res.send(500, { error: err }, {});
+            } else {
+                console.log(success);
+                if(success){
+                    res.send(200, {}, null);
+                }
+                else {
+                    res.send(401, { msg: 'password and hash are not same' }, {});
+                }
+            }
+        });
+    })
+
+    this.post('/security/hash').bind(function(req,res,data){
+        console.log(data);
+        var password = data.password
+        var salt = null;
+        if (data.salt){
+            salt = data.salt;
+        }
+
+        if(!password){
+            res.send(500, { error: 'password must be fulfilled' }, {});
+        }
+
+        bcrypt.hash(password, salt, null, function(err, encrypted) {
+            if (err) {
+                res.send(500, { error: err }, {});
+            } else {
+                console.log(encrypted);
+                res.send(200, {}, {encrypted:encrypted});
+            }
+        });
+    })
+
 
 });
 

@@ -1,9 +1,17 @@
 var config = {
+    //api_url: "https://api.backand.com",
     api_url: "http://localhost:4110",
     redis: {
-        "port": 10938,
-        "hostname": "pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com",
-        "option": {"auth_pass": "bell1234"}
+        // "port": 10938,
+        // "hostname": "pub-redis-10938.us-east-1-4.3.ec2.garantiadata.com",
+        // "option": {"auth_pass": "bell1234"}
+
+        // new account at https://app.redislabs.com
+        // username: relly@backand.com
+        // password: Backand2015
+        // resource: backanddev
+        "port": 15996,
+        "hostname": "redis-15996.c8.us-east-1-4.ec2.cloud.redislabs.com"
     },
     transformAddress: {
         'host': 'localhost',
