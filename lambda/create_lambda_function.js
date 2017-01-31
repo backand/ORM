@@ -15,7 +15,7 @@ function createLambdaFunctionFromS3(bucket, folder, fileName, functionName, hand
     FunctionName: functionName, /* required */
     Handler: handlerName + "." + callFunctionName, /* required */
     Role: 'arn:aws:iam::328923390206:role/lambda_control', /* required */
-    Runtime: 'nodejs', /* required */
+    Runtime: 'nodejs4.3', /* required */
     // Description: 'STRING_VALUE',
     MemorySize: 128,
     Publish: true,
