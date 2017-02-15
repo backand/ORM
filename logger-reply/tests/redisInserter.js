@@ -2,36 +2,12 @@
  * Created by backand on 3/27/16.
  */
 
+ var async = require('async');
+
 var logEntry = 'log_api';
-var redisConfig = require('../../configFactory').getConfig().redis;
+var RedisDataSource = require('../sources/redisDataSource');
 
-var redisPort = redisConfig.port;
-var redisHostname = redisConfig.hostname;
-var option = redisConfig.option;
-
-var redis = require('redis'),
-    RedisStore = require('socket.io-redis');
-
-
-function RedisDataSource(cb) {
-
-    var current = this;
-    this.redisInterface = redis.createClient(redisPort, redisHostname, option);
-    this.redisInterface.on('connect', function () {
-        current.readyToRead = true;
-        console.log('connected to redis');
-        cb();
-    });
-    this.redisInterface.on('error', function () {
-        //this.readyToRead = true;
-    });
-
-
-}
-
-var i = 0;
-
-var message = `{
+var message = {
     "Source": "WebApi#",
     "ID": "testtrans03",
     "ApplicationName": "localhost:4110",
@@ -51,43 +27,16 @@ var message = `{
     "Refferer": "http://localhost:3001/",
     "Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0",
     "Languages": "en-US,en;q=0.5"
-}`;
+};
 
-RedisDataSource.prototype.insertEvent = function (cb) {
-    //console.log("aaaa");
+var redisInterface = new RedisDataSource();
 
-    if (!cb) {
-        throw new Error("callback must be valid;");
-    }
-
-    if (!this.readyToRead) {
-        console.log("not ready");
-
-        cb(null);
-        return;
-    }
-    var fMessage = message.replace('#', i++);
-
-    this.redisInterface.lpush(logEntry,fMessage,  function (err, data) {
-        console.log(i);
-        cb();
+async.timesSeries(1000, function(n, next) {
+    message.Source = 'WebApi' + n;
+    redisInterface.insertEvent(logEntry, message, function(err, result){
+        next(err, result);
     });
-}
-
-
-module.exports = RedisDataSource;
-
-
-var rr = new RedisDataSource(add);
-
-
-function add(){
-    if(!rr.readyToRead){
-        setTimeout(add, 1000);
-    }
-
-    if(i < 1000){
-        rr.insertEvent(add);
-    }
-}
-
+}, function(err, a) {
+    console.log(err, a);
+    process.exit(0);
+});
