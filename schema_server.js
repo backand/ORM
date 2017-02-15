@@ -46,6 +46,10 @@ var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
 var getCron = require('./cron/get_cron').getCron;
 
+var RedisDataSource = require('../sources/redisDataSource');
+var redisDataSource = new RedisDataSource();
+
+
 var fs = require('fs');
 
 fs.watchFile(__filename, function (curr, prev) {
@@ -740,6 +744,28 @@ router.map(function () {
         });
     })
 
+    this.post('/lastHourExceptions').bind(function(req,res,data){
+        // fetch a page of last hour exceptions
+        // parameters of POST:
+        // appName
+        // fromTimeEpochTime - start time in Epoch units
+        // toTimeEpochTime - end time in Epoch units
+        // offset - start of page
+        // count - number of elements on page
+        console.log(data);
+        redisDataSource.filterSortedSet(data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, interleavedValueAndKeyArray){
+            if (err) {
+                res.send(500, { error: err }, {});
+            } else {
+                console.log(interleavedValueAndKeyArray);
+                res.send(200, {}, 
+                    _.filter(interleavedValueAndKeyArray, function(value, index){
+                        return index % 2 == 0;
+                    })
+                );
+            }
+        });
+    });
 
 });
 

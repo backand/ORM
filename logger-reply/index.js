@@ -3,19 +3,24 @@ process.chdir(__dirname);
 var BULK_SIZE = 100;
 
 var fs = require('fs');
+
 var RedisSource = require('./sources/redisDataSource');
 var redisSource = new RedisSource();
+
 var CoolaAppender = require('./appenders/cooladataAppender');
 var coolaAppender = new CoolaAppender();
 
 var RabbitAppender = require('./appenders/rabbitAppender');
 var rabbitAppender = new RabbitAppender();
 
+var RedisAppender = require('./appenders/redisAppender');
+var redisAppender = new RedisAppender();
+
 var async = require('async');
 // var logstashApender = new require('./appenders/logstashAppender')();
 var FileApender = require('./appenders/fileAppender');
 var fileAppender = new FileApender();
-var appenders = [fileAppender, coolaAppender, rabbitAppender];
+var appenders = [fileAppender, coolaAppender, rabbitAppender, redisAppender];
 
 var lastMessageTime = new Date();
 var bulk = [];
