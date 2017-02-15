@@ -13,6 +13,7 @@ var redisHostname = redisConfig.hostname;
 var option = redisConfig.option;
 
 var redis = require('redis');
+var redis_scanner = require('redis-scanner');
 
 
 
@@ -21,6 +22,16 @@ function RedisDataSource() {
     var current = this;
     this.readyToRead = false;
     this.redisInterface = redis.createClient(redisPort, redisHostname, option);
+    var options = {
+        count: '100',
+        onData: function(result){
+            
+        },
+        onEnd: function(err){
+        
+        }
+    };
+    this.scanner = new redis_scanner.Scanner(this.redisInterface, 'SCAN', null, options);
 
     this.redisInterface.on('connect', function () {
         current.readyToRead = true;
@@ -143,6 +154,33 @@ RedisDataSource.prototype.filterSortedSet = function (logEntry, fromScore, toSco
 
             if (!err){     
                 current.redisInterface.zrangebyscore(logEntry, fromScore, toScore, 'WITHSCORES', 'LIMIT', offset, count, function (err, data) {
+                    console.log(err);
+                    cb(err, data);
+                });
+            }
+            else{
+                cb(err);
+            }
+        }
+    );
+
+}
+
+RedisDataSource.prototype.scan = function (count, cb) {
+    
+    var current = this;
+
+    async.during(
+        function (callback) {
+            return callback(null, !current.readyToRead);
+        },
+        function (callback) {
+            setTimeout(callback, 1000);
+        },
+        function (err) {
+
+            if (!err){     
+                current.redisInterface.scan(count, function (err, data) {
                     console.log(err);
                     cb(err, data);
                 });

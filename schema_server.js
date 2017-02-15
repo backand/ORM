@@ -46,7 +46,7 @@ var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
 var getCron = require('./cron/get_cron').getCron;
 
-var RedisDataSource = require('../sources/redisDataSource');
+var RedisDataSource = require('./logger-reply/sources/RedisDataSource');
 var redisDataSource = new RedisDataSource();
 
 
@@ -769,6 +769,8 @@ router.map(function () {
 
 });
 
+
+
 require('http').createServer(function (request, response) {
     //logger.info('start server on port 9000 ' + version);
     var body = "";
@@ -786,6 +788,45 @@ require('http').createServer(function (request, response) {
         });
     });
 }).listen(9000);
+
+setInterval(expireExceptions, 1000);
+
+function expireExceptions(){
+    
+    count = 1;
+    async.whilst(
+        function() { return count > 0; },
+        function(callback) {
+
+            redisDataSource.scan(100, function(err, data){
+                if (err){
+                    callback(err);
+                }
+                else{
+                    count = data[0];
+                    if (data[0] == 0){
+                        callback(null, null);
+                    }
+                    else{
+                        async.each(data, 
+                            function(key, cb){
+                                var topScore = (new Date()).getTime();
+                                redisDataSource(key, topScore, cb);
+                            }, 
+                            function(error){
+                                callback(error);
+                            }
+                        );
+                    }
+
+                }
+            });
+        },
+        function (err, result) {
+            
+        }
+    );
+}
 
 function getToken(headers) {
     if (headers.Authorization || headers.authorization) {

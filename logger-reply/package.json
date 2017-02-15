@@ -13,8 +13,8 @@
     "async": "^2.1.4",
     "lodash": "^4.17.4",
     "log4js": "^0.6.33",
-    "moment": "^2.17.1",
     "redis": "^2.6.0-0",
+    "redis-scanner": "^0.1.1",
     "request": "^2.69.0",
     "unirest": "latest"
   }
