@@ -1,8 +1,10 @@
 /**
  * Created by backand on 3/27/16.
  */
-
-
+var dir ='';
+var serverConfig = require('../../configFactory').getConfig().socketConfig;
+if(serverConfig.logPath)
+	dir = serverConfig.logPath;
 var fs = require('fs');
 // use {'flags': 'a'} to append and {'flags': 'w'} to erase and write a new file
 
@@ -24,10 +26,11 @@ function checkFileExist(path) {
 }
 
 function getFileName() {
-    var path = 'log_0.txt';
+	
+    var path = dir + 'log_0.txt';
     var i = 0;
     while (checkFileExist(path)) {
-        path = 'log_' + (i++) + '.txt';
+        path = dir + 'log_' + (i++) + '.txt';
     }
 
     return path;
