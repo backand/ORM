@@ -29,11 +29,23 @@ var message = {
     "Languages": "en-US,en;q=0.5"
 };
 
-var redisInterface = new RedisDataSource();
+var redisDataSource = new RedisDataSource();
+redisDataSource.scan(
+    function(data){
+        console.log("----");
+        console.log(data);
+        console.log("====");
+    },
+    function(err){
+        console.log("err");
+        console.log(err);
+        process.exit(0);
+    }
+);
 
 async.timesSeries(1000, function(n, next) {
     message.Source = 'WebApi' + n;
-    redisInterface.insertEvent(logEntry, message, function(err, result){
+    redisDataSource.insertEvent(logEntry, message, function(err, result){
         next(err, result);
     });
 }, function(err, a) {

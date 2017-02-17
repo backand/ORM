@@ -15,23 +15,24 @@ var option = redisConfig.option;
 var redis = require('redis');
 var redis_scanner = require('redis-scanner');
 
-
+var scanCallbacks = {};
 
 function RedisDataSource() {
 
     var current = this;
     this.readyToRead = false;
     this.redisInterface = redis.createClient(redisPort, redisHostname, option);
-    var options = {
-        count: '100',
+
+    var optionsScanner = {
         onData: function(result){
-            
+            scanCallbacks.onData(result);
+
         },
         onEnd: function(err){
-        
+            scanCallbacks.onEnd(err);
         }
     };
-    this.scanner = new redis_scanner.Scanner(this.redisInterface, 'SCAN', null, options);
+    this.scanner = new redis_scanner.Scanner(this.redisInterface, 'SCAN', null, optionsScanner);
 
     this.redisInterface.on('connect', function () {
         current.readyToRead = true;
@@ -166,7 +167,7 @@ RedisDataSource.prototype.filterSortedSet = function (logEntry, fromScore, toSco
 
 }
 
-RedisDataSource.prototype.scan = function (count, cb) {
+RedisDataSource.prototype.scan = function (onData, onEnd) {
     
     var current = this;
 
@@ -179,14 +180,17 @@ RedisDataSource.prototype.scan = function (count, cb) {
         },
         function (err) {
 
-            if (!err){     
-                current.redisInterface.scan(count, function (err, data) {
-                    console.log(err);
-                    cb(err, data);
-                });
+            if (!err){   
+
+                scanCallbacks = {
+                    onData: onData,
+                    onEnd: onEnd
+                }
+                current.scanner.start();
+                
             }
             else{
-                cb(err);
+                onEnc(err);
             }
         }
     );
@@ -217,6 +221,33 @@ RedisDataSource.prototype.expireSortedSet = function (logEntry, topScore, cb) {
         }
     );
 
+}
+
+RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds) {
+    var current = this;
+
+    async.during(
+        function(callback) { 
+            return callback(null, !current.readyToRead);
+        },
+        function(callback) {
+
+            redisDataSource.scan(
+
+                function(data){
+                    var topScore = (new Date()).getTime() - deltaMilliseconds;
+                    current.expireSortedSet(key, topScore, cb);
+                }, 
+
+                function(err){
+                    
+                }
+            );
+        },
+        function (err) {
+            console.log(err);
+        }
+    );
 }
 
 RedisDataSource.prototype.insertEvent = function (logEntry, message, cb) {

@@ -748,8 +748,8 @@ router.map(function () {
         // fetch a page of last hour exceptions
         // parameters of POST:
         // appName
-        // fromTimeEpochTime - start time in Epoch units
-        // toTimeEpochTime - end time in Epoch units
+        // fromTimeEpochTime - start time in milliseconds from epoch
+        // toTimeEpochTime - end time in milliseconds from epoch
         // offset - start of page
         // count - number of elements on page
         console.log(data);
@@ -789,43 +789,11 @@ require('http').createServer(function (request, response) {
     });
 }).listen(9000);
 
-setInterval(expireExceptions, 1000);
+setInterval(expireExceptions, 6000);
 
 function expireExceptions(){
-    
-    count = 1;
-    async.whilst(
-        function() { return count > 0; },
-        function(callback) {
-
-            redisDataSource.scan(100, function(err, data){
-                if (err){
-                    callback(err);
-                }
-                else{
-                    count = data[0];
-                    if (data[0] == 0){
-                        callback(null, null);
-                    }
-                    else{
-                        async.each(data, 
-                            function(key, cb){
-                                var topScore = (new Date()).getTime();
-                                redisDataSource(key, topScore, cb);
-                            }, 
-                            function(error){
-                                callback(error);
-                            }
-                        );
-                    }
-
-                }
-            });
-        },
-        function (err, result) {
-            
-        }
-    );
+    // delete those entries one hour ago
+    redisDataSource.expireElementsOfSets(60 * 60 * 100);
 }
 
 function getToken(headers) {
