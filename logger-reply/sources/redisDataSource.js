@@ -141,7 +141,6 @@ RedisDataSource.prototype.addEventToSortedSet = function (logEntry, score, messa
 }
 
 RedisDataSource.prototype.filterSortedSet = function (logEntry, fromScore, toScore, offset, count, cb) {
-    console.log('filterSortedSet', logEntry, fromScore, toScore);
     var current = this;
 
     async.during(
@@ -155,8 +154,14 @@ RedisDataSource.prototype.filterSortedSet = function (logEntry, fromScore, toSco
 
             if (!err){     
                 current.redisInterface.zrangebyscore(logEntry, fromScore, toScore, 'WITHSCORES', 'LIMIT', offset, count, function (err, data) {
-                    console.log(err);
-                    cb(err, data);
+                    cb(err, 
+                        _.filter(
+                                interleavedValueAndKeyArray, 
+                                function(value, index){
+                                    return index % 2 == 0;
+                                }
+                        )
+                    );
                 });
             }
             else{
@@ -211,7 +216,6 @@ RedisDataSource.prototype.expireSortedSet = function (logEntry, topScore, cb) {
 
             if (!err){     
                 current.redisInterface.zremrangebyscore(logEntry, 0, topScore, function (err, data) {
-                    console.log(err);
                     cb(err, data);
                 });
             }
