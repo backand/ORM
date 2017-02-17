@@ -236,4 +236,38 @@ describe("translate mysql", function(){
 
     });
 
+    it("between", function(done){
+		this.timeout(4000);
+
+		var email = "kornatzky@me.com";
+		var password = "secret";
+		var appName = "testsql";
+
+		try {
+			transformJsonIntoSQL(email, password, appName, 
+				{
+					"object" : "Dept",
+					"q": {
+						"Budget" : {
+							"$between": [3000, 4500]
+						}
+					},
+					"fields" : ["DeptId"]
+				},
+
+				false,
+
+				function(err, sql){
+					expect(err).to.deep.equal(null);
+					expect(sql).to.equal("SELECT DeptId FROM Dept WHERE Budget BETWEEEM 3000 AND 4500");
+					done();				
+				}
+			);
+            done();
+        }
+        catch (e) {
+            done(e);
+        }
+	});
+
 });
