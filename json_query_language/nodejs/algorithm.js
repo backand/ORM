@@ -13,7 +13,7 @@ var fetchTables = require("../../backand_to_object").fetchTables;
 var validTypes = require("../../validate_schema").validTypes;
 
 var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like", "$within", 
-	"$withinMeters", "$withinKilometers", "$withinMiles", "$withinFeet", "$or"];
+	"$withinMeters", "$withinKilometers", "$withinMiles", "$withinFeet", "$or", "$between"];
 var aggregationOperators = ["$max", "$min", "$sum", "$count", "$concat", "$avg"];
 
 var mysqlOperator = {
@@ -39,7 +39,8 @@ var mysqlOperator = {
 	"$withinMeters": "ST_Distance",
 	"$withinKilometers": "ST_Distance",
 	"$withinMiles": "ST_Distance",
-	"$withinFeet": "ST_Distance"
+	"$withinFeet": "ST_Distance",
+	"$between": "BETWEEN"
 };
 
 var mySQLAggregateOperators = ["MAX", "MIN", "SUM", "COUNT", "GROUP_CONCAT", "AVG"];
@@ -986,6 +987,9 @@ function generateQueryConditional(qc, table, column){
 	else if (comparisonOperator == "$like" && (table.fields[column].type != "string" && table.fields[column].type != "text")){
 		throw "$like is not valid for column " + column + " of table " + table.name + " because it is not a string or text column";
 	}
+	else if (comparisonOperator == "$between" && (table.fields[column].type != "float" && table.fields[column].type != "date" && table.fields[column].type != "datetime")){
+		throw "$between is not valid for column " + column + " of table " + table.name + " because it is not a float or date or datetime column";
+	}
 	else if (s.startsWith(comparisonOperator,"$within") && table.fields[column].type != "point"){
 		throw comparisonOperator + " is not valid for column " + column + " of table " + table.name + " because it is not a point column";
 	}
@@ -1018,7 +1022,12 @@ function generateQueryConditional(qc, table, column){
 			generatedComparand = parserState.shouldGeneralize ? assignNewVariable(comparand, t) : comparand;
 	}
 	else if (Array.isArray(comparand)){ // array
-		generatedComparand = comparand;
+		if (comparisonOperator == "$between"){
+			generatedComparand = comparand.join(" AND ");
+		}
+		else{
+			generatedComparand = comparand;
+		}
 	}
 	else{ // sub query
 		var subquery = generateQuery(comparand);
