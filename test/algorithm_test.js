@@ -1,8 +1,11 @@
 process.chdir(__dirname);
 var expect = require("chai").expect;
+var _ = require('underscore');
+
 var transformJson = require("../json_query_language/nodejs/algorithm").transformJson;
 
 describe("algorithm", function(){
+
 	it("aggregate", function(done){
 		var json = 
 			{
@@ -258,6 +261,78 @@ describe("algorithm", function(){
 
 	});
 
+	it("group by with aggregate", function(done){		
+		var json = {			
+			"object" : "Employees",
+			"dbName": "blabla",
+			"q" : {
+				"$or" : [
+					{
+						"Salary" : {
+							"$gt" : 20
+						}
+					},
+					{
+						"Location" : { 
+							"$like" :  "Tel Aviv"
+						}
+					}
+				]
+			},
+			fields: ["Location", "country"],
+			order: [["X", "asc"], ["Budget", "desc"]],
+			groupBy: ["country"],
+			aggregate: {
+				Location: "$concat"
+			}				
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Employees", 
+		  		"dbName": "blabla",
+		  		"fields" : {
+					"Budget": {
+						"dbname": "bbb",
+						"type": "float"
+					},
+					"Location": {
+						"type": "string"
+					},
+					"Salary": {
+						"type": "float"
+					},
+					"X": {
+						"type": "string"
+					},
+					"country": {
+						"type": "string"
+					}
+				}
+			},
+			{
+				"name" : "Person", 
+				"fields" : {
+					"name": {
+						"type": "string"
+					},
+					"City": {
+						"type": "string"
+					},
+					"country": {
+						"type": "string"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal("SELECT `blabla`.`GROUP_CONCAT(Location)` AS `Location`,`blabla`.`country` FROM `blabla` WHERE ((( `blabla`.`Salary` > 20 ) OR ( `blabla`.`Location` LIKE ( \'%Tel Aviv%\' )  ))) GROUP BY `blabla`.`country` ORDER BY `blabla`.`X` asc , `blabla`.`Budget` desc ");
+			done();						
+        });
+    });
+
 	it("union", function(done){
 		var json = 
 			{
@@ -339,9 +414,8 @@ describe("algorithm", function(){
 		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){
 			expect(err).to.equal(null);
 			expect(result).to.deep.equal(
-
 				{ 
-					sql: 'SELECT `blabla`.`GROUP_CONCAT(Location)` AS `Location`,`blabla`.`country` FROM `blabla` WHERE (( `blabla`.`Budget` > 20 ) OR ( `blabla`.`Location` LIKE ( \'%Tel Aviv%\' )  )) GROUP BY `blabla`.`country` ORDER BY `blabla`.`X` asc , `blabla`.`Budget` desc  UNION SELECT `Person`.`City`,`Person`.`country` FROM `Person` WHERE (`Person`.`name` = \'john\')   LIMIT 11',
+					sql: "SELECT `blabla`.`GROUP_CONCAT(Location)` AS `Location`,`blabla`.`country` FROM `blabla` WHERE ((( `blabla`.`Budget` > 20 ) OR ( `blabla`.`Location` LIKE ( '%Tel Aviv%' )  ))) GROUP BY `blabla`.`country` ORDER BY `blabla`.`X` asc , `blabla`.`Budget` desc  UNION SELECT `Person`.`City`,`Person`.`country` FROM `Person` WHERE (`Person`.`name` = 'john')   LIMIT 11",
 					select: '',
 					from: '',
 					where: '',
@@ -355,4 +429,227 @@ describe("algorithm", function(){
 		});
 
 	});
+
+	it("or query", function(done){	
+		var json =  {
+			"object" : "Employees",
+			"q" : {
+				"$or" : [
+					{
+						"Budget" : {
+							"$gt" : 3000
+						}
+					},
+					{
+						"Location" : "Tel Aviv"
+					}
+				]
+			}
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Employees", 
+		  		"fields" : {
+					"Budget": {
+						"dbname": "bbb",
+						"type": "float"
+					},
+					"Location": {
+						"type": "string"
+					},
+					"X": {
+						"type": "float"
+					},
+					"y": {
+						"object": "users"
+					},
+					"country": {
+						"type": "string"
+					},
+					"DeptId": {
+						"type": "string"
+					}
+				}
+			},
+			{
+				"name" : "Dept", 
+				"fields" : {
+					"DeptId": {
+						"type": "string"
+					},
+					"Budget": {
+						"type": "float"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal('SELECT * FROM `Employees` WHERE ((( `Employees`.`Budget` > 3000 ) OR ( `Employees`.`Location` = \'Tel Aviv\' )))   ');
+        	done();
+    	});
+        
+	});
+
+	it("retrieve parent object based on child object properties", function(done){
+
+		var json = {
+			"object": "Dept",
+			"q": {
+				"DeptId" : {
+					"$in": {
+						"object": "Employees",
+						"q": {
+							"age": 30
+						},
+						"fields": ["DeptId"]
+					}
+				}
+			}
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Employees", 
+		  		"fields" : {
+					"Budget": {
+						"dbname": "bbb",
+						"type": "float"
+					},
+					"Location": {
+						"type": "string"
+					},
+					"age": {
+						"type": "float"
+					},
+					"country": {
+						"type": "string"
+					},
+					"DeptId": {
+						"type": "string"
+					}
+				}
+			},
+			{
+				"name" : "Dept", 
+				"fields" : {
+					"DeptId": {
+						"type": "string"
+					},
+					"Budget": {
+						"type": "float"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal('SELECT * FROM `Dept` WHERE (`Dept`.`DeptId` IN ( ( SELECT `Employees`.`DeptId` FROM `Employees` WHERE (`Employees`.`age` = 30)    ) ) )   ');
+			done();				
+        });
+	});
+
+	it("retrieve parent object based existence of child with properties", function(done){
+		var json = {
+			"object": "Dept",
+			"q": {
+				"$exists": {
+					"object": "Employees",
+					"q": {
+						"age": 30
+					},
+					"fields": ["DeptId"]
+				}
+			}
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Employees", 
+		  		"fields" : {
+					"Budget": {
+						"dbname": "bbb",
+						"type": "float"
+					},
+					"Location": {
+						"type": "string"
+					},
+					"age": {
+						"type": "float"
+					},
+					"country": {
+						"type": "string"
+					},
+					"DeptId": {
+						"type": "string"
+					}
+				}
+			},
+			{
+				"name" : "Dept", 
+				"fields" : {
+					"DeptId": {
+						"type": "string"
+					},
+					"Budget": {
+						"type": "float"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal('SELECT * FROM `Dept` WHERE (EXISTS (SELECT `Employees`.`DeptId` FROM `Employees` WHERE (`Employees`.`age` = 30)    ))   ');
+			done();
+		});
+    });
+
+    it("between", function(done){
+		var json = {
+			"object" : "Dept",
+			"q": {
+				"Budget" : {
+					"$between": [3000, 4500]
+				}
+			},
+			"fields" : ["DeptId"]
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Dept", 
+		  		"fields" : {
+					"Budget": {
+						"type": "float"
+					},
+					"Location": {
+						"type": "string"
+					},
+					"X": {
+						"type": "float"
+					},
+					"y": {
+						"object": "users"
+					},
+					"country": {
+						"type": "string"
+					},
+					"DeptId": {
+						"type": "string"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal('SELECT `Dept`.`DeptId` FROM `Dept` WHERE (`Dept`.`Budget` BETWEEN 3000 AND 4500)   ');
+			done();				            
+        });
+	});
+
 });
