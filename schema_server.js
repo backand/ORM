@@ -753,22 +753,115 @@ router.map(function () {
         // offset - start of page
         // count - number of elements on page
         console.log(data);
-        redisDataSource.filterSortedSet(data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, interleavedValueAndKeyArray){
+        redisDataSource.filterSortedSet(data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
             if (err) {
                 res.send(500, { error: err }, {});
             } else {
-                console.log(interleavedValueAndKeyArray);
-                res.send(200, {}, 
-                    _.filter(interleavedValueAndKeyArray, function(value, index){
-                        return index % 2 == 0;
-                    })
-                );
+                res.send(200, {}, _.map(
+                    _.filter(a, filterException), 
+                    mungeLogOfException
+                ));
             }
         });
     });
 
 });
 
+function filterException(e){
+    return 
+        e.FreeText.replace(/https\/\/api.backand.com/g,'') != '/1/app/sync' &&
+        !e.Username.match(/@backand.com/) &&
+        e.FreeText.match(/https\/\/api.backand.com/);
+}
+
+function mungeLogOfException(e){
+
+    var AdjustedRequest = (e.FreeText.match(/\?/g) ? e.FreeText : e.FreeText + '?').replace(/\/\?/g, '?');
+
+    return {
+        Type: extractType(AdjustedRequest),
+        ObjectName: extractObjectName(AdjustedRequest),
+        ActionName: extractActionName(AdjustedRequest),
+        QueryName: extractQueryName(AdjustedRequest),
+        Guid: e.Guid,
+        Request: e.FreeText.replace(/https\/\/api.backand.com/g, ''),
+        AdjustedRequest: AdjustedRequest,
+        Username: e.Username,
+        ClientIP: e.ClientIP,
+        Time: e.Time,
+        Refferer: e.Refferer,
+        Duration: e.RequestTime,
+        Method: e.Action,
+        LogMessage: e.LogMessage,
+        LogType: e.LogType,
+        ExceptionMessage: e.ExceptionMessage,
+        Trace: e.Trace
+    }
+
+}
+
+function extractType(txt){
+    if (txt.match('/1/query/data')){
+        return 'query';
+    }
+    else if (txt.match('(/1/objects|/1/table/data|/1/view/data)')){
+        if (txt.match('/action/')){
+            return 'action';
+        }
+        else{
+            return 'object';
+        }
+    }
+    else{
+        return null;
+    }
+}
+
+function extractObjectName(txt){
+    if (AdjustedRequest.match(/objects\/action\/[a-zA-z0-9]\?/g)){
+        var results = AdjustedRequest.exec(/objects\/action\/[a-zA-z0-9]\?/);
+        return results[0].replace(/objects\/action\/|\?$/g, '');
+    }
+    else if (AdjustedRequest.match(/objects\/action\/.*\/[a-zA-z0-9]\?/g)){        
+        var results = AdjustedRequest.exec(/objects\/action\/.\/[a-zA-z0-9]\?/);
+        return results[0].replace(/objects\/action\/|\/.\?$/g, '');
+    }    
+    else if (AdjustedRequest.match(/objects\/[a-zA-z0-9]\?/g)){
+        var results = AdjustedRequest.exec(/objects\/[a-zA-z0-9]\?/);
+        return results[0].replace(/objects\/|\?$/, '');
+    }
+    else if (AdjustedRequest.match(/(objects\/.*\/[a-zA-z0-9]\?)/)){
+        var results = AdjustedRequest.exec(/objects\/.\/[a-zA-z0-9_]\?/);
+        return results[0].replace(/objects\/|\/.\?$/, '');
+    }
+    else {
+       return null;
+    }
+}
+
+function extractQueryName(txt){
+    if (AdjustedRequest.match(/query\/data\/[a-zA-z0-9\\-]\?/)){
+        var results = AdjustedRequest.exec(/query\/data\/[a-zA-z0-9\\-]\?/);
+        return results[0].replace(/query\/data\/|\?$/, '');
+    }
+    else{
+        return null;
+    }
+}
+
+function extractActionName(txt){
+    if (AdjustedRequest.match(/objects\/action\/[a-zA-z0-9]\?/)){
+        var results = AdjustedRequest.exec(/\?name\=.[\&]?/);
+        return results[0].replace(/\?name=|\&./g, '');
+    }
+    else if (AdjustedRequest.match(/objects\/action\/.\/[a-zA-z0-9\_]\?/)){
+        var results = AdjustedRequest.exec(/\?name\=.[\&]?/);
+        return results[0].replace(/\?name=|\&.*/, '');
+    }
+    else{
+        return null;
+    }
+}
 
 
 require('http').createServer(function (request, response) {
