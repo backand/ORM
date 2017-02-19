@@ -6,6 +6,41 @@ var transformJson = require("../json_query_language/nodejs/algorithm").transform
 
 describe("algorithm", function(){
 
+	it("and", function(done){
+		var json = {
+			"object" : "Employees",
+			"q": { 
+				"position": "Sales Manager", 
+				"age" : { "$lt" : 25 }, 
+				"city": "Boston" 
+			}
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Employees", 
+		  		"fields" : {
+					"city": {
+						"type": "string"
+					},
+					"age": {
+						"type": "float"
+					},
+					"position": {
+						"type": "string"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
+			console.log(result);
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal("SELECT * FROM `Employees` WHERE (`Employees`.`position` = \'Sales Manager\' AND `Employees`.`age` < 25 AND `Employees`.`city` = \'Boston\')   ");
+			done();				            
+        });
+	});
+
 	it("aggregate", function(done){
 		var json = 
 			{
