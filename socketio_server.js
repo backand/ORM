@@ -15,14 +15,15 @@ var socketBl = require('./web_sockets/redis_bl')
 var config = require('./configFactory').getConfig();
 var redisConfig = config.redis;
 var httpsConfig = config.socketConfig;
-var logger = require('./logging/logger').getLogger("socketio_" + config.env);
+var Logger = require('./logging/log_with_redis');
+var logger = new Logger("socketio_" + config.env);
 
-logger.info("start with config " + config.env);
+logger.log("start with config " + config.env);
 
 //require('./logging/metrics').monitor();
 
 fs.watchFile(__filename, function(curr,prev) {
-    logger.info("close process for update");
+    logger.log("close process for update");
     process.exit();
 });
 
@@ -53,11 +54,11 @@ function handler(req, res) {
             res.end(data);
         }
     );
-    logger.debug(req.url);
+    logger.log(req.url);
 }
 
 if (httpsConfig.useCertificate) {
-    logger.debug('user certificate');
+    logger.log('user certificate');
     var options = {
         pfx: fs.readFileSync(httpsConfig.pfxPath),
         passphrase: '123456'
@@ -66,10 +67,10 @@ if (httpsConfig.useCertificate) {
 var httpd;
 
 if (serverAddress.indexOf('https') > -1) { // https
-    logger.info('start https server with address ' + serverAddress + ':' + serverPort + " version " + version)
+    logger.log('start https server with address ' + serverAddress + ':' + serverPort + " version " + version)
     var httpd = require('https').createServer(options, handler);
 } else { // http
-    logger.info('start http server with address '+ serverAddress+ ':'+ serverPort + " version " + version);
+    logger.log('start http server with address '+ serverAddress+ ':'+ serverPort + " version " + version);
     var httpd = require('http').createServer(handler);
 }
 
@@ -90,7 +91,7 @@ var redis = require('redis'),
 var redisInterface = redis.createClient(redisPort, redisHostname, {});
 
 redisInterface.on('connect', function () {
-    logger.debug('redis is connected');
+    logger.log('redis is connected');
     runSocket();
 });
 
@@ -100,13 +101,13 @@ httpd.listen(serverPort);
 function runSocket() {
 
     var redisBl = new socketBl.BusinessLogic(redisInterface);
-    logger.debug('before adapter');
+    logger.log('before adapter');
     io.adapter(new RedisStore({
         pubClient: pub,
         subClient: sub,
         redisClient: client
     }));
-    logger.debug('after adapter');
+    logger.log('after adapter');
 
 
     io.sockets.on('connection', function (socket) {
@@ -119,18 +120,18 @@ function runSocket() {
                 io.to(u.socketId).emit(event, message);
             });
 
-            logger.info('sendMultiple', event, message);
+            logger.log('sendMultiple', event, message);
 
         }
 
-        logger.debug("received connection");
+        logger.log("received connection");
 
         socket.on('login', function (token, anonymousToken, appName) {
-            logger.info('login', token, anonymousToken, appName);
+            logger.log('login', token, anonymousToken, appName);
             getUserDetails(token, anonymousToken, appName, function (err, details) {
 
                 if (err){
-                    logger.debug('login err:' + JSON.stringify(err));
+                    logger.log('login err:' + JSON.stringify(err));
                 }
 
                 // handle anonymous case
@@ -143,7 +144,7 @@ function runSocket() {
                     return;
                 }
 
-                logger.info('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
+                logger.log('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
                 redisBl.login(socket, appName, details.username, details.role);
             });
         });
@@ -151,7 +152,7 @@ function runSocket() {
         socket.on('disconnect', function () {
             var id = socket.id;
             redisBl.removeSocket(id, function(err, data){
-                logger.debug(err);
+                logger.log(err);
             });
         })
 
@@ -159,7 +160,7 @@ function runSocket() {
             var eventName = internal.eventName;
             var appName = internal.appName;
             io.to(appName).emit(eventName, internal.data);
-            logger.info('internalAll ' + appName  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
+            logger.log('internalAll ' + appName  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
         });
 
         socket.on('internalRole', function (internal) {
@@ -174,11 +175,11 @@ function runSocket() {
 
             redisBl.getAllUsersByRole(appName, role, function (err, users) {
                 if (err){
-                    logger.debug('internalRole getAllUsersByRole err:' + JSON.stringify(err));
+                    logger.log('internalRole getAllUsersByRole err:' + JSON.stringify(err));
                 }
                 else{
                    sendMultiple(appName, users, eventName, data); 
-                   logger.info('internalRole ' + appName + ' ' +  eventName +  ' ' + JSON.stringify(internal.data));
+                   logger.log('internalRole ' + appName + ' ' +  eventName +  ' ' + JSON.stringify(internal.data));
                 }              
             });
 
@@ -198,11 +199,11 @@ function runSocket() {
 
             redisBl.getUserByList(appName, users, function (err, users) {
                 if (err){
-                    logger.debug('internalUsers getUserByList err:' + JSON.stringify(err));
+                    logger.log('internalUsers getUserByList err:' + JSON.stringify(err));
                 }
                 else{
                     sendMultiple(appName, users, eventName, data);
-                    logger.info('internalUsers ' + appName + ' ' + eventName + ' ' + JSON.stringify(internal.data));
+                    logger.log('internalUsers ' + appName + ' ' + eventName + ' ' + JSON.stringify(internal.data));
                 }         
             });
 

@@ -20,11 +20,13 @@ var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 var version = require('./version').version;
 
 var config = require('./configFactory').getConfig();
-var logger = require('./logging/logger').getLogger("schema_" + config.env);
+var Logger = require('./logging/log_with_redis');
+var logger = new Logger("schema_" + config.env);
 
 var bcrypt = require('bcrypt-nodejs');
 
-logger.info("start with config " + config.env);
+logger.log("start with config " + config.env);
+
 
 
 var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
@@ -53,7 +55,7 @@ var redisDataSource = new RedisDataSource();
 var fs = require('fs');
 
 fs.watchFile(__filename, function (curr, prev) {
-    logger.info("close process for update");
+    logger.log("close process for update");
     process.exit();
 });
 
@@ -82,19 +84,19 @@ router.map(function () {
 
     // validate a json schema
     this.post('/validate').bind(function (req, res, data) {
-        logger.info("start validate");
-        logger.trace("validate input", data);
+        logger.log("start validate");
+        logger.log("validate input", data);
         result = validator(data)
 
         // todo: check it works without stringify
-        logger.trace(data);
+        logger.log(data);
 
         if (result.error) {
-            logger.info("validate error " + result.error);
+            logger.log("validate error " + result.error);
             res.send(500, {error: result.error}, {});
         }
         else {
-            logger.info("validate OK");
+            logger.log("validate OK");
             res.send(200, {}, result);
         }
 
@@ -102,13 +104,13 @@ router.map(function () {
 
     // transform one json schema into another json schema
     this.post('/transform').bind(function (req, res, data) {
-        logger.info("start transform");
-        logger.trace("transform" + " " +  "oldSchema:" + data.oldSchema + " newSchema:" +  data.newSchema + " severity:" + data.severity);
+        logger.log("start transform");
+        logger.log("transform" + " " +  "oldSchema:" + data.oldSchema + " newSchema:" +  data.newSchema + " severity:" + data.severity);
         var isValidNewSchema = validator(data.newSchema);
-        logger.trace("isValidNewSchema", isValidNewSchema);
+        logger.log("isValidNewSchema", isValidNewSchema);
 
         if (isValidNewSchema.error) {
-            logger.info("transform error " + isValidNewSchema.error);
+            logger.log("transform error " + isValidNewSchema.error);
             res.send(500, {error: isValidNewSchema.error}, {});
         }
         else if (isValidNewSchema.valid) {
@@ -127,20 +129,20 @@ router.map(function () {
             // precede the alteration statemtns with the rename stamtents
             result.alter =  resultPlainRename.statements.concat(result.alter);
 
-            logger.trace(result);
+            logger.log(result);
 
             if (result.error) {
-                logger.info("transform error " + isValidNewSchema.error);
+                logger.log("transform error " + isValidNewSchema.error);
                 res.send(500, {error: isValidNewSchema.error}, {});
             }
             else {
-                logger.info("transform OK");
+                logger.log("transform OK");
                 res.send(200, {}, result);
             }
         }
         else {
             isValidNewSchema.valid = "never";
-            logger.info("transform OK never");
+            logger.log("transform OK never");
 
             res.send(200, {}, isValidNewSchema);
         }
@@ -148,26 +150,26 @@ router.map(function () {
 
     // transform a json schema into antoher schema
     this.post('/transformAuthorized').bind(function (req, res, data) {
-        logger.info("start transformAuthorized");
+        logger.log("start transformAuthorized");
         var tokenStructure = getToken(req.headers);
         if (tokenStructure) {
             fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, true, false, function (err, oldSchema) {
                 if (err) {
-                    logger.info("error in transformAuthorized " + err);
+                    logger.log("error in transformAuthorized " + err);
                     res.send(400, {error: err}, null);
                 }
                 else {
-                    logger.trace("transformer" + " " + oldSchema + " newSchema:" +  data.newSchema + " severity:" +  data.severity)
+                    logger.log("transformer" + " " + oldSchema + " newSchema:" +  data.newSchema + " severity:" +  data.severity)
                     if (data.withoutValidation) {
                         result = transformer(oldSchema, data.newSchema, data.severity)
-                        logger.trace(result);
+                        logger.log(result);
 
                         if (result.error) {
-                            logger.info("error in transformAuthorized " + result.error);
+                            logger.log("error in transformAuthorized " + result.error);
                             res.send(500, {error: result.error}, {});
                         }
                         else {
-                            logger.info("OK in transformAuthorized");
+                            logger.log("OK in transformAuthorized");
                             res.send(200, {}, result);
                         }
 
@@ -175,20 +177,20 @@ router.map(function () {
                     else {
                         // test if new schema is valid
                         var isValidNewSchema = validator(data.newSchema);
-                        logger.trace("isValidNewSchema", isValidNewSchema);
+                        logger.log("isValidNewSchema", isValidNewSchema);
                         if (isValidNewSchema.error) {
-                            logger.info("error in transformAuthorized schema not valid" + result.error);
+                            logger.log("error in transformAuthorized schema not valid" + result.error);
                             res.send(500, {error: result.error}, {});
                         }
                         else if (isValidNewSchema.valid) {
                             result = transformer(oldSchema, data.newSchema, data.severity)
-                            logger.trace(result);
+                            logger.log(result);
                             if (result.error) {
-                                logger.info("error in transformAuthorized schema not valid2" + result.error);
+                                logger.log("error in transformAuthorized schema not valid2" + result.error);
                                 res.send(500, {error: result.error}, {});
                             }
                             else {
-                                logger.info("OK transformAuthorized");
+                                logger.log("OK transformAuthorized");
                                 res.send(200, {}, result);
                             }
 
@@ -197,7 +199,7 @@ router.map(function () {
                             //isValidNewSchema.valid = "never";
                             //res.send(200, {}, result);
                             isValidNewSchema.valid = "never";
-                            logger.info("transformAuthorized OK never");
+                            logger.log("transformAuthorized OK never");
                             res.send(200, {}, isValidNewSchema);
                         }
                     }
@@ -205,7 +207,7 @@ router.map(function () {
             });
         }
         else {
-            logger.info("401 on transformAuthorized");
+            logger.log("401 on transformAuthorized");
             res.send(401, {}, null);
         }
     });
@@ -213,22 +215,22 @@ router.map(function () {
     // execute an array of sql statements
     this.post('/execute').bind(function (req, res, data) {
         if(data !== undefined) {
-            logger.info("start execute " + data.hostname + " " + data.port + " " + data.db + " " + data.username + " " + data.password);
+            logger.log("start execute " + data.hostname + " " + data.port + " " + data.db + " " + data.username + " " + data.password);
         }
 
         if (!data.hostname || !data.port || !data.db || !data.username || !data.password) {
-            logger.info("send 400 on execute");
+            logger.log("send 400 on execute");
             res.send(400, {}, null);
         }
         else {
-            logger.trace("db details", data.hostname, data.port, data.db, data.username, data.password, data.statementsArray);
+            logger.log("db details", data.hostname, data.port, data.db, data.username, data.password, data.statementsArray);
             executer(data.hostname, data.port, data.db, data.username, data.password, data.statementsArray, function (err, result) {
                 if (!err) {
-                    logger.info("execute result " + err + " " + result);
+                    logger.log("execute result " + err + " " + result);
                     res.send(200, {error: err}, result);
                 }
                 else {
-                    logger.info("execute send 500");
+                    logger.log("execute send 500");
                     res.send(500, {}, null);
                 }
             });
@@ -237,19 +239,19 @@ router.map(function () {
 
     // obtain the json structure for a schema
     this.post('/json').bind(function (req, res, data) {
-        logger.info("start json");
+        logger.log("start json");
         var tokenStructure = getToken(req.headers);
-        logger.trace(tokenStructure);
+        logger.log(tokenStructure);
 
         if (tokenStructure) {
             fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, false, function (err, result) {
 
                 if (err) {
-                    logger.info("error in json " + err);
+                    logger.log("error in json " + err);
                     res.send(400, {error: err}, null);
                 }
                 else {
-                    logger.info("OK on json " + result);
+                    logger.log("OK on json " + result);
                     res.send(200, {}, result);
                 }
 
@@ -257,31 +259,31 @@ router.map(function () {
 
         }
         else {
-            logger.info("401 on json");
+            logger.log("401 on json");
             res.send(401, {}, null);
         }
     });
 
     // get database connection info for app
     this.post('/connectioninfo').bind(function (req, res, data) {
-        logger.info("start connectioninfo");
+        logger.log("start connectioninfo");
         var tokenStructure = getToken(req.headers);
-        logger.trace(tokenStructure);
+        logger.log(tokenStructure);
 
         if (tokenStructure) {
             getConnectionInfo(tokenStructure[1], tokenStructure[0], data.appName, function (err, result) {
                 if (!err) {
-                    logger.info("result on connectioninfo " + err + " " + result);
+                    logger.log("result on connectioninfo " + err + " " + result);
                     res.send(200, {error: err}, result);
                 }
                 else {
-                    logger.info("result 500 connectioninfo");
+                    logger.log("result 500 connectioninfo");
                     res.send(500, {}, null);
                 }
             });
         }
         else {
-            logger.info("result 401 connectioninfo");
+            logger.log("result 401 connectioninfo");
             res.send(401, {}, null);
         }
     });
@@ -290,18 +292,18 @@ router.map(function () {
     // status code according to result
     // error returned in header
     this.post('/transformJson').bind(function (req, res, data) {
-        logger.info("start tranformJson");
+        logger.log("start tranformJson");
         var tokenStructure = getToken(req.headers);
-        logger.trace(tokenStructure);
+        logger.log(tokenStructure);
 
         fetcher(tokenStructure[1], tokenStructure[0], data.appName, true, true, function (err, sqlSchema) {
             if (err) {
-                logger.info("transformJson error " + err);
+                logger.log("transformJson error " + err);
                 res.send(500, {error: err}, null);
             }
             else {
                 transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function (err, result) {
-                    logger.info("transformJson result " + err + " " + result);
+                    logger.log("transformJson result " + err + " " + result);
                     res.send(200, {error: err}, result);
                 });
             }
@@ -312,11 +314,11 @@ router.map(function () {
     // substitute variables into query
     // req should contain sql - the sql statement, and assignment - variable assignment
     this.post('/substitution').bind(function (req, res, data) {
-        logger.info("start substitution");
-        logger.trace(data.sql, data.assignment);
+        logger.log("start substitution");
+        logger.log(data.sql, data.assignment);
         substitute(data.sql, data.assignment, function (err, result) {
-            logger.info("finish substitution");
-            logger.trace(result);
+            logger.log("finish substitution");
+            logger.log(result);
             res.send(200, {}, result);
         });
     });
@@ -336,7 +338,7 @@ router.map(function () {
      */
     this.post('/socket/emit').bind(function (req, res, data) {
         if(data !== undefined) {
-            logger.info("start socket/emit " + data.eventName + " " + data.mode);
+            logger.log("start socket/emit " + data.eventName + " " + data.mode);
         }
 
         if (data.mode == "All") {
@@ -362,23 +364,23 @@ router.map(function () {
             socket.emit("internalOthers", {"data": data.data, "appName": req.headers.app, "eventName": data.eventName});
         }
         else { // don't understand mode, log error
-            logger.error("Can't find valid mode for: " + data);
+            logger.log("Can't find valid mode for: " + data);
         }
 
-        logger.info("finish socket emit");
+        logger.log("finish socket emit");
         res.send(200, {}, {});
     });
 
     // get sts credentials for bucket
     this.post('/bucketCredentials').bind(function (req, res, data) {
-        logger.info('start bucketCredentials');
+        logger.log('start bucketCredentials');
         getTemporaryCredentials(data.bucket, data.dir, function (err, data) {
             if (err) {
-                logger.info('bucketCredentials error ' + err);
+                logger.log('bucketCredentials error ' + err);
                 res.send(500, {error: err}, {});
             }
             else {
-                logger.info('bucketCredentials OK ' + data);
+                logger.log('bucketCredentials OK ' + data);
                 res.send(200, {}, data);
             }
         });
@@ -386,8 +388,8 @@ router.map(function () {
 
     // upload a content file to S3
     this.post('/uploadFile').bind(function (req, res, data) {
-        logger.info('start uploadFile');
-        logger.trace(data.fileName + ' ' + data.dir);
+        logger.log('start uploadFile');
+        logger.log(data.fileName + ' ' + data.dir);
         var s = data.fileName.toLowerCase();
         var extPosition = s.lastIndexOf('.');
         if (extPosition > -1) {
@@ -402,7 +404,7 @@ router.map(function () {
             contentType = getContentType(data.fileName);
         }
 
-        logger.trace('uploadFile contentType is ' + contentType);
+        logger.log('uploadFile contentType is ' + contentType);
 
         var buffer = new Buffer(data.file, 'base64');
         var params = {
@@ -436,18 +438,18 @@ router.map(function () {
             // WebsiteRedirectLocation: 'STRING_VALUE'
         };
 
-        logger.trace("uploadFile start put object to s3");
+        logger.log("uploadFile start put object to s3");
         s3.putObject(params, function (err, awsData) {
             // if (err) console.log(err, err.stack); // an error occurred
             // else     console.log(data);           // successful response
             if (err) {
-                logger.info('uploadFile error ' + err);
+                logger.log('uploadFile error ' + err);
                 res.send(500, {error:err.message}, err);
             }
             else {
                 //var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
                 var link = config.storageConfig.serverProtocol + '://' + data.bucket + "/" + data.dir + "/" + data.fileName;
-                logger.info("uploadFile OK " + link);
+                logger.log("uploadFile OK " + link);
                 res.send(200, {}, {link: link});
             }
         });
@@ -457,8 +459,8 @@ router.map(function () {
 
     // delete a content file from S3
     this.post('/deleteFile').bind(function (req, res, data) {
-        logger.info('start deleteFile');
-        logger.trace(data.bucket, data.fileName);
+        logger.log('start deleteFile');
+        logger.log(data.bucket, data.fileName);
         var params = {
             Bucket: data.bucket, /* required */
             Key: data.dir + "/" + data.fileName/* required */
@@ -468,11 +470,11 @@ router.map(function () {
             // if (err) console.log(err, err.stack); // an error occurred
             // else     console.log(data);           // successful response
             if (err) {
-                logger.info("deleteFile error " + err);
+                logger.log("deleteFile error " + err);
                 res.send(500, {error: err}, {});
             }
             else {
-                logger.info("deleteFile OK");
+                logger.log("deleteFile OK");
                 res.send(200, {}, {});
             }
         });
@@ -481,8 +483,8 @@ router.map(function () {
 
     // dumb list of sub folder of app
     this.post('/listFolder').bind(function (req, res, data) {
-        logger.info("start listFolder");
-        logger.trace(data.bucket, data.folder, data.pathInFolder);
+        logger.log("start listFolder");
+        logger.log(data.bucket, data.folder, data.pathInFolder);
         s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
             if (err){
                 res.send(500, { error: err }, {});
@@ -494,8 +496,8 @@ router.map(function () {
     });
 
     this.post('/deleteFolder').bind(function (req, res, data) {
-        logger.info("start deleteFolder");
-        logger.trace(data.bucket, data.folder);
+        logger.log("start deleteFolder");
+        logger.log(data.bucket, data.folder);
         s3Folders.deleteFolder(data.bucket, data.folder, function(err) {
             if (err){
                 res.send(500, { error: err }, {});
@@ -508,15 +510,15 @@ router.map(function () {
 
     // smart list with caching of sub folder of app
     this.post('/smartListFolder').bind(function (req, res, data) {
-        logger.info("start smartListFolder");
-        logger.trace(data.bucket, data.folder, data.pathInFolder);
+        logger.log("start smartListFolder");
+        logger.log(data.bucket, data.folder, data.pathInFolder);
         s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesOutput) {
             if (err){
                 if (err != "not stored"){
                     res.send(500, { error: err }, {});
                 }
                 else{
-                    logger.trace("storeFolder");
+                    logger.log("storeFolder");
                     s3Folders.storeFolder(data.bucket, data.folder, function(err){ // fetch and store the whole bucket
                         if (err){
                             res.send(500, { error: err }, {});
@@ -626,7 +628,7 @@ router.map(function () {
     // messageLabel - string
     // msgObject - hash of data to be sent with push notification
     this.post('/push/send').bind(function (req, res, data) {
-        logger.info('start push/send');
+        logger.log('start push/send');
         // separate into gcm and apns
         async.parallel(
             {
@@ -664,7 +666,7 @@ router.map(function () {
             },
 
             function (err, results) {
-                logger.info("send result " + results);
+                logger.log("send result " + results);
 
                 // why results is in error?
                 res.send(200, {error: results}, {});
@@ -865,7 +867,7 @@ function extractActionName(txt){
 
 
 require('http').createServer(function (request, response) {
-    //logger.info('start server on port 9000 ' + version);
+    //logger.log('start server on port 9000 ' + version);
     var body = "";
 
     request.addListener('data', function (chunk) {
