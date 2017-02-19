@@ -1,7 +1,7 @@
 var expect = require("chai").expect;
 var _ = require('underscore');
 
-var transformJsonIntoSQL = require("./algorithm").transformJsonIntoSQL;
+var transformJsonIntoSQL = require("../json_query_language/nodejs/algorithm").transformJsonIntoSQL;
 
 
 

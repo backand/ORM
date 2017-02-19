@@ -8,10 +8,5 @@
     "request": "latest",
     "mysql": "latest",
     "underscore.string": "latest"
-  },
-  "devDependencies": {
-  	"mocha": "latest",
-    "chai": "latest",
-    "node-inspector": "latest"
   }
 }

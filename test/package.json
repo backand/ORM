@@ -10,6 +10,7 @@
     "chai": "latest",
     "del": "latest",
     "mocha": "latest",
+    "node-inspector": "latest",
     "pm2": "^2.2.3",
     "request": "latest",
     "request-json": "latest",
