@@ -20,9 +20,13 @@ redisAppender.prototype.processMessage = function (msgBulk, cb) {
 
     async.eachSeries(msgBulk, 
         function(msg, callback){
-           var o = JSON.parse(msg);
-           console.log(o);
-           redisDataSource.addEventToSortedSet(o.ApplicationName, (new Date(o.Time)).getTime(), msg, callback);
+          var o = JSON.parse(msg);
+          if (o.LogType == "1"){
+            redisDataSource.addEventToSortedSet(o.ApplicationName, (new Date(o.Time)).getTime(), msg, callback);
+          }
+          else{
+            callback(null);
+          }
         },
 
         function(err){

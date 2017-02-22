@@ -2,6 +2,8 @@
  * Created by backand on 3/27/16.
  */
 
+var logEntry = 'log_api';
+
 var redis = require('redis'),
     RedisStore = require('socket.io-redis');
  var async = require('async');
@@ -54,7 +56,7 @@ function RedisDataSource() {
 }
 
 
-RedisDataSource.prototype.getEvent = function (logEntry, cb) {
+RedisDataSource.prototype.getEvent = function (cb) {
    
     var current = this;
     async.during(
@@ -80,7 +82,7 @@ RedisDataSource.prototype.getEvent = function (logEntry, cb) {
     
 };
 
-RedisDataSource.prototype.insertEvent = function (logEntry, message, cb) {
+RedisDataSource.prototype.addEventToSortedSet = function (key, score, message, cb) {
 
     var current = this;
 
@@ -97,7 +99,7 @@ RedisDataSource.prototype.insertEvent = function (logEntry, message, cb) {
 
                 var fMessage = JSON.stringify(message);
 
-                current.redisInterface.lpush(logEntry, fMessage, function (err, data) {
+                current.redisInterface.zadd([key, score, fMessage], function (err, data) {
                     cb(err, data);
                 });
             }
@@ -109,36 +111,7 @@ RedisDataSource.prototype.insertEvent = function (logEntry, message, cb) {
 
 }
 
-RedisDataSource.prototype.addEventToSortedSet = function (logEntry, score, message, cb) {
-
-    var current = this;
-
-    async.during(
-        function (callback) {
-            return callback(null, !current.readyToRead);
-        },
-        function (callback) {
-            setTimeout(callback, 1000);
-        },
-        function (err) {
-
-            if (!err){
-
-                var fMessage = JSON.stringify(message);
-
-                current.redisInterface.zadd([logEntry, score, fMessage], function (err, data) {
-                    cb(err, data);
-                });
-            }
-            else{
-                cb(err);
-            }
-        }
-    );
-
-}
-
-RedisDataSource.prototype.filterSortedSet = function (logEntry, fromScore, toScore, offset, count, cb) {
+RedisDataSource.prototype.filterSortedSet = function (key, fromScore, toScore, offset, count, cb) {
     var current = this;
 
     async.during(
@@ -151,7 +124,7 @@ RedisDataSource.prototype.filterSortedSet = function (logEntry, fromScore, toSco
         function (err) {
 
             if (!err){     
-                current.redisInterface.zrangebyscore(logEntry, fromScore, toScore, 'WITHSCORES', 'LIMIT', offset, count, function (err, data) {
+                current.redisInterface.zrangebyscore(key, fromScore, toScore, 'WITHSCORES', 'LIMIT', offset, count, function (err, data) {
                     cb(err, 
                         _.filter(
                                 interleavedValueAndKeyArray, 
@@ -200,7 +173,7 @@ RedisDataSource.prototype.scan = function (onData, onEnd) {
 
 }
 
-RedisDataSource.prototype.expireSortedSet = function (logEntry, topScore, cb) {
+RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
     var current = this;
 
     async.during(
@@ -213,7 +186,7 @@ RedisDataSource.prototype.expireSortedSet = function (logEntry, topScore, cb) {
         function (err) {
 
             if (!err){     
-                current.redisInterface.zremrangebyscore(logEntry, 0, topScore, function (err, data) {
+                current.redisInterface.zremrangebyscore(key, 0, topScore, function (err, data) {
                     cb(err, data);
                 });
             }
@@ -252,7 +225,8 @@ RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds) {
     );
 }
 
-RedisDataSource.prototype.insertEvent = function (logEntry, message, cb) {
+
+RedisDataSource.prototype.insertEvent = function (key, message, cb) {
 
     var current = this;
 
@@ -269,7 +243,7 @@ RedisDataSource.prototype.insertEvent = function (logEntry, message, cb) {
 
                 var fMessage = JSON.stringify(message);
 
-                current.redisInterface.lpush(logEntry, fMessage, function (err, data) {
+                current.redisInterface.lpush(key, fMessage, function (err, data) {
                     cb(err, data);
                 });
             }
