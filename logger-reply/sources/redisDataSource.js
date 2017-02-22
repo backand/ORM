@@ -67,8 +67,6 @@ RedisDataSource.prototype.getEvent = function (logEntry, cb) {
         function (err) {
             if (!err){
 
-                var fMessage = JSON.stringify(message);
-
                 current.redisInterface.lpop(logEntry, function (err, data) {
                     cb(err, data);
                 });
