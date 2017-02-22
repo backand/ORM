@@ -125,6 +125,10 @@ Generally, a condition on a field is a predicate can can do one of the following
 
     { location: { $not: { "$eq": "Boston" }}}
 
+5. Test if a field exists:
+
+    { location: { "$exist": true }}
+
 # Sub Queries
 
 If we have a subquery that retrieves the department id of each department in New York, 
