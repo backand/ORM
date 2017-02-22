@@ -123,7 +123,7 @@ Generally, a condition on a field is a predicate can can do one of the following
 3. Test if the value of the field is IN  or NOT IN the result of a subquery.
 4. Test for the negation of a comparison. For example, to test if the location field is not Boston, we can do:
 
-    { $not: { location : "Boston" }}
+    { location: { $not: { "$eq": "Boston" }}}
 
 # Sub Queries
 
@@ -196,7 +196,7 @@ Negation may sometimes be swapped for comparison. For example, to test if the lo
 
 use negation:
 
-    { $not: { location : "Paris" }}
+    { location: { $not : { "$eq": "Paris" }}
 
 
 use a not equal operator: 

@@ -952,7 +952,7 @@ function generateKeyValueExp(kv, table){
 			return relateColumnWithTable(realTableName, column) + " = " + (parserState.shouldGeneralize ? assignNewVariable(kv[column], t) : escapeValueOfType(kv[column], t));
 		}
 		else if (kv[column]["$not"]){ // Not Exp value
-			return "NOT " + generateQueryConditional(kv[column]["$not"], table, column);
+			return "NOT " + "(" + column + " " + generateQueryConditional(kv[column]["$not"], table, column) + ")";
 		}
 		else { // Query Conditional value
 			if(!table.fields[column]){

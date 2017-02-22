@@ -41,6 +41,46 @@ describe("algorithm", function(){
         });
 	});
 
+	it("not", function(done){
+		var json = {
+			"object" : "Employees",
+			"q": { 
+				"city": {
+					"$not": {
+						"$eq": "Boston"
+					}
+				},
+				"age": {
+					"$gt": 24
+				}
+			}
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Employees", 
+		  		"fields" : {
+					"city": {
+						"type": "string"
+					},
+					"age": {
+						"type": "float"
+					},
+					"position": {
+						"type": "string"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
+			console.log(result);
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal("SELECT * FROM `Employees` WHERE (NOT (city = \'Boston\') AND `Employees`.`age` > 24)   ");
+			done();				            
+        });
+	});
+
 	it("aggregate", function(done){
 		var json = 
 			{
