@@ -34,7 +34,6 @@ describe("algorithm", function(){
 		var isFilter = false;
 		var shouldGeneralize = false;
 		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
-			console.log(result);
 			expect(err).to.deep.equal(null);
 			expect(result.str).to.equal("SELECT * FROM `Employees` WHERE (`Employees`.`position` = \'Sales Manager\' AND `Employees`.`age` < 25 AND `Employees`.`city` = \'Boston\')   ");
 			done();				            
@@ -74,9 +73,45 @@ describe("algorithm", function(){
 		var isFilter = false;
 		var shouldGeneralize = false;
 		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
-			console.log(result);
 			expect(err).to.deep.equal(null);
 			expect(result.str).to.equal("SELECT * FROM `Employees` WHERE (NOT (city = \'Boston\') AND `Employees`.`age` > 24)   ");
+			done();				            
+        });
+	});
+
+	it("empty", function(done){
+		var json = {
+			"object" : "Employees",
+			"q": { 
+				"city": {
+					"$exists": true
+				},
+				"age": {
+					"$exists": false
+				}
+			}
+		};
+		var sqlSchema = [
+			{ 
+		  		"name" : "Employees", 
+		  		"fields" : {
+					"city": {
+						"type": "string"
+					},
+					"age": {
+						"type": "float"
+					},
+					"position": {
+						"type": "string"
+					}
+				}
+			}
+		];
+		var isFilter = false;
+		var shouldGeneralize = false;
+		var v = transformJson(json, sqlSchema, isFilter, shouldGeneralize, function(err, result){	
+			expect(err).to.deep.equal(null);
+			expect(result.str).to.equal("SELECT * FROM `Employees` WHERE (`Employees`.`city` IS NOT NULL AND `Employees`.`age` IS NULL)   ");
 			done();				            
         });
 	});

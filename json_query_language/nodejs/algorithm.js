@@ -13,7 +13,7 @@ var fetchTables = require("../../backand_to_object").fetchTables;
 var validTypes = require("../../validate_schema").validTypes;
 
 var comparisonOperators = ["$in", "$nin", "$lte", "$lt", "$gte", "$gt", "$eq", "$neq", "$not", "$like", "$within", 
-	"$withinMeters", "$withinKilometers", "$withinMiles", "$withinFeet", "$or", "$between"];
+	"$withinMeters", "$withinKilometers", "$withinMiles", "$withinFeet", "$or", "$between", "$exists"];
 var aggregationOperators = ["$max", "$min", "$sum", "$count", "$concat", "$avg"];
 
 var mysqlOperator = {
@@ -40,7 +40,8 @@ var mysqlOperator = {
 	"$withinKilometers": "ST_Distance",
 	"$withinMiles": "ST_Distance",
 	"$withinFeet": "ST_Distance",
-	"$between": "BETWEEN"
+	"$between": "BETWEEN",
+	"$exists": "NULL"
 };
 
 var mySQLAggregateOperators = ["MAX", "MIN", "SUM", "COUNT", "GROUP_CONCAT", "AVG"];
@@ -984,6 +985,9 @@ function generateQueryConditional(qc, table, column){
 		var t = getType(table, column);
 		generatedComparand = escapeVariableOfType(comparand, t);
 	}
+	else if (comparisonOperator == "$exists" && (!isConstant(comparand) || !isBoolean(comparand))){
+		throw "$exists is not valid for column " + column + " of table " + table.name + " because it requies a boolean value";
+	}
 	else if (comparisonOperator == "$like" && (table.fields[column].type != "string" && table.fields[column].type != "text")){
 		throw "$like is not valid for column " + column + " of table " + table.name + " because it is not a string or text column";
 	}
@@ -1009,6 +1013,9 @@ function generateQueryConditional(qc, table, column){
 				}, "");
 			}
 		}
+	}
+	else if (comparisonOperator == "$exists") {
+		generatedComparand = comparand;
 	}	
 	else if (isConstant(comparand)){
 		// constant value
@@ -1034,8 +1041,12 @@ function generateQueryConditional(qc, table, column){
 		generatedComparand = "( " + subquery.sql.str + " )";
 	}
 
-	if (comparisonOperator == "$in")
+	if (comparisonOperator == "$in") {
 		return mysqlOperator[comparisonOperator] + " ( " + generatedComparand + " ) ";
+	}
+	else if (comparisonOperator == "$exists") {
+		return comparand ? "IS NOT " + mysqlOperator[comparisonOperator] : "IS " + mysqlOperator[comparisonOperator];
+	}
 	else if (s.startsWith(comparisonOperator,"$within")){
 		var factor = ' /(1609.344 * 69) ';
 		switch(comparisonOperator)
@@ -1068,6 +1079,10 @@ function generateQueryConditional(qc, table, column){
 
 function isConstant(value){
 	return (typeof value) == 'number' || (typeof value) == 'string' || (typeof value) == "boolean";
+}
+
+function isBoolean(value){
+	return (typeof value) == "boolean";
 }
 
 /** @function
