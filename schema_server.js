@@ -884,11 +884,11 @@ require('http').createServer(function (request, response) {
     });
 }).listen(9000);
 
-setInterval(expireExceptions, 6000);
+setInterval(expireExceptions, 60 * 1000);
 
 function expireExceptions(){
     // delete those entries one hour ago
-    redisDataSource.expireElementsOfSets(60 * 60 * 100);
+    redisDataSource.expireElementsOfSets(60 * 60 * 1000);
 }
 
 function getToken(headers) {
