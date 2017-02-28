@@ -70,7 +70,8 @@ RedisDataSource.prototype.getEvent = function (cb) {
             if (!err){
 
                 current.redisInterface.lpop(logEntry, function (err, data) {
-                    cb(err, data);
+					var entry = {origin: data, parsed: JSON.parse(data)};
+                       cb(err, entry);
                 });
 
             }
