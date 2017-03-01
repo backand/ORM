@@ -1,0 +1,14 @@
+{
+  "name": "logging",
+  "version": "1.0.0",
+  "description": "Loggining utilities",
+  "main": "log_with_redis.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Yoram Kornatzky",
+  "license": "ISC",
+  "dependencies": {
+    "moment": "^2.17.1"
+  }
+}
