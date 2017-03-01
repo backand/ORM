@@ -21,7 +21,7 @@ redisAppender.prototype.processMessage = function (msgBulk, cb) {
     async.eachSeries(msgBulk, 
         function(msg, callback){
           var o = JSON.parse(msg.origin);
-          if (o.LogType == "1"){
+          if (o.LogType == "1" && !o.isInternal){
             redisDataSource.addEventToSortedSet(o.ApplicationName, (new Date(o.Time)).getTime(), msg, callback);
           }
           else{
