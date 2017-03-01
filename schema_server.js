@@ -21,12 +21,13 @@ var version = require('./version').version;
 
 var config = require('./configFactory').getConfig();
 var Logger = require('./logging/log_with_redis');
-var logger = new Logger("schema_" + config.env);
+const util = require('util');
+var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketConfig.serverPort);
 
 var bcrypt = require('bcrypt-nodejs');
 
-logger.log("start with config " + config.env);
 
+logger.logFields(true, null, "regular", "schema server", null, "start with config " + config.env);
 
 
 var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
@@ -55,7 +56,7 @@ var redisDataSource = new RedisDataSource();
 var fs = require('fs');
 
 fs.watchFile(__filename, function (curr, prev) {
-    logger.log("close process for update");
+    logger.logFields(true, null, "regular", "schema server", null, "close process for update");
     process.exit();
 });
 
@@ -84,19 +85,18 @@ router.map(function () {
 
     // validate a json schema
     this.post('/validate').bind(function (req, res, data) {
-        logger.log("start validate");
-        logger.log("validate input", data);
+        logger.logFields(true, req, "regular", "schema server", "validate", "start validate");
+        logger.logFields(true, req, "regular", "schema server", "validate", "start validate", null);
+        logger.logFields(true, req, "regular", "schema server", "validate", util.format("%s %j", "validate input", data), null);
         result = validator(data)
 
-        // todo: check it works without stringify
-        logger.log(data);
 
         if (result.error) {
-            logger.log("validate error " + result.error);
+            logger.logFields(true, req, "exception", "schema server", "validate", util.format("%s %j", "validate error", result.error), null);
             res.send(500, {error: result.error}, {});
         }
         else {
-            logger.log("validate OK");
+            logger.logFields(true, req, "regular", "schema server", "validate OK");
             res.send(200, {}, result);
         }
 
@@ -104,13 +104,13 @@ router.map(function () {
 
     // transform one json schema into another json schema
     this.post('/transform').bind(function (req, res, data) {
-        logger.log("start transform");
-        logger.log("transform" + " " +  "oldSchema:" + data.oldSchema + " newSchema:" +  data.newSchema + " severity:" + data.severity);
+        logger.logFields(true, req, "regular", "schema server", "transform", "start transform");
+        logger.logFields(true, req, "regular", "schema server", "transform", util.format("%s %s %j %s %j %s %d", "transform", "oldSchema:", data.oldSchema, "newSchema:", data.newSchema, "severity:", data.severity));
         var isValidNewSchema = validator(data.newSchema);
-        logger.log("isValidNewSchema", isValidNewSchema);
+        logger.logFields(true, req, "regular", "schema server", "transform", util.format("%s %j", "isValidNewSchema", isValidNewSchema));
 
         if (isValidNewSchema.error) {
-            logger.log("transform error " + isValidNewSchema.error);
+            logger.logFields(true, req, "exception", "schema server", "transform", util.format("%s %j", "transform error", isValidNewSchema.error));
             res.send(500, {error: isValidNewSchema.error}, {});
         }
         else if (isValidNewSchema.valid) {
@@ -129,20 +129,20 @@ router.map(function () {
             // precede the alteration statemtns with the rename stamtents
             result.alter =  resultPlainRename.statements.concat(result.alter);
 
-            logger.log(result);
+            logger.logFields(true, req, "regular", "schema server", "transform", util.format("%j", result));
 
             if (result.error) {
-                logger.log("transform error " + isValidNewSchema.error);
+                logger.logFields(true, req, "exception", "schema server", "transform", util.format("%s %j", "transform error", isValidNewSchema.error));
                 res.send(500, {error: isValidNewSchema.error}, {});
             }
             else {
-                logger.log("transform OK");
+                logger.logFields(true, req, "regular", "schema server", "transform", "transform OK");
                 res.send(200, {}, result);
             }
         }
         else {
             isValidNewSchema.valid = "never";
-            logger.log("transform OK never");
+            logger.logFields(true, req, "regular", "schema server", "transform", "transform OK never");
 
             res.send(200, {}, isValidNewSchema);
         }
@@ -150,26 +150,26 @@ router.map(function () {
 
     // transform a json schema into antoher schema
     this.post('/transformAuthorized').bind(function (req, res, data) {
-        logger.log("start transformAuthorized");
+        logger.logFields(true, req, "regular", "schema server", "transformAuthorized", "start transformAuthorized");
         var tokenStructure = getToken(req.headers);
         if (tokenStructure) {
             fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, true, false, function (err, oldSchema) {
                 if (err) {
-                    logger.log("error in transformAuthorized " + err);
+                    logger.logFields(true, req, "exception", "schema server", "transformAuthorized", util.format("%s %j", "error in transformAuthorized ", err));
                     res.send(400, {error: err}, null);
                 }
                 else {
-                    logger.log("transformer" + " " + oldSchema + " newSchema:" +  data.newSchema + " severity:" +  data.severity)
+                    logger.logFields(true, req, "regular", "schema server", "transformAuthorized", util.format("%s %s %j %s %j %s %d", "transform", "oldSchema:", data.oldSchema, "newSchema:", data.newSchema, "severity:", data.severity));
                     if (data.withoutValidation) {
                         result = transformer(oldSchema, data.newSchema, data.severity)
-                        logger.log(result);
+                        logger.logFields(true, req, "regular", "schema server", "transformAuthorized", result);
 
                         if (result.error) {
-                            logger.log("error in transformAuthorized " + result.error);
+                            logger.logFields(true, req, "exception", "schema server", "transformAuthorized", util.format("%s %j", "error in transformAuthorized ", result.error));
                             res.send(500, {error: result.error}, {});
                         }
                         else {
-                            logger.log("OK in transformAuthorized");
+                            logger.logFields(true, req, "regular", "schema server", "transformAuthorized", "OK in transformAuthorized");
                             res.send(200, {}, result);
                         }
 
@@ -177,20 +177,20 @@ router.map(function () {
                     else {
                         // test if new schema is valid
                         var isValidNewSchema = validator(data.newSchema);
-                        logger.log("isValidNewSchema", isValidNewSchema);
+                        logger.logFields(true, req, "regular", "schema server", "transformAuthorized", util.format("%s %j", "isValidNewSchema", isValidNewSchema));
                         if (isValidNewSchema.error) {
-                            logger.log("error in transformAuthorized schema not valid" + result.error);
+                            logger.logFields(true, req, "exception", "schema server", "transformAuthorized", util.format("%s %j", "error in transformAuthorized schema not valid", result.error));
                             res.send(500, {error: result.error}, {});
                         }
                         else if (isValidNewSchema.valid) {
                             result = transformer(oldSchema, data.newSchema, data.severity)
-                            logger.log(result);
+                            logger.logFields(true, req, "regular", "schema server", "transformAuthorized", util.format("%j", result));
                             if (result.error) {
-                                logger.log("error in transformAuthorized schema not valid2" + result.error);
+                                logger.logFields(true, req, "exception", "schema server", "transformAuthorized", util.format("%s %j", "error in transformAuthorized schema not valid2", result.error));
                                 res.send(500, {error: result.error}, {});
                             }
                             else {
-                                logger.log("OK transformAuthorized");
+                                logger.logFields(true, req, "regular", "schema server", "transformAuthorized", "OK transformAuthorized");
                                 res.send(200, {}, result);
                             }
 
@@ -199,7 +199,7 @@ router.map(function () {
                             //isValidNewSchema.valid = "never";
                             //res.send(200, {}, result);
                             isValidNewSchema.valid = "never";
-                            logger.log("transformAuthorized OK never");
+                            logger.logFields(true, req, "regular", "schema server", "transformAuthorized", "transformAuthorized OK never");
                             res.send(200, {}, isValidNewSchema);
                         }
                     }
@@ -207,30 +207,31 @@ router.map(function () {
             });
         }
         else {
-            logger.log("401 on transformAuthorized");
+            logger.logFields(true, req, "exception", "schema server", "transformAuthorized", "401 on transformAuthorized");
             res.send(401, {}, null);
         }
     });
 
     // execute an array of sql statements
     this.post('/execute').bind(function (req, res, data) {
+        logger.logFields(true, req, "regular", "schema server", "execute", "start execute");
         if(data !== undefined) {
-            logger.log("start execute " + data.hostname + " " + data.port + " " + data.db + " " + data.username + " " + data.password);
+            logger.logFields(true, req, "regular", "schema server", "execute", util.format("%s %s %d %s %s %s", "start execute", data.hostname, data.port, data.db, data.username, data.password));
         }
 
         if (!data.hostname || !data.port || !data.db || !data.username || !data.password) {
-            logger.log("send 400 on execute");
+            logger.logFields(true, req, "exception", "schema server", "execute", "send 400 on execute");
             res.send(400, {}, null);
         }
         else {
-            logger.log("db details", data.hostname, data.port, data.db, data.username, data.password, data.statementsArray);
+            logger.logFields(true, req, "exception", "schema server", "execute", util.format("%s %s %d %s %s %s %j", "db details", data.hostname, data.port, data.db, data.username, data.password, data.statementsArray));
             executer(data.hostname, data.port, data.db, data.username, data.password, data.statementsArray, function (err, result) {
                 if (!err) {
-                    logger.log("execute result " + err + " " + result);
+                    logger.logFields(true, req, "regular", "schema server", "execute", util.format("%s %s %j %j", "execute result", err, result));
                     res.send(200, {error: err}, result);
                 }
                 else {
-                    logger.log("execute send 500");
+                    logger.logFields(true, req, "exception", "schema server", "execute", "execute send 500");
                     res.send(500, {}, null);
                 }
             });
@@ -239,19 +240,19 @@ router.map(function () {
 
     // obtain the json structure for a schema
     this.post('/json').bind(function (req, res, data) {
-        logger.log("start json");
+        logger.logFields(true, req, "regular", "schema server", "json", "start json");
         var tokenStructure = getToken(req.headers);
-        logger.log(tokenStructure);
+        logger.logFields(true, req, "regular", "schema server", "execute", util.format("%j", tokenStructure));
 
         if (tokenStructure) {
             fetcher(tokenStructure[1], tokenStructure[0], req.headers.appname, false, false, function (err, result) {
 
                 if (err) {
-                    logger.log("error in json " + err);
+                    logger.logFields(true, req, "exception", "schema server", "execute", util.format("%s %j","error in json", err));
                     res.send(400, {error: err}, null);
                 }
                 else {
-                    logger.log("OK on json " + result);
+                    logger.logFields(true, req, "regular", "schema server", "execute", util.format("%s %j", "OK on json", result));
                     res.send(200, {}, result);
                 }
 
@@ -259,31 +260,31 @@ router.map(function () {
 
         }
         else {
-            logger.log("401 on json");
+            logger.logFields(true, req, "exception", "schema server", "execute", "401 on json");
             res.send(401, {}, null);
         }
     });
 
     // get database connection info for app
     this.post('/connectioninfo').bind(function (req, res, data) {
-        logger.log("start connectioninfo");
+        logger.logFields(true, req, "regular", "schema server", "connectioninfo", "start connectioninfo");
         var tokenStructure = getToken(req.headers);
-        logger.log(tokenStructure);
+        logger.logFields(true, req, "regular", "schema server", "connectioninfo", util.format("%j", tokenStructure));
 
         if (tokenStructure) {
             getConnectionInfo(tokenStructure[1], tokenStructure[0], data.appName, function (err, result) {
                 if (!err) {
-                    logger.log("result on connectioninfo " + err + " " + result);
+                    logger.logFields(true, req, "regular", "schema server", "connectioninfo", util.format("%s %s %s", "result on connectioninfo", err, result));
                     res.send(200, {error: err}, result);
                 }
                 else {
-                    logger.log("result 500 connectioninfo");
+                    logger.logFields(true, req, "exception", "schema server", "connectioninfo", "result 500 connectioninfo");
                     res.send(500, {}, null);
                 }
             });
         }
         else {
-            logger.log("result 401 connectioninfo");
+            logger.logFields(true, req, "exception", "schema server", "connectioninfo", "result 401 connectioninfo");
             res.send(401, {}, null);
         }
     });
@@ -292,18 +293,18 @@ router.map(function () {
     // status code according to result
     // error returned in header
     this.post('/transformJson').bind(function (req, res, data) {
-        logger.log("start tranformJson");
+        logger.logFields(true, req, "regular", "schema server", "transformJson", "start transformJson");
         var tokenStructure = getToken(req.headers);
-        logger.log(tokenStructure);
+        logger.logFields(true, req, "regular", "schema server", "transformJson", util.format("%j", tokenStructure));
 
         fetcher(tokenStructure[1], tokenStructure[0], data.appName, true, true, function (err, sqlSchema) {
             if (err) {
-                logger.log("transformJson error " + err);
+                logger.logFields(true, req, "exception", "schema server", "transformJson", util.formaet("%s %j", "transformJson error", err));
                 res.send(500, {error: err}, null);
             }
             else {
                 transformJson(data.json, sqlSchema, data.isFilter, data.shouldGeneralize, function (err, result) {
-                    logger.log("transformJson result " + err + " " + result);
+                    logger.logFields(true, req, "regular", "schema server", "transformJson", util.format("%s %j %j", "transformJson result", err, result));
                     res.send(200, {error: err}, result);
                 });
             }
@@ -314,11 +315,11 @@ router.map(function () {
     // substitute variables into query
     // req should contain sql - the sql statement, and assignment - variable assignment
     this.post('/substitution').bind(function (req, res, data) {
-        logger.log("start substitution");
-        logger.log(data.sql, data.assignment);
+        logger.logFields(true, req, "regular", "schema server", "substitution", "start substitution");
+        logger.logFields(true, req, "regular", "schema server", "substitution", util.format("%s %j", data.sql, data.assignment));
         substitute(data.sql, data.assignment, function (err, result) {
-            logger.log("finish substitution");
-            logger.log(result);
+            logger.logFields(true, req, "regular", "schema server", "substitution", "finish substitution");
+            logger.logFields(true, req, "regular", "schema server", "substitution", util.format("%j", result));
             res.send(200, {}, result);
         });
     });
@@ -338,7 +339,7 @@ router.map(function () {
      */
     this.post('/socket/emit').bind(function (req, res, data) {
         if(data !== undefined) {
-            logger.log("start socket/emit " + data.eventName + " " + data.mode);
+            logger.logFields(true, req, "regular", "schema server", "socket/emit", "start socket/emit " + data.eventName + " " + data.mode);
         }
 
         if (data.mode == "All") {
@@ -364,23 +365,23 @@ router.map(function () {
             socket.emit("internalOthers", {"data": data.data, "appName": req.headers.app, "eventName": data.eventName});
         }
         else { // don't understand mode, log error
-            logger.log("Can't find valid mode for: " + data);
+            logger.logFields(true, req, "execption", "schema server", "socket/emit", util.format("%s %j", "Can't find valid mode for:", data));
         }
 
-        logger.log("finish socket emit");
+        logger.logFields(true, req, "regular", "schema server", "socket/emit", "finish socket emit");
         res.send(200, {}, {});
     });
 
     // get sts credentials for bucket
     this.post('/bucketCredentials').bind(function (req, res, data) {
-        logger.log('start bucketCredentials');
+        logger.logFields(true, req, "regular", "schema server", "bucketCredentials", "start bucketCredentials");
         getTemporaryCredentials(data.bucket, data.dir, function (err, data) {
             if (err) {
-                logger.log('bucketCredentials error ' + err);
+                logger.logFields(true, req, "execption", "schema server", "bucketCredentials", util.format("%s %j", "bucketCredentials error", err));
                 res.send(500, {error: err}, {});
             }
             else {
-                logger.log('bucketCredentials OK ' + data);
+                logger.logFields(true, req, "execption", "schema server", "bucketCredentials", util.format("%s %j", "bucketCredentials OK", data));
                 res.send(200, {}, data);
             }
         });
@@ -388,8 +389,8 @@ router.map(function () {
 
     // upload a content file to S3
     this.post('/uploadFile').bind(function (req, res, data) {
-        logger.log('start uploadFile');
-        logger.log(data.fileName + ' ' + data.dir);
+        logger.logFields(true, req, "regular", "schema server", "bucketCredentials", "start uploadFile");
+        logger.logFields(true, req, "regular", "schema server", "uploadFile", data.fileName + ' ' + data.dir);
         var s = data.fileName.toLowerCase();
         var extPosition = s.lastIndexOf('.');
         if (extPosition > -1) {
@@ -404,7 +405,7 @@ router.map(function () {
             contentType = getContentType(data.fileName);
         }
 
-        logger.log('uploadFile contentType is ' + contentType);
+        logger.logFields(true, req, "regular", "schema server", "uploadFile", 'uploadFile contentType is ' + contentType);
 
         var buffer = new Buffer(data.file, 'base64');
         var params = {
@@ -438,18 +439,18 @@ router.map(function () {
             // WebsiteRedirectLocation: 'STRING_VALUE'
         };
 
-        logger.log("uploadFile start put object to s3");
+        logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile start put object to s3");
         s3.putObject(params, function (err, awsData) {
             // if (err) console.log(err, err.stack); // an error occurred
             // else     console.log(data);           // successful response
             if (err) {
-                logger.log('uploadFile error ' + err);
+                logger.logFields(true, req, "execption", "schema server", "uploadFile", util.format("%s %j", "uploadFile error", err));
                 res.send(500, {error:err.message}, err);
             }
             else {
                 //var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
                 var link = config.storageConfig.serverProtocol + '://' + data.bucket + "/" + data.dir + "/" + data.fileName;
-                logger.log("uploadFile OK " + link);
+                logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile OK " + link);
                 res.send(200, {}, {link: link});
             }
         });
@@ -459,22 +460,21 @@ router.map(function () {
 
     // delete a content file from S3
     this.post('/deleteFile').bind(function (req, res, data) {
-        logger.log('start deleteFile');
-        logger.log(data.bucket, data.fileName);
+        logger.logFields(true, req, "regular", "schema server", "deleteFile", "start deleteFile");
+        logger.logFields(true, req, "regular", "schema server", "deleteFile", data.bucket, data.fileName);
         var params = {
             Bucket: data.bucket, /* required */
             Key: data.dir + "/" + data.fileName/* required */
         };
-        console.log(params);
         s3.deleteObject(params, function (err, data) {
             // if (err) console.log(err, err.stack); // an error occurred
             // else     console.log(data);           // successful response
             if (err) {
-                logger.log("deleteFile error " + err);
+                logger.logFields(true, req, "execption", "schema server", "deleteFile", util.format("%s %j", "deleteFile error", err), err.stack);
                 res.send(500, {error: err}, {});
             }
             else {
-                logger.log("deleteFile OK");
+                logger.logFields(true, req, "regular", "schema server", "deleteFile", "deleteFile OK");
                 res.send(200, {}, {});
             }
         });
@@ -483,8 +483,8 @@ router.map(function () {
 
     // dumb list of sub folder of app
     this.post('/listFolder').bind(function (req, res, data) {
-        logger.log("start listFolder");
-        logger.log(data.bucket, data.folder, data.pathInFolder);
+        logger.logFields(true, req, "regular", "schema server", "listFolder", "start listFolder");
+        logger.logFields(true, req, "regular", "schema server", "listFolder", util.format("%s %s %s", data.bucket, data.folder, data.pathInFolder));
         s3Folders.listFolder(data.bucket, data.folder, data.pathInFolder, function(err, files) {
             if (err){
                 res.send(500, { error: err }, {});
@@ -496,8 +496,8 @@ router.map(function () {
     });
 
     this.post('/deleteFolder').bind(function (req, res, data) {
-        logger.log("start deleteFolder");
-        logger.log(data.bucket, data.folder);
+        logger.logFields(true, req, "regular", "schema server", "deleteFolder", "start deleteFolder");
+        logger.logFields(true, req, "regular", "schema server", "deleteFolder", util.format("%s %s", data.bucket, data.folder));
         s3Folders.deleteFolder(data.bucket, data.folder, function(err) {
             if (err){
                 res.send(500, { error: err }, {});
@@ -510,15 +510,15 @@ router.map(function () {
 
     // smart list with caching of sub folder of app
     this.post('/smartListFolder').bind(function (req, res, data) {
-        logger.log("start smartListFolder");
-        logger.log(data.bucket, data.folder, data.pathInFolder);
+        logger.logFields(true, req, "regular", "schema server", "smartListFolder", "start smartListFolder");
+        logger.logFields(true, req, "regular", "schema server", "smartListFolder", util.format("%s %s %s", data.bucket, data.folder, data.pathInFolder));
         s3Folders.filterFiles(data.bucket, data.folder, data.pathInFolder, function(err, filterFilesOutput) {
             if (err){
                 if (err != "not stored"){
                     res.send(500, { error: err }, {});
                 }
                 else{
-                    logger.log("storeFolder");
+                    logger.logFields(true, req, "regular", "schema server", "smartListFolder", "storeFolder");
                     s3Folders.storeFolder(data.bucket, data.folder, function(err){ // fetch and store the whole bucket
                         if (err){
                             res.send(500, { error: err }, {});
@@ -628,7 +628,7 @@ router.map(function () {
     // messageLabel - string
     // msgObject - hash of data to be sent with push notification
     this.post('/push/send').bind(function (req, res, data) {
-        logger.log('start push/send');
+        logger.logFields(true, req, "regular", "schema server", "push/send", 'start push/send');
         // separate into gcm and apns
         async.parallel(
             {
@@ -666,8 +666,7 @@ router.map(function () {
             },
 
             function (err, results) {
-                logger.log("send result " + results);
-
+                logger.logFields(true, req, "regular", "schema server", "push/send", util.format("%s %j", "send result", results));
                 // why results is in error?
                 res.send(200, {error: results}, {});
             }
@@ -677,7 +676,7 @@ router.map(function () {
     });
 
     this.post('/parseCheckPassword').bind(function(req,res,data){
-        console.log(data);
+        logger.logFields(true, req, "regular", "schema server", "parseCheckPassword", util.format("%j", data));
         var password = data.password
         var hashedPassword = data.hashedPassword;
 
@@ -689,7 +688,7 @@ router.map(function () {
             if (err) {
                 res.send(500, { error: err }, {});
             } else {
-                console.log(success);
+                logger.logFields(true, req, "regular", "schema server", "parseCheckPassword", success);
                 if(success){
                     res.send(200, {}, null);
                 }
@@ -701,7 +700,7 @@ router.map(function () {
     })
 
     this.post('/security/compare').bind(function(req,res,data){
-        console.log(data);
+        logger.logFields(true, req, "regular", "schema server", "security/compare", util.format("%j", data));
         var password = data.password
         var hashedPassword = data.hashedPassword;
 
@@ -713,7 +712,7 @@ router.map(function () {
             if (err) {
                 res.send(500, { error: err }, {});
             } else {
-                console.log(success);
+                logger.logFields(true, req, "regular", "schema server", "parseCheckPassword", success);
                 if(success){
                     res.send(200, {}, null);
                 }
@@ -725,7 +724,7 @@ router.map(function () {
     })
 
     this.post('/security/hash').bind(function(req,res,data){
-        console.log(data);
+        logger.logFields(true, req, "regular", "schema server", "security/hash", util.format("%j", data));
         var password = data.password
         var salt = null;
         if (data.salt){
@@ -740,7 +739,7 @@ router.map(function () {
             if (err) {
                 res.send(500, { error: err }, {});
             } else {
-                console.log(encrypted);
+                logger.logFields(true, req, "regular", "schema server", "security/hash", util.format("%s", encrypted));
                 res.send(200, {}, {encrypted:encrypted});
             }
         });
@@ -754,7 +753,7 @@ router.map(function () {
         // toTimeEpochTime - end time in milliseconds from epoch
         // offset - start of page
         // count - number of elements on page
-        console.log(data);
+        logger.logFields(true, req, "regular", "schema server", "lastHourExceptions", util.format("%j", data));
         redisDataSource.filterSortedSet(data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
             if (err) {
                 res.send(500, { error: err }, {});
@@ -867,7 +866,7 @@ function extractActionName(txt){
 
 
 require('http').createServer(function (request, response) {
-    //logger.log('start server on port 9000 ' + version);
+    //logger.logFields('start server on port 9000 ' + version);
     var body = "";
 
     request.addListener('data', function (chunk) {

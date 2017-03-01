@@ -16,14 +16,14 @@ var config = require('./configFactory').getConfig();
 var redisConfig = config.redis;
 var httpsConfig = config.socketConfig;
 var Logger = require('./logging/log_with_redis');
-var logger = new Logger("socketio_" + config.env);
+var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketConfig.serverPort);
 
-logger.log("start with config " + config.env);
+logger.logFields(true, null, "regular", "socketio server", null, "start with config " + config.env);
 
 //require('./logging/metrics').monitor();
 
 fs.watchFile(__filename, function(curr,prev) {
-    logger.log("close process for update");
+    logger.logFields(true, null, "regular", "socketio server", null, "close process for update");
     process.exit();
 });
 
@@ -54,11 +54,11 @@ function handler(req, res) {
             res.end(data);
         }
     );
-    logger.log(req.url);
+    logger.logFields(true, req, "regular", "socketio server", null, req.url);
 }
 
 if (httpsConfig.useCertificate) {
-    logger.log('user certificate');
+    logger.logFields(true, null, "regular", "socketio server", null, 'user certificate');
     var options = {
         pfx: fs.readFileSync(httpsConfig.pfxPath),
         passphrase: '123456'
@@ -67,10 +67,10 @@ if (httpsConfig.useCertificate) {
 var httpd;
 
 if (serverAddress.indexOf('https') > -1) { // https
-    logger.log('start https server with address ' + serverAddress + ':' + serverPort + " version " + version)
+    logger.logFields(true, null, "regular", "socketio server", null, 'start https server with address ' + serverAddress + ':' + serverPort + " version " + version)
     var httpd = require('https').createServer(options, handler);
 } else { // http
-    logger.log('start http server with address '+ serverAddress+ ':'+ serverPort + " version " + version);
+    logger.logFields(true, null, "regular", "socketio server", null, 'start http server with address '+ serverAddress+ ':'+ serverPort + " version " + version);
     var httpd = require('http').createServer(handler);
 }
 
@@ -91,7 +91,7 @@ var redis = require('redis'),
 var redisInterface = redis.createClient(redisPort, redisHostname, {});
 
 redisInterface.on('connect', function () {
-    logger.log('redis is connected');
+    logger.logFields(true, null, "regular", "socketio server", null, 'redis is connected');
     runSocket();
 });
 
@@ -101,13 +101,11 @@ httpd.listen(serverPort);
 function runSocket() {
 
     var redisBl = new socketBl.BusinessLogic(redisInterface);
-    logger.log('before adapter');
     io.adapter(new RedisStore({
         pubClient: pub,
         subClient: sub,
         redisClient: client
     }));
-    logger.log('after adapter');
 
 
     io.sockets.on('connection', function (socket) {
@@ -120,18 +118,18 @@ function runSocket() {
                 io.to(u.socketId).emit(event, message);
             });
 
-            logger.log('sendMultiple', event, message);
+            logger.logFields(true, null, "regular", "socketio server", "sendMultiple", util.format("%s %j", event, message));
 
         }
 
-        logger.log("received connection");
+        logger.logFields(true, null, "regular", "socketio server", "sendMultiple", "received connection");
 
         socket.on('login', function (token, anonymousToken, appName) {
-            logger.log('login', token, anonymousToken, appName);
+            logger.logFields(true, null, "regular", "socketio server", "login", util.format("%s %s %s", token, anonymousToken, appName));
             getUserDetails(token, anonymousToken, appName, function (err, details) {
 
                 if (err){
-                    logger.log('login err:' + JSON.stringify(err));
+                    logger.logFields(true, null, "regular", "socketio server", "login", util.format("%s %j", 'login err:', err));
                 }
 
                 // handle anonymous case
@@ -144,7 +142,7 @@ function runSocket() {
                     return;
                 }
 
-                logger.log('success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
+                logger.logFields(true, null, "regular", "socketio server", "login",'success login to ' + appName + ' with user ' + details.username + ' and role ' + details.role);
                 redisBl.login(socket, appName, details.username, details.role);
             });
         });
@@ -152,7 +150,7 @@ function runSocket() {
         socket.on('disconnect', function () {
             var id = socket.id;
             redisBl.removeSocket(id, function(err, data){
-                logger.log(err);
+                logger.logFields(true, null, "exception", "socketio server", "disconnect", util.format("%j", err));
             });
         })
 
@@ -160,7 +158,7 @@ function runSocket() {
             var eventName = internal.eventName;
             var appName = internal.appName;
             io.to(appName).emit(eventName, internal.data);
-            logger.log('internalAll ' + appName  + ' ' + eventName + ' ' + JSON.stringify(internal.data));
+            logger.logFields(true, null, "regular", "socketio server", "internalAll", util.format("%s %s %j", appName, eventName, internal.data));
         });
 
         socket.on('internalRole', function (internal) {
@@ -175,11 +173,11 @@ function runSocket() {
 
             redisBl.getAllUsersByRole(appName, role, function (err, users) {
                 if (err){
-                    logger.log('internalRole getAllUsersByRole err:' + JSON.stringify(err));
+                    logger.logFields(true, null, "exception", "socketio server", "internalRole", util.format("%s %j", 'getAllUsersByRole err:', err));
                 }
                 else{
                    sendMultiple(appName, users, eventName, data); 
-                   logger.log('internalRole ' + appName + ' ' +  eventName +  ' ' + JSON.stringify(internal.data));
+                   logger.logFields(true, null, "regular", "socketio server", "internalRole", util.format("%s %s %j", appName, eventName, internal.data));
                 }              
             });
 
@@ -199,11 +197,11 @@ function runSocket() {
 
             redisBl.getUserByList(appName, users, function (err, users) {
                 if (err){
-                    logger.log('internalUsers getUserByList err:' + JSON.stringify(err));
+                    logger.logFields(true, null, "exception", "socketio server", "internalUsers", util.format("%s %j", 'internalUsers getUserByList err:', err));
                 }
                 else{
                     sendMultiple(appName, users, eventName, data);
-                    logger.log('internalUsers ' + appName + ' ' + eventName + ' ' + JSON.stringify(internal.data));
+                    logger.logFields(true, null, "regular", "socketio server", "internalUsers", util.format("%s %s %j", appName, eventName, internal.data));
                 }         
             });
 
