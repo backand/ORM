@@ -13,13 +13,8 @@ NodejsLogger.prototype.log = function (msg){
     this.redisDataSource.insertEvent(msg, function(err, data){});
 }
 
-NodejsLogger.prototype.logFields = function (req,
-	typeOfMessage, 
-	nodeModule, 
-	action, 
-	message, 
-	trace,
-){
+NodejsLogger.prototype.logFields = function (
+	isInternal, req, typeOfMessage, nodeModule, action, message, trace){
 	var msg = {
 		Source: "NodeJS",
 		ID: req.ID,
@@ -27,15 +22,15 @@ NodejsLogger.prototype.logFields = function (req,
 		ExceptionMessage: (typeOfMessage == "exception" ? message : ""),
 		LogMessage: (typeOfMessage != "exception" ? message : ""),	
 		ApplicationName: this.source, 
-		Username: req.headers.username, 
+		Username: req && req.headers ? req.headers.username : null, 
 		MachineName: require("os").hostname(), 
 		Time: moment.utc().format(), 
 		Controller: nodeModule, 
-		Action: req.method,  
+		Action: req ? req.method : null,  
 		MethodName: action, 
 		Trace: trace, 
-		FreeText: req.headers.host + req.url.path, 
-		Guid: req.headers.Guid, 
+		FreeText: req && req.headers ? req.headers.host + req.url.path : null, 
+		Guid: req && req.headers ? req.headers.Guid : null 
 	};
     this.redisDataSource.insertEvent(logEntry, msg, function(err, data){});
 }
