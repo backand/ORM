@@ -5,6 +5,7 @@
 var async = require('async');
 var chai = require("chai");
 var expect = chai.expect;
+var _ = require('lodash');
 
 var logEntry = 'log_api';
 var RedisDataSource = require('../logger-reply/sources/redisDataSource');
@@ -143,7 +144,7 @@ describe('sorted sets', function(){
 
 });
 
-describe.only('exceptions log', function(){
+describe('exceptions log', function(){
 
     before(function(done){
         // 1. Make call to the logger with type 3
@@ -166,7 +167,6 @@ describe.only('exceptions log', function(){
             },
 
             function(callback) { 
-                console.log('insert regular');
                 async.timesSeries(50, function(n, next) {
                     var req = {
                         headers: {
@@ -181,7 +181,6 @@ describe.only('exceptions log', function(){
             },
 
             function(callback) { 
-                console.log('insert exception');
                 async.timesSeries(51, function(n, next) {
                     var req = {
                         headers: {
@@ -199,24 +198,19 @@ describe.only('exceptions log', function(){
         ],
         
         function(err, results) {
-            console.log(err, results);
             done();
         });
     });
 
-    it("fetch type 1 only", function(done){
+    it("fetch exceptions only", function(done){
         this.timeout(200 * 000);
         setTimeout(function(){
-            console.log('occurred');
             redisDataSource.filterSortedSet('test-redis-appender', 0, Date.now(), 0, 10000, function(err, data) {
-                console.log(err);
-                console.log(data);
-                console.log(typeof err);
                 expect(err).to.be.null;
                 expect(data.length).to.be.equal(51);
                 expect(
                     _.every(data, function(d) { 
-                        return d.parse.ExceptionMessage == 'test-exception';
+                        return d.parsed.ExceptionMessage == 'test-exception';
                     })
                 ).to.be.true;
                 done();
@@ -225,7 +219,7 @@ describe.only('exceptions log', function(){
     });
 
     after(function(done){
-
+ 
         async.series([
 
             function(callback) {

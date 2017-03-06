@@ -2,8 +2,9 @@
  * Created by backand on 3/27/16.
  */
 
- var _ = require('lodash');
- var async = require('async');
+var _ = require('lodash');
+var async = require('async');
+var microtime = require('microtime')
 
 var RedisDataSource = require('../sources/redisDataSource');
 var redisDataSource = new RedisDataSource();
@@ -17,11 +18,12 @@ var redisAppender = function () {
 
 
 redisAppender.prototype.processMessage = function (msgBulk, cb) {
-    console.log('processMessag', msgBulk);
+
     async.eachSeries(msgBulk, 
         function(msg, callback){
           var o = JSON.parse(msg.origin);
-          if (o.LogType == "1" && !o.isInternal){
+          if (o.LogType == "1" && !o.isInternal){           
+            msg.distinctTime = microtime.now();
             redisDataSource.addEventToSortedSet(o.ID, (new Date(o.Time)).getTime(), msg, callback);
           }
           else{
