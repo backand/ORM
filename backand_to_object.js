@@ -238,9 +238,9 @@ function fetchColumns(accessToken, tokenType, appName, tableName, dbName, withDb
 	    				if (!withIdColumn && (item.name == "id" || item.name == "Id")){
 	    					callback(null, null);
 	    				}
-	    				else if (item.name == "createdAt" || item.name == "updatedAt"){
-	    					callback(null, null);
-	    				}
+	    				// else if (item.name == "createdAt" || item.name == "updatedAt"){
+	    				// 	callback(null, null);
+	    				// }
 	    				else{
 	    					var description = { "name": item.name, "type": backandToJsonType[item.type] };
 	    					if (withDbName && item.databaseName){
