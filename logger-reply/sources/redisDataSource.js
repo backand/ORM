@@ -7,6 +7,7 @@ var logEntry = 'log_api';
 var redis = require('redis'),
     RedisStore = require('socket.io-redis');
  var async = require('async');
+ var _ = require('lodash');
 
 var redisConfig = require('../../configFactory').getConfig().redis;
 
@@ -253,6 +254,18 @@ RedisDataSource.prototype.insertEvent = function (key, message, cb) {
             }
         }
     );
+
+}
+
+RedisDataSource.prototype.delWildcard = function(key, callback) {
+    
+    var current = this;
+ 
+    current.redisInterface.keys(key, function(err, rows) {
+        async.each(rows, function(row, callbackDelete) {
+            current.redisInterface.del(row, callbackDelete)
+        }, callback)
+    });
 
 }
 
