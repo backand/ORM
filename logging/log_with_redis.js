@@ -29,7 +29,7 @@ NodejsLogger.prototype.logFields = function (
 		Action: req ? req.method : null,  
 		MethodName: action, 
 		Trace: trace, 
-		FreeText: req && req.headers ? req.headers.host + req.url.path : null, 
+		FreeText: req && req.headers ? req.headers.host + (req.url ? req.url.path : '') : null, 
 		Guid: req && req.headers ? req.headers.Guid : null 
 	};
     this.redisDataSource.insertEvent(logEntry, msg, function(err, data){});

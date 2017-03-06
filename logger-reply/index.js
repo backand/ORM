@@ -20,7 +20,7 @@ var async = require('async');
 // var logstashApender = new require('./appenders/logstashAppender')();
 var FileApender = require('./appenders/fileAppender');
 var fileAppender = new FileApender();
-var appenders = [fileAppender, coolaAppender, rabbitAppenderr, redisAppender];
+var appenders = [fileAppender, coolaAppender, rabbitAppender, redisAppender];
 
 var lastMessageTime = new Date();
 var bulk = [];
