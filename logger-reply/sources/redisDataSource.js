@@ -27,6 +27,7 @@ function RedisDataSource() {
     this.redisInterface = redis.createClient(redisPort, redisHostname, option);
 
     var optionsScanner = {
+
         onData: function(result){
             scanCallbacks.onData(result);
 
@@ -173,11 +174,15 @@ RedisDataSource.prototype.scan = function (onData, onEnd) {
                 
             }
             else{
-                onEnc(err);
+                onEnd(err);
             }
         }
     );
 
+}
+
+RedisDataSource.prototype.appWithLoggingPlan = function(appName, cb) {
+  cb(null, true);
 }
 
 RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
@@ -192,10 +197,42 @@ RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
         },
         function (err) {
 
-            if (!err){     
-                current.redisInterface.zremrangebyscore(key, 0, topScore, function (err, data) {
-                    cb(err, data);
+            if (!err){ 
+                async.waterfall([
+                    function(callbackWaterfall) {
+                        redisDataSource.appWithLoggingPlan(appName, callbackWaterfall);
+                    },
+                    function(flag, callbackWaterfall) {
+                        if (flag){
+                            current.redisInterface.zrangebyscore(key, 0, topScore, function (err, data) {
+                                current.redisInterface.zremrangebyscore(key, 0, topScore, function (err, dumpData) {
+                                    callbackWaterfall(err, flag, data);
+                                });
+                            });
+                        }
+                        else{
+                            current.redisInterface.zremrangebyscore(key, 0, topScore, function (err, data) {
+                                callbackWaterfall(err, flag, null);
+                            });
+                        }
+                    },
+                    function(flag, data, callbackWaterfall) {
+                        if (!flag) {
+                            callbackWaterfall(null);
+                        }
+                        else if (!data){
+                            callbackWaterfall(null);
+                        }
+                        else {
+                            // send somewhere
+                            callbackWaterfall(null);
+                        }
+                    }
+                ], function(err, result){
+                    cb(err, result);
                 });
+
+
             }
             else{
                 cb(err);
@@ -205,7 +242,7 @@ RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
 
 }
 
-RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds) {
+RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds, cb) {
     var current = this;
 
     async.during(
@@ -214,20 +251,25 @@ RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds) {
         },
         function(callback) {
 
-            redisDataSource.scan(
+            current.scan(
 
                 function(data){
+                    console.log('-----');
+                    console.log(data);
+                    console.log('=====');
                     var topScore = (new Date()).getTime() - deltaMilliseconds;
-                    current.expireSortedSet(key, topScore, cb);
+                    // current.expireSortedSet(data, topScore, function(err){
+                       
+                    // });
                 }, 
 
                 function(err){
-                    
+                   cb(err);
                 }
             );
         },
         function (err) {
-            console.log(err);
+            cb(err);
         }
     );
 }
@@ -275,3 +317,9 @@ RedisDataSource.prototype.delWildcard = function(key, callback) {
 }
 
 module.exports = RedisDataSource;
+
+// var r = new RedisDataSource();
+// r.expireElementsOfSets(10, function(err){
+//     console.log(err);
+//     process.exit(1);
+// })
