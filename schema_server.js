@@ -887,7 +887,11 @@ setInterval(expireExceptions, 60 * 1000);
 
 function expireExceptions(){
     // delete those entries one hour ago
-    redisDataSource.expireElementsOfSets(60 * 60 * 1000);
+    redisDataSource.expireElementsOfSets(60 * 60 * 1000, function(err){
+        if (err){
+            logger.logFields(true, null, "exception", "schema server", null, util.format("%s %j", "error in logging set expiration", err));
+        }
+    });
 }
 
 function getToken(headers) {
