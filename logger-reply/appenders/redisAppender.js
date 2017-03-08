@@ -4,7 +4,7 @@
 
 var _ = require('lodash');
 var async = require('async');
-var microtime = require('microtime')
+var microtime = require('microtime-nodejs')
 
 var RedisDataSource = require('../sources/redisDataSource');
 var redisDataSource = new RedisDataSource();
@@ -17,27 +17,51 @@ var redisAppender = function () {
 
 
 
+
 redisAppender.prototype.processMessage = function (msgBulk, cb) {
+  async.eachSeries(msgBulk, 
+      function(msg, callback){
+        
+        var o = JSON.parse(msg.origin);
+        var appName = o.ID;
+        
+        async.waterfall([
+            function(callbackWaterfall) {
+              redisDataSource.appWithLoggingPlan(appName, callbackWaterfall);
+            },
+            function(flag, callbackWaterfall) {
+              
+              var shouldLog = false;
+              
+              if (flag && !o.isInternal){
+                shouldLog = true;
+              }
+              else if (o.LogType == "1" && !o.isInternal){           
+                shouldLog = true;                
+              }
+              else{
+                shouldLog = false;
+              }
 
-    async.eachSeries(msgBulk, 
-        function(msg, callback){
-          var o = JSON.parse(msg.origin);
-          if (o.LogType == "1" && !o.isInternal){           
-            msg.distinctTime = microtime.now();
-            redisDataSource.addEventToSortedSet(o.ID, (new Date(o.Time)).getTime(), msg, callback);
-          }
-          else{
-            callback(null);
-          }
-        },
+              if (shouldLog){
+                msg.distinctTime = microtime.now();
+                redisDataSource.addEventToSortedSet(appName, (new Date(o.Time)).getTime(), msg, callbackWaterfall);
+              }
+              else{
+                callbackWaterfall(null);
+              }
+            }
+        ], function (err, result) {
+            callback(err);
+        });
 
-        function(err){
-            cb(err);
-        }
-    );
-    
-    
+        
+      },
 
+      function(err){
+          cb(err);
+      }
+  );
 };
 
 
