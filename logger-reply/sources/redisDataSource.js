@@ -254,13 +254,10 @@ RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds, cb
             current.scan(
 
                 function(data){
-                    console.log('-----');
-                    console.log(data);
-                    console.log('=====');
                     var topScore = (new Date()).getTime() - deltaMilliseconds;
-                    // current.expireSortedSet(data, topScore, function(err){
+                    current.expireSortedSet(data, topScore, function(err){
                        
-                    // });
+                    });
                 }, 
 
                 function(err){
