@@ -770,9 +770,9 @@ router.map(function () {
 
 function filterException(e){
     return 
-        e.FreeText.replace(/https\/\/api.backand.com/g,'') != '/1/app/sync' &&
+        e.FreeText.replace(config.api_url,'') != '/1/app/sync' &&
         !e.Username.match(/@backand.com/) &&
-        e.FreeText.match(/https\/\/api.backand.com/);
+        e.FreeText.match(config.api_url);
 }
 
 function mungeLogOfException(e){
@@ -785,7 +785,7 @@ function mungeLogOfException(e){
         ActionName: extractActionName(AdjustedRequest),
         QueryName: extractQueryName(AdjustedRequest),
         Guid: e.Guid,
-        Request: e.FreeText.replace(/https\/\/api.backand.com/g, ''),
+        Request: e.FreeText.replace(config.api_url, ''),
         AdjustedRequest: AdjustedRequest,
         Username: e.Username,
         ClientIP: e.ClientIP,
