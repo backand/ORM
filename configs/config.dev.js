@@ -9,10 +9,8 @@ var config = {
         // username: relly@backand.com
         // password: Backand2015
         // resource: backanddev
-        // "port": 15996,
-        // "hostname": "redis-15996.c8.us-east-1-4.ec2.cloud.redislabs.com"
-        'port': 6379,
-        'hostname': 'localhost'
+        "port": 15996,
+        "hostname": "redis-15996.c8.us-east-1-4.ec2.cloud.redislabs.com"
     },
     transformAddress: {
         'host': 'localhost',
