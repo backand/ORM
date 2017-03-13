@@ -11,6 +11,8 @@ var config = {
         // resource: backanddev
         "port": 15996,
         "hostname": "redis-15996.c8.us-east-1-4.ec2.cloud.redislabs.com"
+        // "port": 6379,
+        // "hostname": "localhost"
     },
     transformAddress: {
         'host': 'localhost',

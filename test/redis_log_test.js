@@ -14,8 +14,9 @@ var Logger = require('../logging/log_with_redis');
 const util = require('util');
 var request = require('request');
 var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketConfig.serverPort);
-var api_url = config.api_url;
-var lastHourExceptionsUrl = api_url + "/lastHourExceptions";
+var transform_url = (config.api_url.indexOf('https') > -1 ? 'https://' : 'http://') + 
+    config.transformAddress.host + ':' + config.transformAddress.port;
+var lastHourExceptionsUrl = transform_url + "/lastHourExceptions";
 
 var message = {
     "Source": "WebApi#",
@@ -215,7 +216,7 @@ describe('exceptions log', function(){
     });
 
     it("fetch exceptions only", function(done){
-        this.timeout(200 * 1000);
+        this.timeout(400 * 1000);
         setTimeout(function(){
             redisDataSource.filterSortedSet('test-redis-appender', 0, Date.now(), 0, 10000, function(err, data) {
                 expect(err).to.be.null;
@@ -231,7 +232,7 @@ describe('exceptions log', function(){
     });
 
     it("exception endpoint", function(done){
-        this.timeout(1000);
+        this.timeout(2 * 1000);
         request(
             {
                 url: lastHourExceptionsUrl,
