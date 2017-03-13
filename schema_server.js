@@ -759,8 +759,8 @@ router.map(function () {
                 res.send(500, { error: err }, {});
             } else {
                 res.send(200, {}, _.map(
-                    _.filter(a, filterException), 
-                    mungeLogOfException
+                    _.filter(a, function (e) { return filterException(e.parsed); }), 
+                    function(e) { return mungeLogOfException(e.parsed); }
                 ));
             }
         });
@@ -769,14 +769,13 @@ router.map(function () {
 });
 
 function filterException(e){
-    return 
-        (e.FreeText.replace(config.api_url,'') != '/1/app/sync') && 
-        !e.Username.match(/@backand.com/) && 
-        (e.FreeText.match(config.api_url) ? true : false);
+    var f1 = (e.FreeText.replace(config.api_url,'') != '/1/app/sync');
+    var f2 = !e.Username.match(/@backand.com/);
+    var f3 = (e.FreeText.match(config.api_url) ? true : false);
+    return f1 && f2 && f3;
 }
 
 function mungeLogOfException(e){
-
     var AdjustedRequest = (e.FreeText.match(/\?/g) ? e.FreeText : e.FreeText + '?').replace(/\/\?/g, '?');
 
     return {
@@ -819,20 +818,20 @@ function extractType(txt){
 }
 
 function extractObjectName(txt){
-    if (AdjustedRequest.match(/objects\/action\/[a-zA-z0-9]\?/g)){
-        var results = AdjustedRequest.exec(/objects\/action\/[a-zA-z0-9]\?/);
+    if (txt.match(/objects\/action\/[a-zA-z0-9]\?/g)){
+        var results = txt.exec(/objects\/action\/[a-zA-z0-9]\?/);
         return results[0].replace(/objects\/action\/|\?$/g, '');
     }
-    else if (AdjustedRequest.match(/objects\/action\/.*\/[a-zA-z0-9]\?/g)){        
-        var results = AdjustedRequest.exec(/objects\/action\/.\/[a-zA-z0-9]\?/);
+    else if (txt.match(/objects\/action\/.*\/[a-zA-z0-9]\?/g)){        
+        var results = txt.exec(/objects\/action\/.\/[a-zA-z0-9]\?/);
         return results[0].replace(/objects\/action\/|\/.\?$/g, '');
     }    
-    else if (AdjustedRequest.match(/objects\/[a-zA-z0-9]\?/g)){
-        var results = AdjustedRequest.exec(/objects\/[a-zA-z0-9]\?/);
+    else if (txt.match(/objects\/[a-zA-z0-9]\?/g)){
+        var results = txt.exec(/objects\/[a-zA-z0-9]\?/);
         return results[0].replace(/objects\/|\?$/, '');
     }
-    else if (AdjustedRequest.match(/(objects\/.*\/[a-zA-z0-9]\?)/)){
-        var results = AdjustedRequest.exec(/objects\/.\/[a-zA-z0-9_]\?/);
+    else if (txt.match(/(objects\/.*\/[a-zA-z0-9]\?)/)){
+        var results = txt.exec(/objects\/.\/[a-zA-z0-9_]\?/);
         return results[0].replace(/objects\/|\/.\?$/, '');
     }
     else {
@@ -841,8 +840,8 @@ function extractObjectName(txt){
 }
 
 function extractQueryName(txt){
-    if (AdjustedRequest.match(/query\/data\/[a-zA-z0-9\\-]\?/)){
-        var results = AdjustedRequest.exec(/query\/data\/[a-zA-z0-9\\-]\?/);
+    if (txt.match(/query\/data\/[a-zA-z0-9\\-]\?/)){
+        var results = txt.exec(/query\/data\/[a-zA-z0-9\\-]\?/);
         return results[0].replace(/query\/data\/|\?$/, '');
     }
     else{
@@ -851,12 +850,12 @@ function extractQueryName(txt){
 }
 
 function extractActionName(txt){
-    if (AdjustedRequest.match(/objects\/action\/[a-zA-z0-9]\?/)){
-        var results = AdjustedRequest.exec(/\?name\=.[\&]?/);
+    if (txt.match(/objects\/action\/[a-zA-z0-9]\?/)){
+        var results = txt.exec(/\?name\=.[\&]?/);
         return results[0].replace(/\?name=|\&./g, '');
     }
-    else if (AdjustedRequest.match(/objects\/action\/.\/[a-zA-z0-9\_]\?/)){
-        var results = AdjustedRequest.exec(/\?name\=.[\&]?/);
+    else if (txt.match(/objects\/action\/.\/[a-zA-z0-9\_]\?/)){
+        var results = txt.exec(/\?name\=.[\&]?/);
         return results[0].replace(/\?name=|\&.*/, '');
     }
     else{

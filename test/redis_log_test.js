@@ -12,8 +12,10 @@ var RedisDataSource = require('../logger-reply/sources/redisDataSource');
 var config = require('../configFactory').getConfig();
 var Logger = require('../logging/log_with_redis');
 const util = require('util');
+var request = require('request');
 var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketConfig.serverPort);
-
+var api_url = config.api_url;
+var lastHourExceptionsUrl = api_url + "/lastHourExceptions";
 
 var message = {
     "Source": "WebApi#",
@@ -28,7 +30,7 @@ var message = {
     "LogType": "3",
     "ExceptionMessage": "",
     "Trace": "",
-    "FreeText": "http://localhost:4110/1/table/dictionary/items/?deep=true&withSystemTokens=true&crud=update",
+    "FreeText": "http://localhost:9000/1/table/dictionary/items/?deep=true&withSystemTokens=true&crud=update",
     "Guid": "9a195edc-2235-4593-b259-60e38e2b3572",
     "ClientIP": "::1",
     "ClientInfo": "origin=http://localhost:3001; host=localhost:4110; referer=http://localhost:3001/; user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0; keys=ALL_HTTP,ALL_RAW,APPL_MD_PATH,APPL_PHYSICAL_PATH,AUTH_TYPE,AUTH_USER,AUTH_PASSWORD,LOGON_USER,REMOTE_USER,CERT_COOKIE,CERT_FLAGS,CERT_ISSUER,CERT_KEYSIZE,CERT_SECRETKEYSIZE,CERT_SERIALNUMBER,CERT_SERVER_ISSUER,CERT_SERVER_SUBJECT,CERT_SUBJECT,CONTENT_LENGTH,CONTENT_TYPE,GATEWAY_INTERFACE,HTTPS,HTTPS_KEYSIZE,HTTPS_SECRETKEYSIZE,HTTPS_SERVER_ISSUER,HTTPS_SERVER_SUBJECT,INSTANCE_ID,INSTANCE_META_PATH,LOCAL_ADDR,PATH_INFO,PATH_TRANSLATED,QUERY_STRING,REMOTE_ADDR,REMOTE_HOST,REMOTE_PORT,REQUEST_METHOD,SCRIPT_NAME,SERVER_NAME,SERVER_PORT,SERVER_PORT_SECURE,SERVER_PROTOCOL,SERVER_SOFTWARE,URL,HTTP_CONNECTION,HTTP_ACCEPT,HTTP_ACCEPT_ENCODING,HTTP_ACCEPT_LANGUAGE,HTTP_AUTHORIZATION,HTTP_HOST,HTTP_REFERER,HTTP_USER_AGENT,HTTP_APPNAME,HTTP_ORIGIN forwarded=",
@@ -144,7 +146,7 @@ describe('sorted sets', function(){
 
 });
 
-describe('exceptions log', function(){
+describe.only('exceptions log', function(){
 
     before(function(done){
         // 1. Make call to the logger with type 3
@@ -170,7 +172,12 @@ describe('exceptions log', function(){
                 async.timesSeries(50, function(n, next) {
                     var req = {
                         headers: {
-                            ID: 'test-redis-appender'
+                            ID: 'test-redis-appender',
+                            host: config.api_url,
+                            username: 'johndoe@example.com'
+                        },
+                        url: {
+                            path: '/transform'
                         }                
                     };             
                     logger.logFields(false, req, "regular", "schema server", "transform", 'test-regular');
@@ -184,7 +191,12 @@ describe('exceptions log', function(){
                 async.timesSeries(51, function(n, next) {
                     var req = {
                         headers: {
-                            ID: 'test-redis-appender'
+                            ID: 'test-redis-appender',
+                            host: config.api_url,
+                            username: 'johndoe@example.com'
+                        },
+                        url: {
+                            path: '/transform'
                         }                
                     };             
                     logger.logFields(false, req, "exception", "schema server", "transform", 'test-exception');            
@@ -218,6 +230,33 @@ describe('exceptions log', function(){
         }, 100 * 1000); 
     });
 
+    it("exception endpoint", function(done){
+        this.timeout(1000);
+        request(
+            {
+                url: lastHourExceptionsUrl,
+
+                method: 'POST',
+
+                form: {
+                    appName: 'test-redis-appender',
+                    fromTimeEpochTime: 0,
+                    toTimeEpochTime: 4108619792000,
+                    offset: 0,
+                    count: 10000
+                }
+            },
+            function (error, response, body) {
+                expect(error).to.equal(null);
+                expect(response).to.not.equal(null);
+                expect(response.statusCode).to.equal(200);
+                var b = JSON.parse(body);
+                expect(b.length).to.equal(51);
+                done();
+            }
+        );
+    });
+
     after(function(done){
  
         async.series([
@@ -239,6 +278,7 @@ describe('exceptions log', function(){
         function(err, results) {
             done();
         }); 
+
     });
 
 });

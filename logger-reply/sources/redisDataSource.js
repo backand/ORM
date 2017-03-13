@@ -127,15 +127,10 @@ RedisDataSource.prototype.filterSortedSet = function (key, fromScore, toScore, o
         function (err) {
 
             if (!err){     
-                current.redisInterface.zrangebyscore(key, fromScore, toScore, 'WITHSCORES', 'LIMIT', offset, count, function (err, data) {
+                current.redisInterface.zrangebyscore(key, fromScore, toScore, 'LIMIT', offset, count, function (err, data) {
                     cb(err, 
                         _.map(
-                            _.filter(
-                                data, 
-                                function(value, index){
-                                    return index % 2 == 0;
-                                }
-                            ),
+                            data,
                             function(a){ 
                                 return JSON.parse(a); 
                             }
