@@ -203,7 +203,7 @@ describe('exceptions log', function(){
     });
 
     it("fetch exceptions only", function(done){
-        this.timeout(200 * 000);
+        this.timeout(200 * 1000);
         setTimeout(function(){
             redisDataSource.filterSortedSet('test-redis-appender', 0, Date.now(), 0, 10000, function(err, data) {
                 expect(err).to.be.null;

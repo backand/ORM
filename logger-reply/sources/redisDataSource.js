@@ -182,7 +182,7 @@ RedisDataSource.prototype.scan = function (onData, onEnd) {
 }
 
 RedisDataSource.prototype.appWithLoggingPlan = function(appName, cb) {
-  cb(null, true);
+  cb(null, false);
 }
 
 RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
