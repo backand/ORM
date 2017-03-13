@@ -146,7 +146,7 @@ describe('sorted sets', function(){
 
 });
 
-describe.only('exceptions log', function(){
+describe('exceptions log', function(){
 
     before(function(done){
         // 1. Make call to the logger with type 3
