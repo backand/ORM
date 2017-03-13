@@ -21,7 +21,12 @@ var storageConfig = {
   "serverProtocol" : 'http'
 }
 
+var logging = {
+    "bulkSize": 1
+}
+
 module.exports.socketConfig = httpsServerConfig;
 module.exports.api_url = api_url;
 module.exports.redis = redis;
 module.exports.storageConfig = storageConfig;
+module.exports.logging = logging;

@@ -1,6 +1,7 @@
 process.chdir(__dirname);
 
-var BULK_SIZE = 100;
+var config = require('../configFactory').getConfig();
+var BULK_SIZE = config.logging.bulkSize;
 
 var fs = require('fs');
 

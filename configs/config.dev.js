@@ -25,6 +25,9 @@ var config = {
     },
     storageConfig: {
         "serverProtocol": 'http'
+    },
+    logging: {
+        "bulkSize": 1
     }
 }
 
