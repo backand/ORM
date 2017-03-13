@@ -770,9 +770,9 @@ router.map(function () {
 
 function filterException(e){
     return 
-        e.FreeText.replace(config.api_url,'') != '/1/app/sync' &&
-        !e.Username.match(/@backand.com/) &&
-        e.FreeText.match(config.api_url);
+        (e.FreeText.replace(config.api_url,'') != '/1/app/sync') && 
+        !e.Username.match(/@backand.com/) && 
+        (e.FreeText.match(config.api_url) ? true : false);
 }
 
 function mungeLogOfException(e){
