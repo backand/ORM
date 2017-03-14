@@ -340,8 +340,7 @@ function transform(oldSchema, newSchema, severity, isSpecialPrimary){
 		
 		// remove created at and updated at columns
 		alterStatementsArray = _.map(alterStatementsArray, function(s){
-			//return s.replace(/, `created_at` datetime/g,"").replace(/, `updated_at` datetime/g,"").replace(/;/g, "");
-			return s.replace(/;/g, "");
+			return s.replace(/, `created_at` datetime/g,"").replace(/, `updated_at` datetime/g,"").replace(/;/g, "");
 		});
 
 		// describe the order of the database
