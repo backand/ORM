@@ -9,6 +9,8 @@ var microtime = require('microtime-nodejs')
 var RedisDataSource = require('../sources/redisDataSource');
 var redisDataSource = new RedisDataSource();
 
+var sortedSetPrefix = "lastHourExceptions-";
+
 
 
 var redisAppender = function () {
@@ -45,7 +47,7 @@ redisAppender.prototype.processMessage = function (msgBulk, cb) {
 
               if (shouldLog){
                 msg.distinctTime = microtime.now();
-                redisDataSource.addEventToSortedSet(appName, (new Date(o.Time)).getTime(), msg, callbackWaterfall);
+                redisDataSource.addEventToSortedSet(sortedSetPrefix + appName, (new Date(o.Time)).getTime(), msg, callbackWaterfall);
               }
               else{
                 callbackWaterfall(null);

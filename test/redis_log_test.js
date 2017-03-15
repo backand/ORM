@@ -17,6 +17,7 @@ var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketC
 var transform_url = (config.api_url.indexOf('https') > -1 ? 'https://' : 'http://') + 
     config.transformAddress.host + ':' + config.transformAddress.port;
 var lastHourExceptionsUrl = transform_url + "/lastHourExceptions";
+var sortedSetPrefix = "lastHourExceptions-";
 
 var message = {
     "Source": "WebApi#",
@@ -76,6 +77,8 @@ describe('insert-scan-redis', function(){
     it("scan all", function(done){
         var a = [];
         redisDataSource.scan(
+            '',
+
             function(data){
                 a.push(data);
             },
@@ -218,7 +221,7 @@ describe('exceptions log', function(){
     it("fetch exceptions only", function(done){
         this.timeout(400 * 1000);
         setTimeout(function(){
-            redisDataSource.filterSortedSet('test-redis-appender', 0, Date.now(), 0, 10000, function(err, data) {
+            redisDataSource.filterSortedSet(sortedSetPrefix + 'test-redis-appender', 0, Date.now(), 0, 10000, function(err, data) {
                 expect(err).to.be.null;
                 expect(data.length).to.be.equal(51);
                 expect(
@@ -269,7 +272,7 @@ describe('exceptions log', function(){
             },
 
             function(callback) {
-                redisDataSource.delWildcard('test-redis-appender', function(err, data){
+                redisDataSource.delWildcard(sortedSetPrefix + 'test-redis-appender', function(err, data){
                     callback(null, 'clean-app');
                 });    
             }

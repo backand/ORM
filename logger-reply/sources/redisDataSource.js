@@ -18,26 +18,13 @@ var option = redisConfig.option;
 var redis = require('redis');
 var redis_scanner = require('redis-scanner');
 
-var scanCallbacks = {};
-
 function RedisDataSource() {
 
     var current = this;
     this.readyToRead = false;
     this.redisInterface = redis.createClient(redisPort, redisHostname, option);
 
-    var optionsScanner = {
-
-        onData: function(result){
-            scanCallbacks.onData(result);
-
-        },
-        onEnd: function(err){
-            scanCallbacks.onEnd(err);
-        }
-    };
-    this.scanner = new redis_scanner.Scanner(this.redisInterface, 'SCAN', null, optionsScanner);
-
+    
     this.redisInterface.on('connect', function () {
         current.readyToRead = true;
         console.log('connected to redis');
@@ -146,7 +133,7 @@ RedisDataSource.prototype.filterSortedSet = function (key, fromScore, toScore, o
 
 }
 
-RedisDataSource.prototype.scan = function (onData, onEnd) {
+RedisDataSource.prototype.scan = function (prefix, onData, onEnd) {
     
     var current = this;
 
@@ -158,15 +145,18 @@ RedisDataSource.prototype.scan = function (onData, onEnd) {
             setTimeout(callback, 1000);
         },
         function (err) {
-
             if (!err){   
-
-                scanCallbacks = {
+                var optionsScanner = {               
                     onData: onData,
                     onEnd: onEnd
+                };
+
+                if (prefix){
+                   optionsScanner.args = ['MATCH', prefix + '*'];
                 }
-                current.scanner.start();
-                
+
+                var scanner = new redis_scanner.Scanner(current.redisInterface, 'SCAN', null, optionsScanner);
+                scanner.start();             
             }
             else{
                 onEnd(err);
@@ -237,7 +227,7 @@ RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
 
 }
 
-RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds, cb) {
+RedisDataSource.prototype.expireElementsOfSets = function (prefix, deltaMilliseconds, cb) {
     var current = this;
 
     async.during(
@@ -247,6 +237,7 @@ RedisDataSource.prototype.expireElementsOfSets = function (deltaMilliseconds, cb
         function(callback) {
 
             current.scan(
+                prefix,
 
                 function(data){
                     var topScore = (new Date()).getTime() - deltaMilliseconds;
@@ -311,6 +302,24 @@ RedisDataSource.prototype.delWildcard = function(key, callback) {
 module.exports = RedisDataSource;
 
 // var r = new RedisDataSource();
+
+// r.delWildcard('*', function(err, data){
+//     console.log(err, data);
+//     process.exit(0);
+// });
+
+// r.scan(
+//     prefix,
+
+//     function(data){
+//         console.log(data);
+//     }, 
+//     function(err){
+//         console.log(err);
+//         process.exit(0);
+//     }
+// );
+
 // r.expireElementsOfSets(10, function(err){
 //     console.log(err);
 //     process.exit(1);

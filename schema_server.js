@@ -52,6 +52,8 @@ var getCron = require('./cron/get_cron').getCron;
 var RedisDataSource = require('./logger-reply/sources/RedisDataSource');
 var redisDataSource = new RedisDataSource();
 
+var sortedSetPrefix = "lastHourExceptions-";
+
 
 var fs = require('fs');
 
@@ -754,7 +756,7 @@ router.map(function () {
         // offset - start of page
         // count - number of elements on page
         logger.logFields(true, req, "regular", "schema server", "lastHourExceptions", util.format("%j", data));
-        redisDataSource.filterSortedSet(data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
+        redisDataSource.filterSortedSet(sortedSetPrefix + data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
             if (err) {
                 res.send(500, { error: err }, {});
             } else {
@@ -886,7 +888,7 @@ setInterval(expireExceptions, 60 * 1000);
 
 function expireExceptions(){
     // delete those entries one hour ago
-    redisDataSource.expireElementsOfSets(60 * 60 * 1000, function(err){
+    redisDataSource.expireElementsOfSets(sortedSetPrefix, 60 * 60 * 1000, function(err){
         if (err){
             logger.logFields(true, null, "exception", "schema server", null, util.format("%s %j", "error in logging set expiration", err));
         }
