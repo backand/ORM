@@ -754,7 +754,7 @@ router.map(function () {
         // offset - start of page
         // count - number of elements on page
         logger.logFields(true, req, "regular", "schema server", "lastHourExceptions", util.format("%j", data));
-        redisDataSource.filterSortedSet(data.appName, data.fromTimeEpochTime * 1000, data.toTimeEpochTime * 1000, data.offset, data.count, function(err, a){
+        redisDataSource.filterSortedSet(data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
             if (err) {
                 res.send(500, { error: err }, {});
             } else {
