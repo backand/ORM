@@ -11,6 +11,7 @@ var version = require('./version').version;
 
 var fs = require('fs');
 var _ = require('lodash');
+var util = require('util');
 var socketBl = require('./web_sockets/redis_bl')
 var config = require('./configFactory').getConfig();
 var redisConfig = config.redis;
