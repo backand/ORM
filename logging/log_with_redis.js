@@ -2,7 +2,7 @@ var logEntry = 'log_api';
 
 var moment = require('moment');
 
-var RedisDataSource = require('../logger-reply/sources/RedisDataSource');
+var RedisDataSource = require('../logger-reply/sources/redisDataSource');
 
 function NodejsLogger(source) {
 	this.source = source;
