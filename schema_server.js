@@ -49,7 +49,7 @@ var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
 var getCron = require('./cron/get_cron').getCron;
 
-var RedisDataSource = require('./logger-reply/sources/RedisDataSource');
+var RedisDataSource = require('./logger-reply/sources/redisDataSource');
 var redisDataSource = new RedisDataSource();
 
 var sortedSetPrefix = "lastHourExceptions-";
