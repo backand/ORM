@@ -3,6 +3,7 @@ var logEntry = 'log_api';
 var moment = require('moment');
 
 var RedisDataSource = require('../logger-reply/sources/RedisDataSource');
+var redisKeys = require('../logger-reply/sources/redis_keys');
 
 function NodejsLogger(source) {
 	this.source = source;
@@ -32,7 +33,7 @@ NodejsLogger.prototype.logFields = function (
 		FreeText: req && req.headers ? req.headers.host + (req.url ? req.url.path : '') : null, 
 		Guid: req && req.headers ? req.headers.Guid : null 
 	};
-    this.redisDataSource.insertEvent(logEntry, msg, function(err, data){});
+    this.redisDataSource.insertEvent(redisKeys.logEntry, msg, function(err, data){});
 }
 
 module.exports = NodejsLogger;

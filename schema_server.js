@@ -20,14 +20,16 @@ var getConnectionInfo = require('./get_connection_info').getConnectionInfo;
 var version = require('./version').version;
 
 var config = require('./configFactory').getConfig();
+var api_url = config.api_url;
+var loggingPlanUrl = api_url + "/loggingPlan";
+var redisKeys = require('./logger-reply/sources/redis_keys');
+
 var Logger = require('./logging/log_with_redis');
 const util = require('util');
 var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketConfig.serverPort);
 
 var bcrypt = require('bcrypt-nodejs');
 
-
-logger.logFields(true, null, "regular", "schema server", null, "start with config " + config.env);
 
 
 var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
@@ -52,7 +54,10 @@ var getCron = require('./cron/get_cron').getCron;
 var RedisDataSource = require('./logger-reply/sources/RedisDataSource');
 var redisDataSource = new RedisDataSource();
 
-var sortedSetPrefix = "lastHourExceptions-";
+
+
+var request = require('request');
+
 
 
 var fs = require('fs');
@@ -756,7 +761,7 @@ router.map(function () {
         // offset - start of page
         // count - number of elements on page
         logger.logFields(true, req, "regular", "schema server", "lastHourExceptions", util.format("%j", data));
-        redisDataSource.filterSortedSet(sortedSetPrefix + data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
+        redisDataSource.filterSortedSet(redisKeys.sortedSetPrefix + data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
             if (err) {
                 res.send(500, { error: err }, {});
             } else {
@@ -764,6 +769,39 @@ router.map(function () {
                     _.filter(a, function (e) { return filterException(e.parsed); }), 
                     function(e) { return mungeLogOfException(e.parsed); }
                 ));
+            }
+        });
+    });
+
+    this.post('/addAppToLoggingPlan').bind(function(req,res,data){
+        // add app to S3 logging
+        // parameters of POST:
+        // appName
+        // bucketName
+        // accessKeyId
+        // secretAccessKey
+        logger.logFields(true, req, "regular", "schema server", "addAppLoggingPlan", util.format("%j", data)); 
+        redisDataSource.addAppForLogging(data.appName, _.omit(data, 'appName'), function(err){
+            if (err) {
+                res.send(500, { error: err }, {});
+            } 
+            else {
+                res.send(200, {}, {});
+            }
+        });
+    });
+
+    this.post('/removeAppFromLoggingPlan').bind(function(req,res,data){
+        // remove app from S3 logging
+        // parameters of POST:
+        // appName
+        logger.logFields(true, req, "regular", "schema server", "removeAppLoggingPlan", util.format("%j", data)); 
+        redisDataSource.removeAppForLogging(data.appName, function(err){
+            if (err) {
+                res.send(500, { error: err }, {});
+            } 
+            else {
+                res.send(200, {}, {});
             }
         });
     });
@@ -865,30 +903,144 @@ function extractActionName(txt){
     }
 }
 
+function fetchLoggingApps(callback){
+    var headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+    }
 
-require('http').createServer(function (request, response) {
-    //logger.logFields('start server on port 9000 ' + version);
-    var body = "";
+    request(
+        {
+            url: loggingPlanUrl,
+            headers: headers,
+            method: 'GET'
+        },
 
-    request.addListener('data', function (chunk) {
-        body += chunk
+        function (error, response, body) {
+            // console.log(error);
+            // console.log(body);
+            // console.log(response.statusCode);
+            if (!error && response.statusCode == 200) {
+               syncLoggingApps(body, function(err){
+                    if (!err){
+                        logger.logFields(true, null, "regular", "schema server", "fetchLoggingApps", "success");   
+                    }
+                    else{
+                        logger.logFields(true, null, "exception", "schema server", "fetchLoggingApps", util.format("%s %j", "sync error", err), null);
+                    }
+               });
+            }
+            else{
+                logger.logFields(true, null, "exception", "schema server", "fetchLoggingApps", util.format("%s %j %d", "logginPlanUrl error", error, response.statusCode), null);
+            }
+            callback();
+        }
+    );
+}
+
+// data should have structure of array of 
+// appName
+// bucketName
+// accessKeyId
+// secretAccessKey
+function syncLoggingApps(data, callback) {
+
+    
+    var apps = _.pick(data, "appName");
+    var oldApps = [];
+    var toBeDeletedApps = [];
+    var newApps = [];
+
+    async.series({
+        members: function(callback) {
+            redisDataSource.setMemebers(redisKeys.loggingPlanApps, function(err, data){
+                if (!err){
+                    oldApps = data;
+                    toBeDeletedApps = _.difference(oldApps, apps);
+                    newApps = _.difference(apps, oldApps);
+                    callback(null);
+                }
+                else{
+                    callback(err);
+                }
+            });
+        },
+        deleteOmittedApps: function(callback) {
+            async.eachOf(toBeDeletedApps, 
+                function (value, cb) {
+                    redisDataSource.removeAppForLogging(value, cb)
+                },
+                function(err){
+                    callback(err);
+                }
+            );
+        },
+        addNewApps: function(callback){
+            async.eachOf(newApps, 
+                function (value, cb) {
+                    redisDataSource.addAppForLogging(value.appName, _.omit(value, "appName"), cb);
+                },
+                function(err){
+                    callback(err);
+                }
+            );
+        }
+    }, 
+    function(err) {
+        callback(err);
     });
-    request.addListener('end', function () {
-        //
-        // Dispatch the request to the router
-        //
-        router.handle(request, body, function (result) {
-            response.writeHead(result.status, result.headers);
-            response.end(result.body);
-        });
-    });
-}).listen(9000);
+}
+
+
+async.series(
+    {
+        syncLoggingApps: function(callback){
+            // fetchLoggingApps(callback);
+            callback(null);
+        },
+
+        runHttpServer: function(callback){
+            require('http').createServer(function (request, response) {
+                logger.logFields(true, null, "regular", "schema server", null, 'start server on port 9000 ' + version);
+                var body = "";
+
+                request.addListener('data', function (chunk) {
+                    body += chunk
+                });
+                request.addListener('end', function () {
+                    //
+                    // Dispatch the request to the router
+                    //
+                    router.handle(request, body, function (result) {
+                        response.writeHead(result.status, result.headers);
+                        response.end(result.body);
+                    });
+                });
+            }).listen(9000);
+            callback();
+        }
+    },
+
+    function(err, results) {
+        if (!err){
+            logger.logFields(true, null, "regular", "schema server", null, "start with config " + config.env);
+        }
+        else{
+            logger.logFields(true, null, "exception", "schema server", null, "failed to start");
+        }
+    }
+);
+
+
+
 
 setInterval(expireExceptions, 60 * 1000);
 
+// setInterval(fetchLoggingApps, 24 * 60 * 60 * 1000);
+
 function expireExceptions(){
     // delete those entries one hour ago
-    redisDataSource.expireElementsOfSets(sortedSetPrefix, 60 * 60 * 1000, function(err){
+    redisDataSource.expireElementsOfSets(redisKeys.sortedSetPrefix, 60 * 60 * 1000, function(err){
         if (err){
             logger.logFields(true, null, "exception", "schema server", null, util.format("%s %j", "error in logging set expiration", err));
         }

@@ -9,7 +9,7 @@ var microtime = require('microtime-nodejs')
 var RedisDataSource = require('../sources/redisDataSource');
 var redisDataSource = new RedisDataSource();
 
-var sortedSetPrefix = "lastHourExceptions-";
+var redisKeys = require('../sources/redis_keys');
 
 
 
@@ -29,16 +29,17 @@ redisAppender.prototype.processMessage = function (msgBulk, cb) {
         
         async.waterfall([
             function(callbackWaterfall) {
-              redisDataSource.appWithLoggingPlan(appName, callbackWaterfall);
+              redisDataSource.isAppWithLoggingPlan(appName, callbackWaterfall);
             },
             function(flag, callbackWaterfall) {
               
               var shouldLog = false;
               
-              if (flag && !o.isInternal){
-                shouldLog = true;
-              }
-              else if (o.LogType == "1" && !o.isInternal){           
+              // if (flag && !o.isInternal){
+              //   shouldLog = true;
+              // }
+              // else 
+              if (o.LogType == "1" && !o.isInternal){           
                 shouldLog = true;                
               }
               else{
@@ -47,7 +48,7 @@ redisAppender.prototype.processMessage = function (msgBulk, cb) {
 
               if (shouldLog){
                 msg.distinctTime = microtime.now();
-                redisDataSource.addEventToSortedSet(sortedSetPrefix + appName, (new Date(o.Time)).getTime(), msg, callbackWaterfall);
+                redisDataSource.addEventToSortedSet(redisKeys.sortedSetPrefix + appName, (new Date(o.Time)).getTime(), msg, callbackWaterfall);
               }
               else{
                 callbackWaterfall(null);

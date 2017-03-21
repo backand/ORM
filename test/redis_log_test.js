@@ -7,7 +7,6 @@ var chai = require("chai");
 var expect = chai.expect;
 var _ = require('lodash');
 
-var logEntry = 'log_api';
 var RedisDataSource = require('../logger-reply/sources/redisDataSource');
 var config = require('../configFactory').getConfig();
 var Logger = require('../logging/log_with_redis');
@@ -17,7 +16,8 @@ var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketC
 var transform_url = (config.api_url.indexOf('https') > -1 ? 'https://' : 'http://') + 
     config.transformAddress.host + ':' + config.transformAddress.port;
 var lastHourExceptionsUrl = transform_url + "/lastHourExceptions";
-var sortedSetPrefix = "lastHourExceptions-";
+var redisKeys = require('../logger-reply/sources/redis_keys');
+
 
 var message = {
     "Source": "WebApi#",
@@ -77,7 +77,7 @@ describe('insert-scan-redis', function(){
     it("scan all", function(done){
         var a = [];
         redisDataSource.scan(
-            '',
+            'WebApi_',
 
             function(data){
                 a.push(data);
@@ -161,13 +161,13 @@ describe('exceptions log', function(){
         async.series([
 
             function(callback) {
-                redisDataSource.delWildcard(logEntry, function(err, data){
+                redisDataSource.delWildcard(redisKeys.logEntry, function(err, data){
                     callback(null, 'clean-log-api');
                 });    
             },
 
             function(callback) {
-                redisDataSource.delWildcard('test-redis-appender', function(err, data){
+                redisDataSource.delWildcard(redisKeys.sortedSetPrefix + 'test-redis-appender', function(err, data){
                     callback(null, 'clean-app');
                 });    
             },
@@ -218,10 +218,11 @@ describe('exceptions log', function(){
         });
     });
 
+
     it("fetch exceptions only", function(done){
         this.timeout(400 * 1000);
         setTimeout(function(){
-            redisDataSource.filterSortedSet(sortedSetPrefix + 'test-redis-appender', 0, Date.now(), 0, 10000, function(err, data) {
+            redisDataSource.filterSortedSet(redisKeys.sortedSetPrefix + 'test-redis-appender', 0, Date.now(), 0, 10000, function(err, data) {
                 expect(err).to.be.null;
                 expect(data.length).to.be.equal(51);
                 expect(
@@ -266,13 +267,13 @@ describe('exceptions log', function(){
         async.series([
 
             function(callback) {
-                redisDataSource.delWildcard(logEntry, function(err, data){
+                redisDataSource.delWildcard(redisKeys.logEntry, function(err, data){
                     callback(null, 'clean-log-api');
                 });    
             },
 
             function(callback) {
-                redisDataSource.delWildcard(sortedSetPrefix + 'test-redis-appender', function(err, data){
+                redisDataSource.delWildcard(redisKeys.sortedSetPrefix + 'test-redis-appender', function(err, data){
                     callback(null, 'clean-app');
                 });    
             }

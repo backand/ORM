@@ -2,12 +2,15 @@
  * Created by backand on 3/27/16.
  */
 
-var logEntry = 'log_api';
+
 
 var redis = require('redis'),
     RedisStore = require('socket.io-redis');
- var async = require('async');
- var _ = require('lodash');
+var async = require('async');
+var _ = require('lodash');
+
+var redisKeys = require('./redis_keys');
+
 
 var redisConfig = require('../../configFactory').getConfig().redis;
 
@@ -58,7 +61,7 @@ RedisDataSource.prototype.getEvent = function (cb) {
         function (err) {
             if (!err){
 
-                current.redisInterface.lpop(logEntry, function (err, data) {
+                current.redisInterface.lpop(redisKeys.logEntry, function (err, data) {
 					var entry = {origin: data, parsed: JSON.parse(data)};
                        cb(err, entry);
                 });
@@ -166,8 +169,15 @@ RedisDataSource.prototype.scan = function (prefix, onData, onEnd) {
 
 }
 
-RedisDataSource.prototype.appWithLoggingPlan = function(appName, cb) {
-  cb(null, false);
+RedisDataSource.prototype.isAppWithLoggingPlan = function(appName, cb) {
+    var current = this;
+    cb(null, true);
+    // if (!appName){
+    //     cb(null, false);
+    // }
+    // else{
+    //     current.redisInterface.sismember(redisKeys.loggingPlanApps, appName, cb);
+    // }
 }
 
 RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
@@ -185,7 +195,7 @@ RedisDataSource.prototype.expireSortedSet = function (key, topScore, cb) {
             if (!err){ 
                 async.waterfall([
                     function(callbackWaterfall) {
-                        redisDataSource.appWithLoggingPlan(appName, callbackWaterfall);
+                        current.isAppWithLoggingPlan(appName, callbackWaterfall);
                     },
                     function(flag, callbackWaterfall) {
                         if (flag){
@@ -299,9 +309,107 @@ RedisDataSource.prototype.delWildcard = function(key, callback) {
 
 }
 
+RedisDataSource.prototype.setHash = function(key, hash, callback) {
+    
+    var current = this;
+
+    var pairs = _.toPairs(hash);
+    current.redisInterface.hmset(key, hash, function(err) {
+        callback(err);
+    });
+
+}
+
+RedisDataSource.prototype.addToSet = function(key, element, callback) {
+    
+    var current = this;
+
+    current.redisInterface.sadd(key, element, function(err) {
+        callback(err);
+    });
+
+}
+
+RedisDataSource.prototype.removeFromSet = function(key, element, callback) {
+    
+    var current = this;
+
+    current.redisInterface.srem(key, element, function(err) {
+        callback(err);
+    });
+
+}
+
+RedisDataSource.prototype.setMemebers = function(key, element, callback) {
+    
+    var current = this;
+
+    current.redisInterface.smembers(key, function(err, data) {
+        callback(err, data);
+    });
+
+}
+
+RedisDataSource.prototype.removeAppForLogging = function(appName, callback) {
+    
+    var current = this;
+
+    async.waterfall([
+        function(cb) {
+            redisDataSource.removeFromSet(redisKeys.loggingPlanApps, appName, function(err){
+                cb(err);
+            });
+        },
+        function(cb) {
+            redisDataSource.del(redisKeys.loggedAppPrefix + appName, function(err){
+                cb(err);
+            });
+        }
+    ], function (err, result) {
+        callback(err);
+    });
+
+}
+
+RedisDataSource.prototype.addAppForLogging = function(appName, data, callback) {
+    
+    var current = this;
+
+    async.waterfall([
+        function(cb) {
+            redisDataSource.setHash(redisKeys.loggedAppPrefix + appName, data, function(err){
+                cb(err);
+            });
+        },
+        function(cb) {
+            redisDataSource.addToSet(redisKeys.loggingPlanApps, appName, function(err){
+                cb(err);
+            });
+        },
+        
+    ], function (err, result) {
+        callback(err);
+    });
+
+}
+
 module.exports = RedisDataSource;
 
 // var r = new RedisDataSource();
+// r.setHash("h", { "a": "b", "d": "xxx" }, function(err){
+//     console.log(err);
+//     process.exit(1);
+// });
+
+// r.addToSet("s", "first", function(err){
+//     console.log(err);
+//     r.addToSet("s", "second", function(err){
+//         console.log(err);
+//         process.exit(1);
+//     });
+// });
+
+
 
 // r.delWildcard('*', function(err, data){
 //     console.log(err, data);
