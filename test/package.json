@@ -19,6 +19,7 @@
     "superagent": "latest",
     "underscore": "latest",
     "uuid": "^3.0.1",
-    "util": "latest"
+    "util": "latest",
+    "lodash": "latest"
   }
 }
