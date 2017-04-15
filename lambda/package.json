@@ -9,6 +9,7 @@
   "author": "Yoram Kornatzky",
   "license": "ISC",
   "dependencies": {
-    "aws-sdk": "latest"
+    "async": "latest",
+    "aws-sdk": "latest",
   }
 }

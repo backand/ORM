@@ -11,6 +11,7 @@
   "dependencies": {
     "s3": "latest",
     "lodash": "latest",
-    "redis": "latest"
+    "redis": "latest",
+    "aws-sdk": "latest"
   }
 }
