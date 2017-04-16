@@ -1,6 +1,6 @@
 var AWS = require('aws-sdk');
 var https = require('https');
-AWS.config.loadFromPath('../hosting/aws-credentials.json');
+AWS.config.loadFromPath('./hosting/aws-credentials.json');
 AWS.config.update({ 'region': 'us-east-1' });
 var s3 = new AWS.S3();
 

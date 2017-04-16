@@ -41,11 +41,15 @@ var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
 
 var s3Folders = require('./list-s3/list_folder');
+var downloadIntoS3 = require('./list-s3/download_into_s3');
 
 var createLambda = require('./lambda/create_lambda_function').createLambdaFunctionFromS3;
 var callLambda = require('./lambda/call_lambda_function').callLambdaFunctionFromS3;
 var updateLambda = require('./lambda/update_lambda_function').updateLambdaFunctionFromS3;
 var deleteLambda = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
+var getLambdasList = require('./lambda/get_lambda_functions_list').getLambdaList;
+var getLambdaFunction = require('./lambda/get_lambda_function').getLambdaFunction;
+var invokeLambda = require('./lambda/get_lambda_function').invokeLambdaFunction;
 
 var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
@@ -92,7 +96,6 @@ router.map(function () {
 
     // validate a json schema
     this.post('/validate').bind(function (req, res, data) {
-        logger.logFields(true, req, "regular", "schema server", "validate", "start validate");
         logger.logFields(true, req, "regular", "schema server", "validate", "start validate", null);
         logger.logFields(true, req, "regular", "schema server", "validate", util.format("%s %j", "validate input", data), null);
         result = validator(data)
@@ -103,7 +106,7 @@ router.map(function () {
             res.send(500, {error: result.error}, {});
         }
         else {
-            logger.logFields(true, req, "regular", "schema server", "validate OK");
+            logger.logFields(true, req, "regular", "schema server", "validate", "validate OK");
             res.send(200, {}, result);
         }
 
@@ -780,8 +783,9 @@ router.map(function () {
         // bucketName
         // accessKeyId
         // secretAccessKey
-        logger.logFields(true, req, "regular", "schema server", "addAppLoggingPlan", util.format("%j", data)); 
+        console.log(true, req, "regular", "schema server", "addAppLoggingPlan", util.format("%j", data)); 
         redisDataSource.addAppForLogging(data.appName, _.omit(data, 'appName'), function(err){
+            console.log(err);
             if (err) {
                 res.send(500, { error: err }, {});
             } 
@@ -804,6 +808,106 @@ router.map(function () {
                 res.send(200, {}, {});
             }
         });
+    });
+
+    this.post("/getLambdaList").bind(function(req,res,data){
+        logger.logFields(true, req, "regular", "schema server", "getLambdaList", util.format("%j", "input", data), null);   
+        // parameters of POST:
+        // awsRegion
+        // accessKeyId
+        // secretAccessKey  
+        getLambdasList(data.awsRegion, data.accessKeyId, data.secretAccessKey, function(err, results){
+            if (err) {
+                logger.logFields(true, req, "exception", "schema server", "getLambdasList", util.format("%s %j", "error", err), null);
+                res.send(500, { error: err }, {});
+            } 
+            else {
+                logger.logFields(true, req, "regular", "schema server", "getLambdasList", "getLambdaList OK");
+                res.send(200, {}, results);
+            }
+        });
+            
+    });
+
+    this.post("/getLambdaFunction").bind(function(req,res,data){
+        logger.logFields(true, req, "regular", "schema server", "getLambdaFunction", util.format("%j", "input", data), null);   
+        // parameters of POST:
+        // awsRegion
+        // accessKeyId
+        // secretAccessKey 
+        // functionName 
+        getLambdasList(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionName, function(err, results){
+            if (err) {
+                logger.logFields(true, req, "exception", "schema server", "getLambdaFunction", util.format("%s %j", "error", err), null);
+                res.send(500, { error: err }, {});
+            } 
+            else {
+                logger.logFields(true, req, "regular", "schema server", "getLambdaFunction", "getLambdaFunction OK");
+                res.send(200, {}, results);
+            }
+        });
+            
+    });
+
+    this.post("/copyCreateLambdaFunction").bind(function(req,res,data){
+        logger.logFields(true, req, "regular", "schema server", "copyCreateLambdaFunction", util.format("%j", "input", data), null);        
+        // parameters of POST:
+
+        // sourceZipUrl
+        // sourceBytesSize
+
+        // bucket
+        // folder
+        // fileName
+        // functionName
+        // handlerName
+        // callFunctionName
+
+        // will copy source zip into s3 bucket, and then create the function
+
+
+        async.series({
+            copy: function(callback) {
+                downloadIntoS3(data.sourceZipUrl, data.sourceBytesSize, data.bucket, data.folder, data.fileName, function (errPut, awsData) {
+                    callback(errPut, awsData);
+                });
+            },
+            create: function(callback){
+                createLambda(data.bucket, data.folder, data.fileName, data.functionName, data.handlerName, data.callFunctionName, function(errCreate, dataCreate){
+                    callback(errCreate, dataCreate);
+                });
+            }
+        }, function(err, results) {
+            if (err) {
+                logger.logFields(true, req, "exception", "schema server", "copyCreateLambdaFunction", util.format("%s %j", "error", err), null);
+                res.send(500, {error: err}, {});
+            }
+            else {
+                logger.logFields(true, req, "regular", "schema server", "copyCreateLambdaFunction", "copyCreateLambdaFunction OK"); 
+                res.send(200, {}, results.create);        
+            } 
+        });          
+    });
+
+    this.post('/invokeLambda').bind(function (req, res, data) {
+        logger.logFields(true, req, "regular", "schema server", "invokeLambda", util.format("%j", "input", data), null);  
+
+        // parameters of POST:
+        // awsRegion
+        // accessKeyId
+        // secretAccessKey 
+        // functionArn
+        // payload
+        invokeLambda(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, function(err, data){
+            if (err){
+                logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "error", err), null);
+                res.send(500, { error: err }, {});
+            }
+            else{
+                logger.logFields(true, req, "regular", "schema server", "invokeLambda", "invokeLambda OK"); 
+                res.send(200, {}, data);
+            }
+        })
     });
 
 });
@@ -991,7 +1095,6 @@ function syncLoggingApps(data, callback) {
     });
 }
 
-
 async.series(
     {
         syncLoggingApps: function(callback){
@@ -1031,21 +1134,7 @@ async.series(
     }
 );
 
-
-
-
-setInterval(expireExceptions, 60 * 1000);
-
 // setInterval(fetchLoggingApps, 24 * 60 * 60 * 1000);
-
-function expireExceptions(){
-    // delete those entries one hour ago
-    redisDataSource.expireElementsOfSets(redisKeys.sortedSetPrefix, 60 * 60 * 1000, function(err){
-        if (err){
-            logger.logFields(true, null, "exception", "schema server", null, util.format("%s %j", "error in logging set expiration", err));
-        }
-    });
-}
 
 function getToken(headers) {
     if (headers.Authorization || headers.authorization) {
