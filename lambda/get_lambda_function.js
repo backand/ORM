@@ -23,7 +23,7 @@ function getLambdaFunction(awsRegion, accessKeyId, secretAccessKey, functionName
            Runtime: 'nodejs',
            Role: 'arn:aws:iam::328923390206:role/lambda_control',
            Handler: 'handler.handler',
-           CodeSize: 1434,
+           CodeSize: 1434, // bytes size of zip file
            Description: '',
            Timeout: 3,
            MemorySize: 128,
