@@ -42,6 +42,7 @@ var gcmSender = require('./push/gcm_sender').sendMessage;
 
 var s3Folders = require('./list-s3/list_folder');
 var downloadIntoS3 = require('./list-s3/download_into_s3');
+var filterCloudwatchLogs = require('./list-s3/filter_cloudwatch_logs');
 
 var createLambda = require('./lambda/create_lambda_function').createLambdaFunctionFromS3;
 var callLambda = require('./lambda/call_lambda_function').callLambdaFunctionFromS3;
@@ -909,6 +910,27 @@ router.map(function () {
             }
         })
     });
+
+    this.post('/lambdaLog').bind(function (req, res, data) {
+        logger.logFields(true, req, "regular", "schema server", "lambdaLog", util.format("%j", "input", data), null);  
+
+        // parameters of POST:
+        // awsRegion
+        // accessKeyId
+        // secretAccessKey 
+        // logGroupName
+        // awsRequestId
+        filterCloudwatchLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, data.awsRequestId, function(err, data){
+            if (err){
+                logger.logFields(true, req, "exception", "schema server", "lambdaLog", util.format("%s %j", "error", err), null);
+                res.send(500, { error: err }, {});
+            }
+            else{
+                logger.logFields(true, req, "regular", "schema server", "lambdaLog", "invokeLambda OK"); 
+                res.send(200, {}, data);
+            }
+        })
+    });    
 
 });
 
