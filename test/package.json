@@ -12,6 +12,7 @@
     "mocha": "latest",
     "node-inspector": "latest",
     "pm2": "^2.2.3",
+    "replace-in-file": "latest",
     "request": "latest",
     "request-json": "latest",
     "sinon": "latest",
