@@ -10,6 +10,7 @@ var _ = require('lodash');
 var jsonfile = require('jsonfile');
 var replace = require('replace-in-file');
 var async = require('async');
+var isWin = require('os').platform() === 'win32';
 var filterLambdaLogs = require(path + 'list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
 
 var apiUrl = "https://api.backand.com";
@@ -24,6 +25,9 @@ describe("lambda log", function(done){
     this.timeout(64000);
     del.sync(['items', '*.zip', '.awspublish-nodejs.backand.io', '.backand-credentials.json']);
     var commandActionDelete = 'node_modules/backand/bin/backand action delete --object items --action testrunlambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 9cf80730-1ab6-11e7-8124-06bcf2b21c8c  --app cli';
+    if (isWin){
+      commandActionDelete = commandActionDelete.replace(/node_modules\/backand\/bin\/backand/g, 'node node_modules\\backand\\bin\\backand');
+    }
     exec(commandActionDelete, function(err, stdout, stderr) {
       done();
     });
@@ -32,7 +36,13 @@ describe("lambda log", function(done){
   it("lambda init", function(done){
     this.timeout(64000);
     var commandActionInit = 'node_modules/backand/bin/backand action init --object items --action testrunlambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 9cf80730-1ab6-11e7-8124-06bcf2b21c8c  --app cli --template template';
+      if (isWin){
+          commandActionInit = commandActionInit.replace(/node_modules\/backand\/bin\/backand/g, 'node node_modules\\backand\\bin\\backand');
+      }
     exec(commandActionInit, function(err, stdout, stderr) {
+      console.log(err);
+      console.log(stdout);
+      console.log(stderr);
       var lines = stdout.split('\n');
       lambdaUrl = _.find(stdout.split('\n'), function(s) { return _.startsWith(s, 'The action was deployed and can be tested at '); }).replace(/The action was deployed and can be tested at /, '');
       // test files exist
@@ -58,6 +68,9 @@ describe("lambda log", function(done){
     };
     replace.sync(options);
     var commandActionDeploy = 'node_modules/backand/bin/backand action deploy --object items --action testrunlambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 9cf80730-1ab6-11e7-8124-06bcf2b21c8c  --app cli --folder items/testrunlambda';
+      if (isWin){
+          commandActionDeploy = commandActionDeploy.replace(/node_modules\/backand\/bin\/backand/g, 'node node_modules\\backand\\bin\\backand');
+      }
     exec(commandActionDeploy, function(err, stdout, stderr) {
       request.get(apiUrl + '/1/objects/action/items/?name=testrunlambda&parameters={}',
           {
@@ -120,6 +133,9 @@ describe("lambda log", function(done){
     this.timeout(64000);
     del.sync(['items', '*.zip', '.awspublish-nodejs.backand.io', '.backand-credentials.json']);
     var commandActionDelete = 'node_modules/backand/bin/backand action delete --object items --action testrunlambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 9cf80730-1ab6-11e7-8124-06bcf2b21c8c  --app cli';
+      if (isWin){
+          commandActionDelete = commandActionDelete.replace(/node_modules\/backand\/bin\/backand/g, 'node node_modules\\backand\\bin\\backand');
+      }
     exec(commandActionDelete, function(err, stdout, stderr) {
       done();
     });
