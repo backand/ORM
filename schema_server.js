@@ -45,9 +45,12 @@ var downloadIntoS3 = require('./list-s3/download_into_s3');
 var filterCloudwatchLogs = require('./list-s3/filter_cloudwatch_logs');
 
 var createLambda = require('./lambda/create_lambda_function').createLambdaFunctionFromS3;
+var createLambdaAnyone = require('./lambda/create_lambda_function_anyone').createLambdaFunctionFromS3;
 var callLambda = require('./lambda/call_lambda_function').callLambdaFunctionFromS3;
 var updateLambda = require('./lambda/update_lambda_function').updateLambdaFunctionFromS3;
+var updateLambdaAnyone = require('./lambda/update_lambda_function_anyone').updateLambdaFunctionFromS3;
 var deleteLambda = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
+var deleteLambdaAnyone = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
 var getLambdasList = require('./lambda/get_lambda_functions_list').getLambdaList;
 var getLambdaFunction = require('./lambda/get_lambda_function').getLambdaFunction;
 var invokeLambda = require('./lambda/get_lambda_function').invokeLambdaFunction;
@@ -66,6 +69,8 @@ var request = require('request');
 
 
 var fs = require('fs');
+var jsonfile = require('jsonfile');
+var base64 = require('base-64');
 
 fs.watchFile(__filename, function (curr, prev) {
     logger.logFields(true, null, "regular", "schema server", null, "close process for update");
@@ -564,6 +569,31 @@ router.map(function () {
         })
     });
 
+    this.post('/createLambdaAnyone').bind(function (req, res, data) {
+        // parameters of POST:
+
+        // optional:
+        // awsRegion 
+        // accessKeyId 
+        // secretAccessKey 
+
+        // bucket
+        // folder
+        // fileName
+        // functionName
+        // handlerName
+        // callFunctionName
+        data = fillAwsData(data);
+        createLambdaAnyone(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.bucket, data.folder, data.fileName, data.functionName, data.handlerName, data.callFunctionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
     this.post('/callLambda').bind(function (req, res, data) {
         callLambda(data.folder, data.functionName, data.payload, function(err, data){
             if (err){
@@ -574,6 +604,7 @@ router.map(function () {
             }
         })
     });
+
 
     this.post('/updateLambda').bind(function (req, res, data) {
         updateLambda(data.bucket, data.folder, data.fileName, data.functionName, function(err, data){
@@ -586,9 +617,33 @@ router.map(function () {
         })
     });
 
+    this.post('/updateLambdaAnyone').bind(function (req, res, data) {
+        data = fillAwsData(data);
+        updateLambdaAnyone(data.bucket, data.folder, data.fileName, data.functionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
 
     this.post('/deleteLambda').bind(function (req, res, data) {
-        deleteLambda(data.folder, data.functionName, function(err, data){
+        deleteLambda(data.functionName, function(err, data){
+            if (err){
+                res.send(500, { error: err }, {});
+            }
+            else{
+                res.send(200, {}, data);
+            }
+        })
+    });
+
+    this.post('/deleteLambdaAnyone').bind(function (req, res, data) {
+        data = fillAwsData(data);
+        deleteLambdaAnyone(data.functionName, function(err, data){
             if (err){
                 res.send(500, { error: err }, {});
             }
@@ -894,19 +949,48 @@ router.map(function () {
         logger.logFields(true, req, "regular", "schema server", "invokeLambda", util.format("%j", "input", data), null);  
 
         // parameters of POST:
-        // awsRegion
-        // accessKeyId
+
+        // optional:
+        // awsRegion 
+        // accessKeyId 
         // secretAccessKey 
-        // functionArn
+
+        //  {
+
+        // functionArn 
+
+
+        //  or
+
+        // folder
+        // function name
+
+        // }
+
+        // logGroupName
+
         // payload
-        invokeLambda(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, function(err, data){
+
+        data = fillAwsData(data);
+        invokeLambda(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, function(errInvoke, resultInvoke){
             if (err){
-                logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "error", err), null);
-                res.send(500, { error: err }, {});
+                logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "error", errInvoke), null);
+                res.send(500, { error: errInvoke }, {});
             }
             else{
                 logger.logFields(true, req, "regular", "schema server", "invokeLambda", "invokeLambda OK"); 
-                res.send(200, {}, data);
+                var logTail = base64.decode(resultInvoke.LogResult);
+                var logTailLastLine = _.last(logTail.split("\n"));
+                var requestId = _.first(logTailLastLine.replace(/REPORT RequestId: /g, '').split(" "));
+                filterCloudwatchLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, requestId, function(errLog, fullLog){
+                    if (errLog){
+                        res.send(200, {}, resultInvoke);
+                    }
+                    else {
+                        res.send(200, {}, _.extend(resultInvoke, { logs: fullLog }));
+                    }
+                });
+                
             }
         })
     });
@@ -933,6 +1017,17 @@ router.map(function () {
     });    
 
 });
+
+function fillAwsData(data){
+    var credentials = data;
+    if (!data.awsRegion){
+        var credentials = jsonfile.readFileSync('./hosting/aws-credentials.json');
+        data = _.extend(data, credentials, { awsRegion: 'us-east-1' });
+    }
+    if (!data.functionArn){
+        data = _.extend(data, { functionArn: 'arn:aws:lambda:us-east-1:328923390206:function:' + data.folder + "_" + data.functionName })
+    }    
+}
 
 function filterException(e){
     var f1 = (e.FreeText.replace(config.api_url,'') != '/1/app/sync');

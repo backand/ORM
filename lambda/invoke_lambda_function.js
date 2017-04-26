@@ -8,7 +8,7 @@ function invokeLambdaFunction(awsRegion, accessKeyId, secretAccessKey, functionA
     FunctionName: functionArn, /* required */
     // ClientContext: 'STRING_VALUE',
     InvocationType: 'RequestResponse',
-    LogType: 'None',
+    LogType: 'Tail',
     Payload: JSON.stringify(payload) // new Buffer('...') || 'STRING_VALUE',
     // Qualifier: 'STRING_VALUE'
   };
