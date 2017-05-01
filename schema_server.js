@@ -1063,6 +1063,7 @@ function fillAwsData(data){
     if (!data.functionArn){
         data = _.extend(data, { functionArn: 'arn:aws:lambda:us-east-1:328923390206:function:' + data.folder + "_" + data.functionName })
     }    
+    return data;
 }
 
 function filterException(e){
