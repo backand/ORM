@@ -9,6 +9,7 @@ function invokeLambdaAndLog(
 	secretAccessKey, 
 	functionArn, 
 	payload, 
+    isProduction,
 	callback
 	){
 	var startTime = Date.now();
@@ -18,6 +19,7 @@ function invokeLambdaAndLog(
     	secretAccessKey, 
     	functionArn, 
     	payload, 
+        isProduction,
     	function(errInvoke, resultInvoke){
     	var endTime = Date.now();
         if (errInvoke){

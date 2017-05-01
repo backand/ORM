@@ -983,6 +983,7 @@ router.map(function () {
 
     // logGroupName
     // limit
+    // isProduction
 
     this.post('/invokeLambda').bind(function (req, res, data) {
         logger.logFields(true, req, "regular", "schema server", "invokeLambda", util.format("%j", "input", data), null);  
@@ -990,7 +991,7 @@ router.map(function () {
 
 
         data = fillAwsData(data);
-        invokeLambdaAndLog(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, function(err, result){
+        invokeLambdaAndLog(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, data.isProduction, function(err, result){
             if (err){
                 logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "error", err), null);
                 res.send(500, { error: err }, {});
