@@ -22,6 +22,7 @@ var version = require('./version').version;
 var config = require('./configFactory').getConfig();
 var api_url = config.api_url;
 var loggingPlanUrl = api_url + "/loggingPlan";
+var sendLambdaLogsUrl = api_url + "/sendLambdaLogs"
 var redisKeys = require('./logger-reply/sources/redis_keys');
 
 var Logger = require('./logging/log_with_redis');
@@ -984,6 +985,10 @@ router.map(function () {
     // logGroupName
     // limit
     // isProduction
+    // backandRequest
+    // logWaitPerid
+    // logTimesToWait
+
 
     this.post('/invokeLambda').bind(function (req, res, data) {
         logger.logFields(true, req, "regular", "schema server", "invokeLambda", util.format("%j", "input", data), null);  
@@ -1002,14 +1007,35 @@ router.map(function () {
                     res.send(200, {}, result);                
                 }
                 else{
-                    res.send(200, {}, result); 
-                    async.setImmediate(function (a, b, c) {
-                        // a, b, and c equal 1, 2, and 3
-                        setTimeout(function(){
-                            console.log(a + b + c);                            
-                        }, 30 * 1000);
 
-                    }, 1, 2, 3);
+                    
+
+                    res.send(200, {}, result); 
+                    async.setImmediate(function() {
+                        waitLogs(
+                            data.awsRegion, 
+                            data.accessKeyId, 
+                            data.secretAccessKey, 
+                            data.logGroupName, 
+                            result.requestId, 
+                            data.limit, 
+                            result.startTime, 
+                            result.endTime, 
+                            data.logWaitPeriod, 
+                            data.logTimesToWait,
+                            function(err, logs){
+                                if (err){
+                                    logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "waitlog error", err), null);
+                                    console.log(err, {});
+                                    // request.post(sendLambdaLogsUrl);
+                                }
+                                else{
+                                    logger.logFields(true, req, "regular", "schema server", "invokeLambda", "waitlog OK"); 
+                                    console.log(null, logs);
+                                    // request.post(sendLambdaLogsUrl)
+                                }
+                        });
+                    }, );
                 }
             }
         })
@@ -1039,7 +1065,7 @@ router.map(function () {
                 logger.logFields(true, req, "regular", "schema server", "waitLambdaLog", "waitLambdaLog OK"); 
                 res.send(200, {}, logs);
             }
-        })
+        });
     }); 
 
     // parameters of POST:

@@ -10,6 +10,8 @@ function waitLogs(
 	limit,
 	startTime,
 	endTime, 
+	logWaitPeriod,
+	logTimesToWait,
 	callback){
 
     var myFilter = (cb) => {
@@ -35,11 +37,11 @@ function waitLogs(
 		                }
 		            }
 	            );
-    		}, 1 * 30  * 1000);
+    		}, logWaitPeriod);
     	}, cb);
     }
 
-    var wrapped = async.timeout(myFilter, 2 * 60 * 1000);
+    var wrapped = async.timeout(myFilter, logTimesToWait * logWaitPeriod);
 
     wrapped(function(err, data){
     	if (err){
