@@ -1002,7 +1002,14 @@ router.map(function () {
                     res.send(200, {}, result);                
                 }
                 else{
-                    res.send(200, {}, _.omit(result, ['logs', 'startTime', 'endTime', 'requestId'])); 
+                    res.send(200, {}, result); 
+                    async.setImmediate(function (a, b, c) {
+                        // a, b, and c equal 1, 2, and 3
+                        setTimeout(function(){
+                            console.log(a + b + c);                            
+                        }, 30 * 1000);
+
+                    }, 1, 2, 3);
                 }
             }
         })
