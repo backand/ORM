@@ -997,7 +997,7 @@ router.map(function () {
             }
             else{
                 logger.logFields(true, req, "regular", "schema server", "invokeLambda", "invokeLambda OK"); 
-                res.send(200, {}, resultInvoke);                
+                res.send(200, {}, result);                
             }
         })
     });
@@ -1017,14 +1017,14 @@ router.map(function () {
 
         
 
-        waitLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, data.awsRequestId, data.limit, data.startTime, data.endTime, function(err, data){
+        waitLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, data.awsRequestId, data.limit, data.startTime, data.endTime, function(err, logs){
             if (err){
                 logger.logFields(true, req, "exception", "schema server", "waitLambdaLog", util.format("%s %j", "error", err), null);
                 res.send(500, { error: err }, {});
             }
             else{
                 logger.logFields(true, req, "regular", "schema server", "waitLambdaLog", "waitLambdaLog OK"); 
-                res.send(200, {}, data);
+                res.send(200, {}, logs);
             }
         })
     }); 
@@ -1040,14 +1040,14 @@ router.map(function () {
         logger.logFields(true, req, "regular", "schema server", "lambdaLog", util.format("%j", "input", data), null);  
 
 
-        filterCloudwatchLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, data.awsRequestId, function(err, data){
+        filterCloudwatchLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, data.awsRequestId, function(err, logs){
             if (err){
                 logger.logFields(true, req, "exception", "schema server", "lambdaLog", util.format("%s %j", "error", err), null);
                 res.send(500, { error: err }, {});
             }
             else{
-                logger.logFields(true, req, "regular", "schema server", "lambdaLog", "invokeLambda OK"); 
-                res.send(200, {}, data);
+                logger.logFields(true, req, "regular", "schema server", "lambdaLog", "lambdaLogmd OK"); 
+                res.send(200, {}, logs);
             }
         })
     });    
