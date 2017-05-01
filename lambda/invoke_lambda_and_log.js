@@ -1,8 +1,6 @@
 var base64 = require('base-64');
 var invokeLambda = require('./invoke_lambda_function').invokeLambdaFunction;
-var filterCloudwatchLogs = require('../list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
 var _ = require('lodash');
-var async = require('async');
 
 function invokeLambdaAndLog(
 	awsRegion, 
@@ -26,7 +24,7 @@ function invokeLambdaAndLog(
         }
         else{
             var logTail = base64.decode(resultInvoke.LogResult).split("\n");
-            callback(null, _.extend(resultInvoke, { logs: logTail }))
+            callback(null, _.extend(resultInvoke, { logs: logTail, startTime: startTime, endTime: endTime }))
             // var logTailLastLine = _.findLast(logTail, function(l){
             // 	return l.indexOf('END RequestId: ') > -1;
             // });
