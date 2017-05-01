@@ -35,11 +35,11 @@ function waitLogs(
 		                }
 		            }
 	            );
-    		}, 1 * 60  * 1000);
+    		}, 1 * 30  * 1000);
     	}, cb);
     }
 
-    var wrapped = async.timeout(myFilter, 5 * 60 * 1000);
+    var wrapped = async.timeout(myFilter, 2 * 60 * 1000);
 
     wrapped(function(err, data){
     	if (err){
