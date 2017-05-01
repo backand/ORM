@@ -1,5 +1,6 @@
 var base64 = require('base-64');
 var invokeLambda = require('./invoke_lambda_function').invokeLambdaFunction;
+var extractLogRequestId = require('./invoke_lambda_function').extractLogRequestId;
 var _ = require('lodash');
 
 function invokeLambdaAndLog(
@@ -24,7 +25,7 @@ function invokeLambdaAndLog(
         }
         else{
             var logTail = base64.decode(resultInvoke.LogResult).split("\n");
-            callback(null, _.extend(resultInvoke, { logs: logTail, startTime: startTime, endTime: endTime }))
+            callback(null, _.extend(resultInvoke, { logs: logTail, startTime: startTime, endTime: endTime, requestId: extractLogRequestId(logTail) }));
             // var logTailLastLine = _.findLast(logTail, function(l){
             // 	return l.indexOf('END RequestId: ') > -1;
             // });
