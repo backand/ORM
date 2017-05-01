@@ -53,7 +53,7 @@ var deleteLambda = require('./lambda/delete_lambda_function').deleteLambdaFuncti
 var deleteLambdaAnyone = require('./lambda/delete_lambda_function').deleteLambdaFunctionFromS3;
 var getLambdasList = require('./lambda/get_lambda_functions_list').getLambdaList;
 var getLambdaFunction = require('./lambda/get_lambda_function').getLambdaFunction;
-var invokeLambda = require('./lambda/get_lambda_function').invokeLambdaFunction;
+var invokeLambdaAndLog = require('./lambda/invoke_lambda_and_log').invokeLambdaAndLog;
 
 var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
@@ -70,7 +70,7 @@ var request = require('request');
 
 var fs = require('fs');
 var jsonfile = require('jsonfile');
-var base64 = require('base-64');
+
 
 fs.watchFile(__filename, function (curr, prev) {
     logger.logFields(true, null, "regular", "schema server", null, "close process for update");
@@ -972,25 +972,14 @@ router.map(function () {
         // payload
 
         data = fillAwsData(data);
-        invokeLambda(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, function(errInvoke, resultInvoke){
+        invokeLambdaAndLog(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, data.logGroupName, data.limit, function(err, result){
             if (err){
-                logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "error", errInvoke), null);
-                res.send(500, { error: errInvoke }, {});
+                logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "error", err), null);
+                res.send(500, { error: err }, {});
             }
             else{
                 logger.logFields(true, req, "regular", "schema server", "invokeLambda", "invokeLambda OK"); 
-                var logTail = base64.decode(resultInvoke.LogResult);
-                var logTailLastLine = _.last(logTail.split("\n"));
-                var requestId = _.first(logTailLastLine.replace(/REPORT RequestId: /g, '').split(" "));
-                filterCloudwatchLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, requestId, function(errLog, fullLog){
-                    if (errLog){
-                        res.send(200, {}, resultInvoke);
-                    }
-                    else {
-                        res.send(200, {}, _.extend(resultInvoke, { logs: fullLog }));
-                    }
-                });
-                
+                res.send(200, {}, resultInvoke);                
             }
         })
     });

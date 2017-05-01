@@ -10,7 +10,6 @@
     "amqp-coffee": "^0.1.27",
     "async": "latest",
     "aws-sdk": "latest",
-    "base-64": "latest",
     "bcrypt-nodejs": "0.0.3",
     "chai": "latest",
     "journey": "latest",

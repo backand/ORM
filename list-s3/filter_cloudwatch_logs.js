@@ -1,28 +1,46 @@
 var AWS = require('aws-sdk');
+var _ = require('lodash');
 
-function filterCloudwatchLogs(awsRegion, accessKeyId, secretAccessKey, logGroupName, awsRequestId, callback){
+function filterCloudwatchLogs(
+	awsRegion, 
+	accessKeyId, 
+	secretAccessKey, 
+	logGroupName, 
+	awsRequestId, 
+	limit,
+	startTime,
+	endTime, 
+	callback
+){
 	AWS.config.update({ 'accessKeyId': accessKeyId, 'secretAccessKey': secretAccessKey, 'region': awsRegion });
 	var cloudwatchlogs = new AWS.CloudWatchLogs();
 	var params = {
 	  logGroupName: logGroupName, /* required */
-	  // endTime: 0,
-	  filterPattern: '"' + awsRequestId + '"',
-	  interleaved: true,
-	  // limit: 0,
+	  endTime: endTime,
+	  // filterPattern: 
+	  // // '"' + 
+	  // awsRequestId //+ 
+	  // // '"'
+	  // ,
+	  // interleaved: true,
+	  limit: limit,
 	  // logStreamNames: [
 	  //   'STRING_VALUE',
 	  // ],
 	  // nextToken: 'STRING_VALUE',
-	  // startTime: 0
+	  startTime: startTime
 	};
+	console.log(params);
 	cloudwatchlogs.filterLogEvents(params, function(err, data) {
+		console.log(err);
+		console.log(data);
 	  if (err) {
 	  	// console.log(err, err.stack); // an error occurred
 	  	callback(err);
 	  }
 	  else {
 	  	// console.log(data);           // successful response
-	  	callback(err, data.events);
+	  	callback(err, _.filter(data.events, (e) => { return e.message.indexOf(awsRequestId) > -1; }));
 	  }    
 	  /*
 
@@ -76,8 +94,11 @@ function filterCloudwatchLogs(awsRegion, accessKeyId, secretAccessKey, logGroupN
 }
 
 module.exports.filterCloudwatchLogs = filterCloudwatchLogs;
-
-// filterCloudwatchLogs('us-east-1', "AKIAJQIZGYS3N4IPFCVA", "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", '/aws/lambda/fwcb', 'c15414a8-2500-11e7-b729-5d79c826357c', function(err, data){
+                                                                                                                                              
+// filterCloudwatchLogs('us-east-1', "AKIAJQIZGYS3N4IPFCVA", "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", '/aws/lambda/cli_items_testrunlambda', '1493618502814', 10000, 
+// 1493621884000, 
+// 1493621886000, 
+// function(err, data){
 // 	console.log(err);
 // 	console.log(data);
 // 	process.exit(1);

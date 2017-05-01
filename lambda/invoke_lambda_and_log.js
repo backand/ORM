@@ -30,14 +30,11 @@ function invokeLambdaAndLog(
         }
         else{
             var logTail = base64.decode(resultInvoke.LogResult).split("\n");
-            console.log(logTail);
-            console.log("tttttttt");
             var logTailLastLine = _.findLast(logTail, function(l){
             	return l.indexOf('END RequestId: ') > -1;
             });
-            console.log("llll=", logTailLastLine);
             var requestId = logTailLastLine.replace(/END RequestId: /, '').replace(/\s/g, ' ').split(" ")[0].trim();
-            console.log("rrr=" + requestId + "rrrr");
+            console.log("requestId=" + requestId);
 
             var myFilter = (cb) => {
             	console.log('myFilter');
@@ -54,13 +51,13 @@ function invokeLambdaAndLog(
 			            	startTime,
 			            	endTime,
 				            function(errLog, log){
-				            	console.log('filterCloudwatchLogs', errLog, log);
-				                fullLog = log;
+				            	console.log('filterCloudwatchLogs', errLog, log);           
 				                if (errLog){
-				                    foundLog(errLog, resultInvoke);
+				                    foundLog(errLog, []);
 				                }
 				                else {
-				                    foundLog(null, log);
+                                    fullLog = log;
+				                    foundLog(null, fullLog);
 				                }
 				            }
 			            );
@@ -76,7 +73,7 @@ function invokeLambdaAndLog(
                     callback(err, resultInvoke);
                 }
                 else {
-                    callback(null , _.extend(resultInvoke, { logs: fullLog }));
+                    callback(null , _.extend(resultInvoke, { logs: data }));
                 }
             });
 
