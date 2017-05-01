@@ -177,7 +177,7 @@ describe("lambda log", function(done){
   });
 
   it("waitLogs", function(done){
-    this.timeout(10 * 60 * 1000);
+    this.timeout(4 * 60 * 1000);
     waitLogs(
       'us-east-1', 
       credentials.accessKeyId, 
