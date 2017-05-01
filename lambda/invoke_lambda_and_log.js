@@ -10,8 +10,6 @@ function invokeLambdaAndLog(
 	secretAccessKey, 
 	functionArn, 
 	payload, 
-	logGroupName, 
-	limit, 
 	callback
 	){
 	var startTime = Date.now();
@@ -23,8 +21,6 @@ function invokeLambdaAndLog(
     	payload, 
     	function(errInvoke, resultInvoke){
     	var endTime = Date.now();
-        console.log(errInvoke);
-        console.log(resultInvoke);
         if (errInvoke){
             callback(errInvoke, null);
         }

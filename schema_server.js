@@ -967,12 +967,15 @@ router.map(function () {
 
         // }
 
-        // logGroupName
+
 
         // payload
 
+        // logGroupName
+        // limit
+
         data = fillAwsData(data);
-        invokeLambdaAndLog(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, data.logGroupName, data.limit, function(err, result){
+        invokeLambdaAndLog(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, function(err, result){
             if (err){
                 logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "error", err), null);
                 res.send(500, { error: err }, {});
