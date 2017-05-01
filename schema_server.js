@@ -997,7 +997,12 @@ router.map(function () {
             }
             else{
                 logger.logFields(true, req, "regular", "schema server", "invokeLambda", "invokeLambda OK"); 
-                res.send(200, {}, result);                
+                if (data.isProduction){
+                    res.send(200, {}, result);                
+                }
+                else{
+                    res.send(200, {}, _.omit(result, ['logs', 'startTime', 'endTime', 'requestId'])); 
+                }
             }
         })
     });
