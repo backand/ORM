@@ -42,7 +42,8 @@ var gcmSender = require('./push/gcm_sender').sendMessage;
 
 var s3Folders = require('./list-s3/list_folder');
 var downloadIntoS3 = require('./list-s3/download_into_s3');
-var filterCloudwatchLogs = require('./list-s3/filter_cloudwatch_logs');
+var filterCloudwatchLogs = require('./list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
+var waitLogs = require('./list-s3/wait_for_cloudwatch_logs').waitLogs;
 
 var createLambda = require('./lambda/create_lambda_function').createLambdaFunctionFromS3;
 var createLambdaAnyone = require('./lambda/create_lambda_function_anyone').createLambdaFunctionFromS3;
@@ -811,14 +812,16 @@ router.map(function () {
         });
     })
 
+    // fetch a page of last hour exceptions
+    // parameters of POST:
+    // appName
+    // fromTimeEpochTime - start time in milliseconds from epoch
+    // toTimeEpochTime - end time in milliseconds from epoch
+    // offset - start of page
+    // count - number of elements on page
+
     this.post('/lastHourExceptions').bind(function(req,res,data){
-        // fetch a page of last hour exceptions
-        // parameters of POST:
-        // appName
-        // fromTimeEpochTime - start time in milliseconds from epoch
-        // toTimeEpochTime - end time in milliseconds from epoch
-        // offset - start of page
-        // count - number of elements on page
+ 
         logger.logFields(true, req, "regular", "schema server", "lastHourExceptions", util.format("%j", data));
         redisDataSource.filterSortedSet(redisKeys.sortedSetPrefix + data.appName, data.fromTimeEpochTime, data.toTimeEpochTime, data.offset, data.count, function(err, a){
             if (err) {
@@ -832,13 +835,15 @@ router.map(function () {
         });
     });
 
+    // add app to S3 logging
+    // parameters of POST:
+    // appName
+    // bucketName
+    // accessKeyId
+    // secretAccessKey
+
     this.post('/addAppToLoggingPlan').bind(function(req,res,data){
-        // add app to S3 logging
-        // parameters of POST:
-        // appName
-        // bucketName
-        // accessKeyId
-        // secretAccessKey
+
         console.log(true, req, "regular", "schema server", "addAppLoggingPlan", util.format("%j", data)); 
         redisDataSource.addAppForLogging(data.appName, _.omit(data, 'appName'), function(err){
             console.log(err);
@@ -851,10 +856,12 @@ router.map(function () {
         });
     });
 
+    // remove app from S3 logging
+    // parameters of POST:
+    // appName
+
     this.post('/removeAppFromLoggingPlan').bind(function(req,res,data){
-        // remove app from S3 logging
-        // parameters of POST:
-        // appName
+
         logger.logFields(true, req, "regular", "schema server", "removeAppLoggingPlan", util.format("%j", data)); 
         redisDataSource.removeAppForLogging(data.appName, function(err){
             if (err) {
@@ -866,12 +873,14 @@ router.map(function () {
         });
     });
 
+    // parameters of POST:
+    // awsRegion
+    // accessKeyId
+    // secretAccessKey  
+
     this.post("/getLambdaList").bind(function(req,res,data){
         logger.logFields(true, req, "regular", "schema server", "getLambdaList", util.format("%j", "input", data), null);   
-        // parameters of POST:
-        // awsRegion
-        // accessKeyId
-        // secretAccessKey  
+
         getLambdasList(data.awsRegion, data.accessKeyId, data.secretAccessKey, function(err, results){
             if (err) {
                 logger.logFields(true, req, "exception", "schema server", "getLambdasList", util.format("%s %j", "error", err), null);
@@ -885,13 +894,15 @@ router.map(function () {
             
     });
 
+    // parameters of POST:
+    // awsRegion
+    // accessKeyId
+    // secretAccessKey 
+    // functionName 
+
     this.post("/getLambdaFunction").bind(function(req,res,data){
         logger.logFields(true, req, "regular", "schema server", "getLambdaFunction", util.format("%j", "input", data), null);   
-        // parameters of POST:
-        // awsRegion
-        // accessKeyId
-        // secretAccessKey 
-        // functionName 
+
         getLambdasList(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionName, function(err, results){
             if (err) {
                 logger.logFields(true, req, "exception", "schema server", "getLambdaFunction", util.format("%s %j", "error", err), null);
@@ -905,21 +916,23 @@ router.map(function () {
             
     });
 
+    // parameters of POST:
+
+    // sourceZipUrl
+    // sourceBytesSize
+
+    // bucket
+    // folder
+    // fileName
+    // functionName
+    // handlerName
+    // callFunctionName
+
+    // will copy source zip into s3 bucket, and then create the function
+
     this.post("/copyCreateLambdaFunction").bind(function(req,res,data){
         logger.logFields(true, req, "regular", "schema server", "copyCreateLambdaFunction", util.format("%j", "input", data), null);        
-        // parameters of POST:
 
-        // sourceZipUrl
-        // sourceBytesSize
-
-        // bucket
-        // folder
-        // fileName
-        // functionName
-        // handlerName
-        // callFunctionName
-
-        // will copy source zip into s3 bucket, and then create the function
 
 
         async.series({
@@ -945,34 +958,36 @@ router.map(function () {
         });          
     });
 
+    // parameters of POST:
+
+    // optional:
+    // awsRegion 
+    // accessKeyId 
+    // secretAccessKey 
+
+    //  {
+
+    // functionArn 
+
+
+    //  or
+
+    // folder
+    // function name
+
+    // }
+
+
+
+    // payload
+
+    // logGroupName
+    // limit
+
     this.post('/invokeLambda').bind(function (req, res, data) {
         logger.logFields(true, req, "regular", "schema server", "invokeLambda", util.format("%j", "input", data), null);  
 
-        // parameters of POST:
 
-        // optional:
-        // awsRegion 
-        // accessKeyId 
-        // secretAccessKey 
-
-        //  {
-
-        // functionArn 
-
-
-        //  or
-
-        // folder
-        // function name
-
-        // }
-
-
-
-        // payload
-
-        // logGroupName
-        // limit
 
         data = fillAwsData(data);
         invokeLambdaAndLog(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionArn, data.payload, function(err, result){
@@ -987,15 +1002,44 @@ router.map(function () {
         })
     });
 
+    // parameters of POST:
+    // awsRegion
+    // accessKeyId
+    // secretAccessKey 
+    // logGroupName
+    // awsRequestId
+    // limit
+    // startTime
+    // endTime
+
+    this.post('/waitLambdaLog').bind(function (req, res, data) {
+        logger.logFields(true, req, "regular", "schema server", "waitLambdaLog", util.format("%j", "input", data), null);  
+
+        
+
+        waitLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, data.awsRequestId, data.limit, data.startTime, data.endTime, function(err, data){
+            if (err){
+                logger.logFields(true, req, "exception", "schema server", "waitLambdaLog", util.format("%s %j", "error", err), null);
+                res.send(500, { error: err }, {});
+            }
+            else{
+                logger.logFields(true, req, "regular", "schema server", "waitLambdaLog", "waitLambdaLog OK"); 
+                res.send(200, {}, data);
+            }
+        })
+    }); 
+
+    // parameters of POST:
+    // awsRegion
+    // accessKeyId
+    // secretAccessKey 
+    // logGroupName
+    // awsRequestId
+
     this.post('/lambdaLog').bind(function (req, res, data) {
         logger.logFields(true, req, "regular", "schema server", "lambdaLog", util.format("%j", "input", data), null);  
 
-        // parameters of POST:
-        // awsRegion
-        // accessKeyId
-        // secretAccessKey 
-        // logGroupName
-        // awsRequestId
+
         filterCloudwatchLogs(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.logGroupName, data.awsRequestId, function(err, data){
             if (err){
                 logger.logFields(true, req, "exception", "schema server", "lambdaLog", util.format("%s %j", "error", err), null);

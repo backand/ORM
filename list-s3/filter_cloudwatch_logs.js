@@ -17,11 +17,7 @@ function filterCloudwatchLogs(
 	var params = {
 	  logGroupName: logGroupName, /* required */
 	  endTime: endTime,
-	  // filterPattern: 
-	  // // '"' + 
-	  // awsRequestId //+ 
-	  // // '"'
-	  // ,
+	  // filterPattern: ""
 	  interleaved: true,
 	  limit: limit,
 	  // logStreamNames: [
@@ -30,16 +26,11 @@ function filterCloudwatchLogs(
 	  // nextToken: 'STRING_VALUE',
 	  startTime: startTime
 	};
-	console.log(params);
 	cloudwatchlogs.filterLogEvents(params, function(err, data) {
-		console.log(err);
-		console.log(data);
 	  if (err) {
-	  	// console.log(err, err.stack); // an error occurred
 	  	callback(err);
 	  }
 	  else {
-	  	// console.log(data);           // successful response
 	  	callback(err, _.filter(data.events, (e) => { return e.message.indexOf(awsRequestId) > -1; }));
 	  }    
 	  /*
