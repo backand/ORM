@@ -22,7 +22,7 @@ function filterCloudwatchLogs(
 	  // awsRequestId //+ 
 	  // // '"'
 	  // ,
-	  // interleaved: true,
+	  interleaved: true,
 	  limit: limit,
 	  // logStreamNames: [
 	  //   'STRING_VALUE',
