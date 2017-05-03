@@ -12,7 +12,7 @@ function invokeLambdaAndLog(
     isProduction,
 	callback
 	){
-	var startTime = Date.now();
+	var startTime = Date.now() - 1; 
     invokeLambda(
     	awsRegion, 
     	accessKeyId, 
@@ -21,7 +21,7 @@ function invokeLambdaAndLog(
     	payload, 
         isProduction,
     	function(errInvoke, resultInvoke){
-    	var endTime = Date.now();
+    	var endTime = Date.now() + 1; 
         if (errInvoke){
             callback(errInvoke, null);
         }

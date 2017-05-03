@@ -80,15 +80,18 @@ function filterCloudwatchLogs(
 		}
 
 	  */
-	  callback(err, data);
 	});
 }
 
 module.exports.filterCloudwatchLogs = filterCloudwatchLogs;
                                                                                                                                               
-// filterCloudwatchLogs('us-east-1', "AKIAJQIZGYS3N4IPFCVA", "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", '/aws/lambda/cli_items_testrunlambda', '1493618502814', 10000, 
-// 1493621884000, 
-// 1493621886000, 
+// filterCloudwatchLogs('us-east-1', "AKIAJQIZGYS3N4IPFCVA", "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", 
+// '/aws/lambda/cli_items_testrunlambda', 
+// '693229f1-2fe9-11e7-8f07-09d9d29a3b99', 
+// 10000, 
+// // 1493806516147,
+// 1493806519089,
+// 1493806519091,
 // function(err, data){
 // 	console.log(err);
 // 	console.log(data);

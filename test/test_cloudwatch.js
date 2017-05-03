@@ -12,6 +12,7 @@ var replace = require('replace-in-file');
 var async = require('async');
 var isWin = require('os').platform() === 'win32';
 var waitLogs = require(path + 'list-s3/wait_for_cloudwatch_logs').waitLogs;
+var filterLogs = require(path + 'list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
 var invokeLambdaAndLog = require(path + 'lambda/invoke_lambda_and_log').invokeLambdaAndLog;
 
 var apiUrl = "https://api.backand.com";
@@ -132,24 +133,7 @@ describe("lambda log", function(done){
 
   });
 
-  // it"filter lambda log", function(done){
-  //   this.timeout(10 * 60 * 1000);
-  //   var file = '../hosting/aws-credentials.json';
-  //   var credentials = jsonfile.readFileSync(file);
-  //   var filterPattern = lambdaConsoleMessage;
-  //   setTimeout(function(){
-  //     filterLambdaLogs('us-east-1', credentials.accessKeyId, credentials.secretAccessKey, '/aws/lambda/cli_items_testrunlambda', filterPattern, 10000, function(err, data){
-  //       expect(err).to.be.null;
-  //       expect(data).to.not.be.null;
-  //       expect(data).to.not.be.empty;
-  //       var a = _.find(data, function(e){
-  //         return e.message.indexOf(filterPattern) > -1;
-  //       });
-  //       expect(a).to.not.be.undefined;
-  //       done();       
-  //     });      
-  //   }, 5 * 60 * 1000);
-  // });
+
 
   it("invoke", function(done){
     this.timeout(64000);
@@ -159,6 +143,7 @@ describe("lambda log", function(done){
       credentials.secretAccessKey, 
       "arn:aws:lambda:us-east-1:328923390206:function:cli_items_testrunlambda", 
       {}, 
+      false,
       function(err, data){
         expect(err).to.be.null;
         expect(data.logs).to.not.be.null;
@@ -176,8 +161,9 @@ describe("lambda log", function(done){
     });
   });
 
+
   it("waitLogs", function(done){
-    this.timeout(4 * 60 * 1000);
+    this.timeout(30 * 1000 + 100);
     waitLogs(
       'us-east-1', 
       credentials.accessKeyId, 
@@ -187,11 +173,15 @@ describe("lambda log", function(done){
       10000,
       startTime,
       endTime, 
+      1000,
+      30,
       function(err, logs){
+        expect(err).to.be.null;
+        expect(logs).to.not.be.null;
+        expect(logs).to.not.be.empty;
         var a = _.find(logs, function(e){
           return e.message.indexOf(lambdaConsoleMessage) > -1;
         });
-        console.log(a);
         expect(a).to.not.be.undefined;
         done();
       }
