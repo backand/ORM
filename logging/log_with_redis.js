@@ -17,6 +17,7 @@ NodejsLogger.prototype.log = function (msg){
 NodejsLogger.prototype.logFields = function (
 	isInternal, req, typeOfMessage, nodeModule, action, message, trace){
 	var msg = {
+		isInternal: isInternal,
 		Source: "NodeJS",
 		ID: req && req.headers ? req.headers.ID : null,
 		LogType: (typeOfMessage == "exception" ? "1" : "3"), 
