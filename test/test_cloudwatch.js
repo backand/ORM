@@ -145,6 +145,9 @@ describe("lambda log", function(done){
       {}, 
       false,
       function(err, data){
+        console.log("IIIIIIIIII");
+        console.log(data);
+        console.log("HHHHHHHHHH");
         expect(err).to.be.null;
         expect(data.logs).to.not.be.null;
         expect(data.logs).to.not.be.empty;
@@ -161,8 +164,34 @@ describe("lambda log", function(done){
     });
   });
 
+  it("filter logs", function(done){
+    this.timeout(64000);
+    filterLogs(
+      'us-east-1', 
+      credentials.accessKeyId, 
+      credentials.secretAccessKey, 
+      '/aws/lambda/cli_items_testrunlambda', 
+      requestId,
+      10000,
+      startTime,
+      endTime, 
+      function(err, logs){
+        console.log(err);
+        console.log(logs)
+        expect(err).to.be.null;
+        expect(logs).to.not.be.null;
+        expect(logs).to.not.be.empty;
+        var a = _.find(logs, function(e){
+          return e.message.indexOf(lambdaConsoleMessage) > -1;
+        });
+        expect(a).to.not.be.undefined;
+        done();
+      }
+    );
+  });
 
-  it("waitLogs", function(done){
+
+  it.skip("waitLogs", function(done){
     this.timeout(30 * 1000 + 100);
     waitLogs(
       'us-east-1', 
@@ -192,12 +221,13 @@ describe("lambda log", function(done){
   after(function(done){
     this.timeout(64000);
     del.sync(['items', '*.zip', '.awspublish-nodejs.backand.io', '.backand-credentials.json']);
-    var commandActionDelete = 'node_modules/backand/bin/backand action delete --object items --action testrunlambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 9cf80730-1ab6-11e7-8124-06bcf2b21c8c  --app cli';
-      if (isWin){
-          commandActionDelete = commandActionDelete.replace(/node_modules\/backand\/bin\/backand/g, 'node node_modules\\backand\\bin\\backand');
-      }
-    exec(commandActionDelete, function(err, stdout, stderr) {
-      done();
-    });
+    // var commandActionDelete = 'node_modules/backand/bin/backand action delete --object items --action testrunlambda --master b83f5c3d-3ed8-417b-817f-708eeaf6a945 --user 9cf80730-1ab6-11e7-8124-06bcf2b21c8c  --app cli';
+    //   if (isWin){
+    //       commandActionDelete = commandActionDelete.replace(/node_modules\/backand\/bin\/backand/g, 'node node_modules\\backand\\bin\\backand');
+    //   }
+    // exec(commandActionDelete, function(err, stdout, stderr) {
+    //   done();
+    // });
+    done();
   });
 });

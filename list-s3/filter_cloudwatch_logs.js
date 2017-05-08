@@ -16,17 +16,18 @@ function filterCloudwatchLogs(
 	var cloudwatchlogs = new AWS.CloudWatchLogs();
 	var params = {
 	  logGroupName: logGroupName, /* required */
-	  endTime: endTime,
-	  // filterPattern: ""
+	  // endTime: endTime,
+	  filterPattern: '"' + awsRequestId + '"',
 	  interleaved: true,
 	  limit: limit,
 	  // logStreamNames: [
 	  //   'STRING_VALUE',
 	  // ],
 	  // nextToken: 'STRING_VALUE',
-	  startTime: startTime
+	  // startTime: startTime
 	};
 	cloudwatchlogs.filterLogEvents(params, function(err, data) {
+	  // console.log(data);
 	  if (err) {
 	  	callback(err);
 	  }
@@ -85,11 +86,13 @@ function filterCloudwatchLogs(
 
 module.exports.filterCloudwatchLogs = filterCloudwatchLogs;
                                                                                                                                               
-// filterCloudwatchLogs('us-east-1', "AKIAJQIZGYS3N4IPFCVA", "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", 
+// filterCloudwatchLogs(
+// 'us-east-1', 
+// "AKIAJQIZGYS3N4IPFCVA", 
+// "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", 
 // '/aws/lambda/cli_items_testrunlambda', 
-// '693229f1-2fe9-11e7-8f07-09d9d29a3b99', 
+// '945dc84a-33c4-11e7-8266-c3ab82235614', 
 // 10000, 
-// // 1493806516147,
 // 1493806519089,
 // 1493806519091,
 // function(err, data){
