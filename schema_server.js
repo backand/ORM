@@ -61,6 +61,9 @@ var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
 var getCron = require('./cron/get_cron').getCron;
 
+var crypto = require('crypto');
+
+
 var RedisDataSource = require('./logger-reply/sources/redisDataSource');
 var redisDataSource = new RedisDataSource();
 
@@ -789,6 +792,44 @@ router.map(function () {
                 }
             }
         });
+    })
+
+    this.post('/security/encrypt').bind(function(req,res,data){
+        var algorithm = 'aes256'; // or any other algorithm supported by OpenSSL
+        var password = data.password
+        var text = data.text;
+
+        if(!password || !text){
+            res.send(500, { error: 'password and text must be fulfilled' }, {});
+        }
+
+        try {
+            var cipher = crypto.createCipher(algorithm, password);
+            var encrypted = cipher.update(text, 'utf8', 'hex') + cipher.final('hex');
+            res.send(200, {}, {encrypted:encrypted});
+        }
+        catch (err){
+            res.send(500, { error: err }, {});
+        }
+    })
+
+    this.post('/security/decrypt').bind(function(req,res,data){
+        var algorithm = 'aes256'; // or any other algorithm supported by OpenSSL
+        var password = data.password
+        var encrypted = data.encrypted;
+
+        if(!password || !text){
+            res.send(500, { error: 'password and encrypted must be fulfilled' }, {});
+        }
+
+        try {
+            var decipher = crypto.createDecipher(algorithm, password);
+            var decrypted = decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
+            res.send(200, {}, {decrypted: decrypted});
+        }
+        catch (err){
+            res.send(500, { error: err }, {});
+        }
     })
 
     this.post('/security/hash').bind(function(req,res,data){
