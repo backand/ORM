@@ -945,7 +945,7 @@ router.map(function () {
     this.post("/getLambdaFunction").bind(function(req,res,data){
         logger.logFields(true, req, "regular", "schema server", "getLambdaFunction", util.format("%j", "input", data), null);   
 
-        getLambdasList(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionName, function(err, results){
+        getLambdaFunction(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionName, function(err, results){
             if (err) {
                 logger.logFields(true, req, "exception", "schema server", "getLambdaFunction", util.format("%s %j", "error", err), null);
                 res.send(500, { error: err }, {});
