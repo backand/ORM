@@ -26,8 +26,22 @@ function invokeLambdaAndLog(
             callback(errInvoke, null);
         }
         else{
-            var logTail = base64.decode(resultInvoke.LogResult).split("\n");
-            callback(null, isProduction ? resultInvoke : _.extend(resultInvoke, { logs: logTail, startTime: startTime, endTime: endTime, requestId: extractLogRequestId(logTail) }));
+            if (isProduction){
+                callback(null, resultInvoke);
+            }
+            else{
+                var logTail = base64.decode(resultInvoke.LogResult).split("\n");
+                callback(null, 
+                    _.extend(resultInvoke, 
+                        { 
+                            logs: logTail, 
+                            startTime: startTime, 
+                            endTime: endTime, 
+                            requestId: extractLogRequestId(logTail) 
+                        }
+                    )
+                );              
+            }
         }
     });
 }

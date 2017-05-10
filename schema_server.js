@@ -1048,35 +1048,32 @@ router.map(function () {
                     res.send(200, {}, result);                
                 }
                 else{
-
-                    
-
                     res.send(200, {}, result); 
-                    async.setImmediate(function() {
-                        waitLogs(
-                            data.awsRegion, 
-                            data.accessKeyId, 
-                            data.secretAccessKey, 
-                            data.logGroupName, 
-                            result.requestId, 
-                            data.limit, 
-                            result.startTime, 
-                            result.endTime, 
-                            data.logWaitPeriod, 
-                            data.logTimesToWait,
-                            function(err, logs){
-                                if (err){
-                                    logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "waitlog error", err), null);
-                                    console.log(err, {});
-                                    // request.post(sendLambdaLogsUrl);
-                                }
-                                else{
-                                    logger.logFields(true, req, "regular", "schema server", "invokeLambda", "waitlog OK"); 
-                                    console.log(null, logs);
-                                    // request.post(sendLambdaLogsUrl)
-                                }
-                        });
-                    });
+                    // async.setImmediate(function() {
+                    //     waitLogs(
+                    //         data.awsRegion, 
+                    //         data.accessKeyId, 
+                    //         data.secretAccessKey, 
+                    //         data.logGroupName, 
+                    //         result.requestId, 
+                    //         data.limit, 
+                    //         result.startTime, 
+                    //         result.endTime, 
+                    //         data.logWaitPeriod, 
+                    //         data.logTimesToWait,
+                    //         function(err, logs){
+                    //             if (err){
+                    //                 logger.logFields(true, req, "exception", "schema server", "invokeLambda", util.format("%s %j", "waitlog error", err), null);
+                    //                 console.log(err, {});
+                    //                 // request.post(sendLambdaLogsUrl);
+                    //             }
+                    //             else{
+                    //                 logger.logFields(true, req, "regular", "schema server", "invokeLambda", "waitlog OK"); 
+                    //                 console.log(null, logs);
+                    //                 // request.post(sendLambdaLogsUrl)
+                    //             }
+                    //     });
+                    // });
                 }
             }
         })
