@@ -818,7 +818,7 @@ router.map(function () {
         var password = data.password
         var encrypted = data.encrypted;
 
-        if(!password || !text){
+        if(!password || !encrypted){
             res.send(500, { error: 'password and encrypted must be fulfilled' }, {});
         }
 
