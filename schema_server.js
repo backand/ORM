@@ -636,7 +636,7 @@ router.map(function () {
 
 
     this.post('/deleteLambda').bind(function (req, res, data) {
-        deleteLambda(data.functionName, function(err, data){
+        deleteLambda(data.folder, data.functionName, function(err, data){
             if (err){
                 res.send(500, { error: err }, {});
             }
@@ -648,7 +648,7 @@ router.map(function () {
 
     this.post('/deleteLambdaAnyone').bind(function (req, res, data) {
         data = fillAwsData(data);
-        deleteLambdaAnyone(data.functionName, function(err, data){
+        deleteLambdaAnyone(data.folder, data.functionName, function(err, data){
             if (err){
                 res.send(500, { error: err }, {});
             }
