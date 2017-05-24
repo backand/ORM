@@ -975,8 +975,6 @@ router.map(function () {
     this.post("/copyCreateLambdaFunction").bind(function(req,res,data){
         logger.logFields(true, req, "regular", "schema server", "copyCreateLambdaFunction", util.format("%j", "input", data), null);        
 
-
-
         async.series({
             copy: function(callback) {
                 downloadIntoS3(data.sourceZipUrl, data.sourceBytesSize, data.bucket, data.folder, data.fileName, function (errPut, awsData) {
@@ -999,6 +997,31 @@ router.map(function () {
             } 
         });          
     });
+
+    // parameters of POST:
+    // awsRegion
+    // accessKeyId
+    // secretAccessKey 
+    // functionName 
+
+
+    // will return url and size in bytes of s3 object containing code
+
+    this.post("/downloadLambda").bind(function(req, res, data){
+        logger.logFields(true, req, "regular", "schema server", "downloadLambda", util.format("%j", "input", data), null);   
+
+        getLambdaFunction(data.awsRegion, data.accessKeyId, data.secretAccessKey, data.functionName, function(err, results){
+            if (err) {
+                logger.logFields(true, req, "exception", "schema server", "downloadLambda", util.format("%s %j", "error", err), null);
+                res.send(500, {error: err}, {});
+            } 
+            else {
+                logger.logFields(true, req, "regular", "schema server", "downloadLambda", "downloadLambda OK");
+                res.send(200, {}, { sourceUrl: results.Code.Location, sourceBytesSize: results.Configuration.CodeSize });
+            }
+        });  
+    });
+
 
     // parameters of POST:
 
