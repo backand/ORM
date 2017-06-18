@@ -62,6 +62,7 @@ var deleteCron = require('./cron/delete_cron').deleteCron;
 var getCron = require('./cron/get_cron').getCron;
 
 var crypto = require('crypto');
+var folder = require('./list-s3/folder');
 
 
 var RedisDataSource = require('./logger-reply/sources/redisDataSource');
@@ -850,6 +851,32 @@ router.map(function () {
             } else {
                 logger.logFields(true, req, "regular", "schema server", "security/hash", util.format("%s", encrypted));
                 res.send(200, {}, {encrypted:encrypted});
+            }
+        });
+    })
+
+    this.post('/folder/rename').bind(function(req,res,data){
+        //logger.logFields(true, req, "regular", "schema server", "security/hash", util.format("%j", data));
+        var bucketName = data.bucketName;
+        var oldFolder = data.oldFolder;
+        var newFolder = data.newFolder;
+
+        if(!bucketName){
+            res.send(500, { error: 'bucketName must be fulfilled' }, {});
+        }
+        if(!oldFolder){
+            res.send(500, { error: 'oldFolder must be fulfilled' }, {});
+        }
+        if(!newFolder){
+            res.send(500, { error: 'newFolder must be fulfilled' }, {});
+        }
+
+        folder.rename(password, salt, null, function(err, data) {
+            if (err) {
+                res.send(500, { error: err }, null);
+            } else {
+                //logger.logFields(true, req, "regular", "schema server", "security/hash", util.format("%s", encrypted));
+                res.send(200, null, {});
             }
         });
     })

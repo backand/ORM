@@ -9,9 +9,10 @@
   "author": "Yoram Kornatzky",
   "license": "ISC",
   "dependencies": {
-    "s3": "latest",
+    "async": "^2.4.1",
+    "aws-sdk": "latest",
     "lodash": "latest",
     "redis": "latest",
-    "aws-sdk": "latest"
+    "s3": "latest"
   }
 }
