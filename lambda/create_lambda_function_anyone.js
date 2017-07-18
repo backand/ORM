@@ -5,7 +5,7 @@ function createLambdaFunctionFromS3(awsRegion, accessKeyId, secretAccessKey, buc
   credsFactory.getAccountCredentials(awsRegion, accessKeyId, secretAccessKey, function (err, credentials) {
     if (err) {
       callback(err, null);
-      return;
+
     }
     AWS.config.update({
       'accessKeyId': credentials.accessKeyId,

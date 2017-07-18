@@ -10,21 +10,18 @@ AWS.config.loadFromPath('./hosting/aws-credentials.json');
 var sts = new AWS.STS();
 
 function getAccountCredentials(awsRegion, accessKeyId, secretAccessKey, callback) {
-//target account ID :820250387915
-//assume role : BackandCrossAccount
+    //target account ID :820250387915
+    //assume role : BackandCrossAccountRole
     AWS.config.loadFromPath('./hosting/aws-credentials.json');
-
-
     var sts = new AWS.STS();
-    if(secretAccessKey.indexOf('bknd_') != 0)
-    {
-        callback( null, {
-            awsRegion :awsRegion,
-            accessKeyId :accessKeyId,
-            secretAccessKey:secretAccessKey
+    if (secretAccessKey.indexOf('bknd_') != 0) {
+        callback(null, {
+            awsRegion: awsRegion,
+            accessKeyId: accessKeyId,
+            secretAccessKey: secretAccessKey
         });
     }
-    else{
+    else {
         var role_arn = "arn:aws:iam::" + accessKeyId + ":role/"
         role_arn += role_name_from_user;
 
@@ -34,32 +31,33 @@ function getAccountCredentials(awsRegion, accessKeyId, secretAccessKey, callback
             RoleSessionName: "AssumeRoleSession"
         }
         sts.assumeRole(params, function (err, data) {
-            if (err){ 
+            if (err) {
                 console.log(err, err.stack); // an error occurred
                 callback(err);
             }
             else {
-                // console.log(data);
-
-                console.log("using cross account creds");
-                // console.log({access: data.Credentials.AccessKeyId, secret: data.Credentials.SecretAccessKey});
-                // console.log("--------");
-                callback( null,{
-                    awsRegion :awsRegion,
-                    accessKeyId :data.Credentials.AccessKeyId,
-                    secretAccessKey:data.Credentials.SecretAccessKey,
-                    sessionToken :data.Credentials.SessionToken
+                //console.log("using cross account creds");
+                callback(null, {
+                    awsRegion: awsRegion,
+                    accessKeyId: data.Credentials.AccessKeyId,
+                    secretAccessKey: data.Credentials.SecretAccessKey,
+                    sessionToken: data.Credentials.SessionToken
                 });
-               /* bkndLambda.getLambdaList("us-east-1", data.Credentials.AccessKeyId, data.Credentials.SecretAccessKey, data.Credentials.SessionToken, function (err, p) {
-                    console.log(p);
-                })*/
-            }           // successful response
+            }
 
         });
     }
-   // var account_id_from_user = "820250387915"; // the user account Id
+
 
 
 
 }
 module.exports.getAccountCredentials = getAccountCredentials;
+
+
+// getAccountCredentials("us-east-1", "820250387915", "bknd_d613b4aa-ac23-4287-9e0e-acbcb030d4c6", function (err, p) {
+//     if (err)
+//         console.log(err);
+//     else
+//         console.log(p);
+// });
