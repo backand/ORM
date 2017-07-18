@@ -1,7 +1,7 @@
 /**
  * Created by Relly on 6/15/2017.
  */
-
+'strict mode'
 const AWS = require('aws-sdk');
 
 function rename(bucketName, oldPrefix, newPrefix, callback) {
@@ -30,7 +30,7 @@ function rename(bucketName, oldPrefix, newPrefix, callback) {
         if (data.Contents.length) {
 
             // Build up the paramters for the delete statement
-            let paramsS3Delete = {
+            var paramsS3Delete = {
                 Bucket: bucketName,
                 Delete: {
                     Objects: []
