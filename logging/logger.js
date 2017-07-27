@@ -5,11 +5,12 @@
 var log4js = require('log4js');
 
 log4js.configure({
-    appenders: [
-        {
+    appenders: {
+
+      console: {
             type: 'console'
         },
-        {
+        app:{
             type: 'log4js-node-amqp',
             connection: {
                 url: "amqp://guest:guest@ec2-52-6-131-8.compute-1.amazonaws.com:5672"
@@ -25,7 +26,8 @@ log4js.configure({
                 applicationName: 'nodeServer'
             }
         }
-    ]
+    }, categories: {
+    default: { appenders: [ 'console', 'app' ], level: 'debug' }}
 });
 //
 // log4js.configure('./logging/config.json', {});
