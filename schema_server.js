@@ -103,7 +103,7 @@ function authorize(request, body, cb) {
 // Create the routing table
 router.map(function () {
     this.root.bind(function (req, res) {
-        res.send("Welcome")
+        res.send(version)
     });
 
     // validate a json schema

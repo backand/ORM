@@ -109,7 +109,7 @@ function getLambdaList(awsRegion, accessKeyId, secretAccessKey, callback) {
 
 module.exports.getLambdaList = getLambdaList;
 
-// getLambdaList('us-east-1', "AKIAJQIZGYS3N4IPFCVA", "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", function(err, data){
+// getLambdaList('us-east-1', "XXXXXXXXXX", "YYYYYYYYYYYYYYYYYYYYY", function(err, data){//please set awss credentials
 //   console.log("=======");
 //   console.log(err);
 //   console.log(data);
