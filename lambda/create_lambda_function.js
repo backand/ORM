@@ -17,9 +17,9 @@ function createLambdaFunctionFromS3(bucket, folder, fileName, functionName, hand
     Role: 'arn:aws:iam::328923390206:role/lambda_control', /* required */
     Runtime: 'nodejs4.3', /* required */
     // Description: 'STRING_VALUE',
-    MemorySize: 128,
+    MemorySize: 1024,
     Publish: true,
-    Timeout: 3
+    Timeout: 60
   };
   lambda.createFunction(params, function(err, data) {
     if (err) {
