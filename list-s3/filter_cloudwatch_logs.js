@@ -88,8 +88,8 @@ module.exports.filterCloudwatchLogs = filterCloudwatchLogs;
                                                                                                                                               
 // filterCloudwatchLogs(
 // 'us-east-1', 
-// "AKIAJQIZGYS3N4IPFCVA", 
-// "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", 
+// 'XXXXXXXXXX',
+//  'YYYYYYYYYYYYYYYYYYYYY',
 // '/aws/lambda/cli_items_testrunlambda', 
 // '945dc84a-33c4-11e7-8266-c3ab82235614', 
 // 10000, 

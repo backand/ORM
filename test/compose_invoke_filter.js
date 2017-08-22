@@ -9,8 +9,8 @@ var async = require('async');
 function invoke(n, callback) {
    invokeLambdaAndLog(
 	    'us-east-1', 
-	    "AKIAJQIZGYS3N4IPFCVA",
-	    "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", 
+		"XXXXXXXXXX", //please set awss credentials
+		"YYYYYYYYYYYYYYYYYYYYY",
 	    'arn:aws:lambda:us-east-1:328923390206:function:cli_items_blueredwhite',
 	    {},
 	    false,
@@ -25,8 +25,8 @@ function invoke(n, callback) {
 function getLog(id, callback) {
 	filterLogs(
 		'us-east-1',
-		"AKIAJQIZGYS3N4IPFCVA",
-		"VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx",
+		"XXXXXXXXXXXXXX", //aws crfedentials
+		"YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY",
 		'/aws/lambda/cli_items_blueredwhite', 
 		id, 
 		10000,

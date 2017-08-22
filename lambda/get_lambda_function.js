@@ -59,7 +59,7 @@ function getLambdaFunction(awsRegion, accessKeyId, secretAccessKey, functionName
 
 module.exports.getLambdaFunction = getLambdaFunction;
 
-// getLambdaFunction('us-east-1', "AKIAJQIZGYS3N4IPFCVA", "VY4DmqWHeWNPmR9et9EP8+cLHKq2aNvucH36ltcx", "testlambda_items_jhjk", function(err, data){
+// getLambdaFunction('us-east-1', "", "", "testlambda_items_jhjk", function(err, data){ //please set aws credentials 
 //   console.log("=======");
 //   console.log(err);
 //   console.log(data);
