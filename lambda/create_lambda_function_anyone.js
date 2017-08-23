@@ -28,7 +28,7 @@ function createLambdaFunctionFromS3(awsRegion, accessKeyId, secretAccessKey, buc
       // Description: 'STRING_VALUE',
       MemorySize: 1024,
       Publish: true,
-      Timeout: 60
+      Timeout: 120
     };
     lambda.createFunction(params, function (err, data) {
       if (err) {
