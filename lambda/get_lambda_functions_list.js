@@ -95,7 +95,9 @@ function getLambdaList(awsRegion, accessKeyId, secretAccessKey, callback) {
                 ...
             ]
           */
-          callback(err, arrayFunctions);
+          var resObj = {};
+          resObj[awsRegion] = arrayFunctions;
+          callback(err,  resObj);
         }
       );
     });

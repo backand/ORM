@@ -949,18 +949,18 @@ router.map(function () {
     // accessKeyId
     // secretAccessKey  
 
-    this.post("/getFunctionList").bind(function(req,res,data){
-        logger.logFields(true, req, "regular", "schema server", "getFunctionList", util.format("%j", "input", data), null);   
-        
+    this.post("/getFunctionsList").bind(function(req,res,data){
+        logger.logFields(true, req, "regular", "schema server", "getFunctionsList", util.format("%j", "input", data), null);   
+        console.log(data);
         switch(data.cloudProvider){
             case "AWS":
                 getLambdasList(data.credentials.awsRegion, data.credentials.accessKeyId, data.credentials.secretAccessKey, function(err, results){
                     if (err) {
-                        logger.logFields(true, req, "exception", "schema server", "getFunctionList", util.format("%s %j", "error", err), null);
+                        logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});
                     } 
                     else {
-                        logger.logFields(true, req, "regular", "schema server", "getFunctionList", "getFunctionList OK");
+                        logger.logFields(true, req, "regular", "schema server", "getFunctionsList", "getFunctionsList OK");
                         res.send(200, {}, results);
                     }
                 });
@@ -968,11 +968,11 @@ router.map(function () {
             case "Azure":
                 getAzureList(data.credentials.subscriptionId, data.credentials.appId, data.credentials.tenant, data.credentials.password, function(err, results){
                     if (err) {
-                        logger.logFields(true, req, "exception", "schema server", "getFunctionList", util.format("%s %j", "error", err), null);
+                        logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});
                     } 
                     else {
-                        logger.logFields(true, req, "regular", "schema server", "getFunctionList", "getFunctionList OK");
+                        logger.logFields(true, req, "regular", "schema server", "getFunctionsList", "getFunctionsList OK");
                         res.send(200, {}, results);
                     }
                 });
