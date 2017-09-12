@@ -49,6 +49,7 @@ function getFunctionsList(subscriptionId, appId, tenant, password, callback){
                         returnBody.AppName = functionAppName;
                         returnBody.Key = ""; //todo: get the keys of the app
                         returnBody.TestData = data[key].properties.test_data;
+                        returnBody.FunctionArn = data[key].id;
                         return returnBody
                     });
                     //return each app with the array of functions
