@@ -28,7 +28,7 @@ function getFunctionsList(subscriptionId, appId, tenant, password, callback){
             //console.log(result);
             var functionsJson = {};
             async.each(result, function(app, callback) {
-
+                    
                 var resourceGroupName = app.id.match(/resourceGroups\/(.)*providers/)[0].replace('resourceGroups/','').replace('/providers','');
                 var functionAppName = app.name;
 
@@ -43,12 +43,12 @@ function getFunctionsList(subscriptionId, appId, tenant, password, callback){
                     var data = functions.value;
                     var functionListing = Object.keys(data).map((key) => {
                         var returnBody = {};
-                        returnBody.authLevel = data[key].properties.config.bindings[0].authLevel || 'Admin';
-                        returnBody.trigger = data[key].properties.config.bindings[0].type;
-                        returnBody.name = data[key].properties.name;
-                        returnBody.appName = functionAppName;
-                        returnBody.key = ""; //todo: get the keys of the app
-                        returnBody.test_data = data[key].properties.test_data;
+                        returnBody.AuthLevel = data[key].properties.config.bindings[0].authLevel || 'Admin';
+                        returnBody.Trigger = data[key].properties.config.bindings[0].type;
+                        returnBody.FunctionName = data[key].properties.name;
+                        returnBody.AppName = functionAppName;
+                        returnBody.Key = ""; //todo: get the keys of the app
+                        returnBody.TestData = data[key].properties.test_data;
                         return returnBody
                     });
                     //return each app with the array of functions

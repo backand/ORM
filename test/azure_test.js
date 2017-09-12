@@ -20,7 +20,7 @@ describe('Test Azure functions', function(){
         console.error("err", err);
       }
       expect(err).to.be.null;
-      expect(data).to.have.any.keys("backand-f2","f100");
+      expect(data).to.have.any.keys("backand-f3","f100");
       done();
     })
   })
@@ -34,7 +34,7 @@ describe('Test Azure functions', function(){
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
-    invokeFunction('HttpTriggerJS1', 'backand-f2', 'function', 'httpTrigger', 'GET', '', payload, function(err, data){
+    invokeFunction('HttpTriggerJS1', 'backand-f3', 'function', 'httpTrigger', 'GET', '', payload, function(err, data){
       if(err){
         console.error("err", err);
       }
@@ -53,7 +53,7 @@ describe('Test Azure functions', function(){
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
-    invokeFunction('HttpTriggerJS1', 'backand-f2', 'function', 'httpTrigger', 'POST', '', payload, function(err, data){
+    invokeFunction('HttpTriggerJS1', 'backand-f3', 'function', 'httpTrigger', 'POST', '', payload, function(err, data){
       if(err){
         console.error("err", err);
       }
@@ -72,7 +72,7 @@ describe('Test Azure functions', function(){
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
-    invokeFunction('HttpTriggerJS1', 'backand-f2', 'function', 'httpTrigger', 'POST', '', payload, function(err, data){
+    invokeFunction('HttpTriggerJS1', 'backand-f3', 'function', 'httpTrigger', 'POST', '', payload, function(err, data){
       
       expect(data).to.be.undefined;
       expect(err).to.be.equal("Please pass a name on the query string or in the request body");

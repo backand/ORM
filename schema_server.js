@@ -1118,7 +1118,7 @@ router.map(function () {
                 })
             break;
             case "Azure":
-                invokeAzureFunction(data.function.name, data.function.appName, data.function.authLevel, data.function.trigger, data.function.method, data.function.key, data.payload, function(err, data){
+                invokeAzureFunction(data.function.name, data.function.appName, data.function.authLevel, data.function.trigger, data.function.method, data.function.key, data.payload, data.isProduction, function(err, data){
                     if (err){
                         logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});
