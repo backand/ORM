@@ -58,6 +58,7 @@ var getLambdaFunction = require('./lambda/get_lambda_function').getLambdaFunctio
 var invokeLambdaAndLog = require('./lambda/invoke_lambda_and_log').invokeLambdaAndLog;
 var invokeAzureFunction = require('./azure/invoke_function').invokeFunction;
 var getAzureList = require('./azure/get_functions_list').getFunctionsList;
+var invokeGCPFunction = require('./gcp/invoke_function').invokeFunction;
 
 var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
@@ -977,6 +978,18 @@ router.map(function () {
                     }
                 });
             break;
+            case "GCP":
+                getAzureList(data.credentials.privateKey, data.credentials.clientEmail, data.credentials.projectName, function(err, results){
+                    if (err) {
+                        logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
+                        res.send(500, { error: err }, {});
+                    } 
+                    else {
+                        logger.logFields(true, req, "regular", "schema server", "getFunctionsList", "getFunctionsList OK");
+                        res.send(200, {}, results);
+                    }
+                });
+            break;
         }
     });
 
@@ -1118,7 +1131,21 @@ router.map(function () {
                 })
             break;
             case "Azure":
-                invokeAzureFunction(data.function.name, data.function.appName, data.function.authLevel, data.function.trigger, data.function.method, data.function.key, data.payload, data.isProduction, function(err, data){
+                //data.isProduction - not used yet
+                invokeAzureFunction(data.function.name, data.function.appName, data.function.authLevel, data.function.trigger, data.method, data.function.key, data.payload, function(err, data){
+                    if (err){
+                        logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
+                        res.send(500, { error: err }, {});
+                    }
+                    else {
+                        logger.logFields(true, req, "regular", "schema server", "invokeFunction", "invokeFunction OK"); 
+                        res.send(200, {}, result);                
+                    }
+                });
+            break;
+            case "GCP":
+                //data.isProduction - not used yet
+                invokeGCPFunction(data.function.trigger, data.method, data.payload, function(err, data){
                     if (err){
                         logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});

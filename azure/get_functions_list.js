@@ -43,13 +43,13 @@ function getFunctionsList(subscriptionId, appId, tenant, password, callback){
                     var data = functions.value;
                     var functionListing = Object.keys(data).map((key) => {
                         var returnBody = {};
+                        returnBody.FunctionName = data[key].properties.name;
+                        returnBody.FunctionArn = data[key].id;
                         returnBody.AuthLevel = data[key].properties.config.bindings[0].authLevel || 'Admin';
                         returnBody.Trigger = data[key].properties.config.bindings[0].type;
-                        returnBody.FunctionName = data[key].properties.name;
                         returnBody.AppName = functionAppName;
                         returnBody.Key = ""; //todo: get the keys of the app
                         returnBody.TestData = data[key].properties.test_data;
-                        returnBody.FunctionArn = data[key].id;
                         return returnBody
                     });
                     //return each app with the array of functions
