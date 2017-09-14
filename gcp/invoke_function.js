@@ -19,10 +19,11 @@ function invokeFunction(triggerUrl, method, payload, callback){
             callback('The specified input data isn\'t a valid JSON string.');
           }
         }
-
-        queryString = Object.keys(payload.userInput)
+        if(payload.userInput){
+          queryString = Object.keys(payload.userInput)
                             .map((key) => `${key}=${payload.userInput[key]}`)
                             .join('&');
+        }
 
         if(method.toLowerCase() == "post"){
           bodyJSON = payload.parameters;

@@ -25,9 +25,11 @@ function invokeFunction(name, appName, authLevel, trigger, method, key, payload,
           }
         }
 
-        queryString = Object.keys(payload.userInput)
+        if(payload.userInput){
+          queryString = Object.keys(payload.userInput)
                             .map((key) => `${key}=${payload.userInput[key]}`)
                             .join('&');
+        }
 
         if(method.toLowerCase() == "post"){
           bodyJSON = payload.parameters;
