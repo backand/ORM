@@ -1132,7 +1132,7 @@ router.map(function () {
             break;
             case "Azure":
                 //data.isProduction - not used yet
-                invokeAzureFunction(data.function.name, data.function.appName, data.function.authLevel, data.function.trigger, data.method, data.function.key, data.payload, function(err, data){
+                invokeAzureFunction(data.function.name, data.function.appName, data.function.authLevel, data.function.trigger, data.method, data.function.key, data.payload, function(err, result){
                     if (err){
                         logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});
@@ -1145,7 +1145,7 @@ router.map(function () {
             break;
             case "GCP":
                 //data.isProduction - not used yet
-                invokeGCPFunction(data.function.trigger, data.method, data.payload, function(err, data){
+                invokeGCPFunction(data.function.trigger, data.method, data.payload, function(err, result){
                     if (err){
                         logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});
