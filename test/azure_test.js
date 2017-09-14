@@ -28,9 +28,8 @@ describe('Test Azure functions', function(){
   it('Invoke GET function', function(done){
     this.timeout(64000);
     var payload = {
-      userInput: {"name":"input1"},
-      dbRow: {},
-      parameters: {"postdata":"just another JSON"},
+      "name":"input1",
+      "postdata":"just another JSON",
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
@@ -47,9 +46,8 @@ describe('Test Azure functions', function(){
   it('Invoke POST function', function(done){
     this.timeout(64000);
     var payload = {
-      userInput: {},
-      dbRow: {},
-      parameters: {"name":"post data"},
+      "name":"post data",
+      "postdata":"just another JSON",
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
@@ -66,9 +64,7 @@ describe('Test Azure functions', function(){
   it('Invoke function with Exception', function(done){
     this.timeout(64000);
     var payload = {
-      userInput: {},
-      dbRow: {},
-      parameters: {"test":"post data"},
+      "postdata":"just another JSON",
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 

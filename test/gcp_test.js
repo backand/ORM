@@ -26,9 +26,8 @@ describe('Test GCP functions', function(){
   it('Invoke GET function', function(done){
     this.timeout(64000);
     var payload = {
-      userInput: {"message":"test"},
-      dbRow: {},
-      parameters: {"message":"just another JSON"},
+      "message":"param1",
+      "postdata":"just another JSON",
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
@@ -37,7 +36,7 @@ describe('Test GCP functions', function(){
         console.error("err", err);
       }
       expect(err).to.be.null;
-      expect(data).to.deep.equal({ body: {}, query: { message: 'test' } });
+      expect(data).to.deep.equal({ body: {}, query: { message: 'param1', postdata: 'just another JSON' } });
       done();
     });
   })
@@ -45,9 +44,8 @@ describe('Test GCP functions', function(){
   it('Invoke POST function', function(done){
     this.timeout(64000);
     var payload = {
-      userInput: {"message":"test"},
-      dbRow: {},
-      parameters: {"message":"just another JSON"},
+      "message":"param1",
+      "postdata":"just another JSON",
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
@@ -56,7 +54,7 @@ describe('Test GCP functions', function(){
         console.error("err", err);
       }
       expect(err).to.be.null;
-      expect(data).to.deep.equal({ body:{ message: 'just another JSON',userProfile: { username: 'itay@backand.io', role: 'Admin' } },query: { message: 'test' } });
+      expect(data).to.deep.equal({ body:{ message: 'param1', postdata: 'just another JSON', userProfile: { username: 'itay@backand.io', role: 'Admin' } },query: {} });
       done();
     });
   })
@@ -64,9 +62,8 @@ describe('Test GCP functions', function(){
   it('Invoke function with Exception', function(done){
     this.timeout(64000);
     var payload = {
-      userInput: {"message":"test"},
-      dbRow: {},
-      parameters: {"error":"data"},
+      "error":"param1",
+      "postdata":"just another JSON",
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 

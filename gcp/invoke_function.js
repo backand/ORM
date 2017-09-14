@@ -19,15 +19,14 @@ function invokeFunction(triggerUrl, method, payload, callback){
             callback('The specified input data isn\'t a valid JSON string.');
           }
         }
-        if(payload.userInput){
-          queryString = Object.keys(payload.userInput)
-                            .map((key) => `${key}=${payload.userInput[key]}`)
+        if(method.toLowerCase() == "get" && payload){
+          queryString = Object.keys(payload)
+                            .map((key) => {return (key != 'userProfile') ? `${key}=${payload[key]}`: ''})
                             .join('&');
         }
 
         if(method.toLowerCase() == "post"){
-          bodyJSON = payload.parameters;
-          bodyJSON.userProfile = payload.userProfile;
+          bodyJSON = payload;
         }
       }
 
@@ -58,16 +57,15 @@ function invokeFunction(triggerUrl, method, payload, callback){
 }
 
 module.exports.invokeFunction = invokeFunction;
-//userInput = query string, dbRow = ignored, parameters = POST data, userProfile = POST data.userProfile
+//GET and POST data comes as parameters, userProfile = POST data.userProfile
 // var payload = {
-//   userInput: {"message":"test"},
-//   dbRow: {},
-//   parameters: {"message":"just another JSON"},
+//   "message":"param1",
+//   "postdata":"just another JSON",
 //   userProfile: {"username":"itay@backand.io","role":"Admin"}
 // }
 
-//https://us-central1-functions-179710.cloudfunctions.net/function2
-//https://us-central1-functions-179710.cloudfunctions.net/helloWorld
+// //https://us-central1-functions-179710.cloudfunctions.net/function2
+// //https://us-central1-functions-179710.cloudfunctions.net/helloWorld
 
 // invokeFunction('https://us-central1-functions-179710.cloudfunctions.net/function2', 'POST', payload, function(err, data){
 //     if(err){

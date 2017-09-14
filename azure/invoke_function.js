@@ -25,15 +25,14 @@ function invokeFunction(name, appName, authLevel, trigger, method, key, payload,
           }
         }
 
-        if(payload.userInput){
-          queryString = Object.keys(payload.userInput)
-                            .map((key) => `${key}=${payload.userInput[key]}`)
+        if(method.toLowerCase() == "get" && payload){
+          queryString = Object.keys(payload)
+                            .map((key) => {return (key != 'userProfile') ? `${key}=${payload[key]}`: ''})
                             .join('&');
         }
 
         if(method.toLowerCase() == "post"){
-          bodyJSON = payload.parameters;
-          bodyJSON.userProfile = payload.userProfile;
+          bodyJSON = payload;
         }
       }
 
@@ -48,7 +47,6 @@ function invokeFunction(name, appName, authLevel, trigger, method, key, payload,
         request(options, (err, response, body) => {
           if (err) return callback(err);
           if (response.statusCode !== 200) return callback(body || response.statusMessage);
-
           callback(null, body);
         });
       });
@@ -62,15 +60,14 @@ function invokeFunction(name, appName, authLevel, trigger, method, key, payload,
 }
 
 module.exports.invokeFunction = invokeFunction;
-//userInput = query string, dbRow = ignored, parameters = POST data, userProfile = POST data.userProfile
+//GET and POST data comes as parameters, userProfile = POST data.userProfile
 // var payload = {
-//   userInput: {"name":"param1"},
-//   dbRow: {},
-//   parameters: {"postdata":"just another JSON"},
+//   "name":"param1",
+//   "postdata":"just another JSON",
 //   userProfile: {"username":"itay@backand.io","role":"Admin"}
 // }
 
-// invokeFunction('HttpTriggerJS1', 'backand-f2', 'function', 'httpTrigger', 'GET', '', payload, function(err, data){
+// invokeFunction('HttpTriggerJS1', 'backand-f3', 'function', 'httpTrigger', 'POST', '', payload, function(err, data){
 //     if(err){
 //       console.log(err);
 //     } else {
