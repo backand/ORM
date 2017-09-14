@@ -2,9 +2,9 @@
 const BbPromise = require('bluebird');
 const request = require('request');
 
-function invokeFunction(name, appName, authLevel, trigger, method, key, payload, callback){
+function invokeFunction(name, appName, authLevel, trigger, method, key, payload, callback) {
 
-  try{
+  try {
 
     var config = {
       functionAppApiPath: '/api/',
@@ -25,13 +25,13 @@ function invokeFunction(name, appName, authLevel, trigger, method, key, payload,
           }
         }
 
-        if(method.toLowerCase() == "get" && payload){
+        if (method.toLowerCase() == "get" && payload) {
           queryString = Object.keys(payload)
-                            .map((key) => {return (key != 'userProfile') ? `${key}=${payload[key]}`: ''})
-                            .join('&');
+            .map((key) => { return (key != 'userProfile') ? `${key}=${payload[key]}` : '' })
+            .join('&');
         }
 
-        if(method.toLowerCase() == "post"){
+        if (method.toLowerCase() == "post") {
           bodyJSON = payload;
         }
       }
@@ -45,15 +45,22 @@ function invokeFunction(name, appName, authLevel, trigger, method, key, payload,
         };
 
         request(options, (err, response, body) => {
-          if (err) return callback(err);
-          if (response.statusCode !== 200) return callback(body || response.statusMessage);
-          callback(null, body);
+          if (err)
+            return callback(err);
+          if (response.statusCode !== 200)
+            return callback(body || response.statusMessage);
+
+          var resObject = {
+            StatusCode: response.statusCode,
+            Payload: body
+          }
+          callback(null, resObject);
         });
       });
     } else {
       callback(`Currently ${trigger} is not supported`);
     }
-  } catch(e){
+  } catch (e) {
     callback(e);
   }
 

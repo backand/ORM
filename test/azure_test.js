@@ -37,8 +37,9 @@ describe('Test Azure functions', function(){
       if(err){
         console.error("err", err);
       }
+      
       expect(err).to.be.null;
-      expect(data).to.be.equal("Hello input1");
+      expect(data.Payload).to.be.equal("Hello input1");
       done();
     });
   })
@@ -55,8 +56,9 @@ describe('Test Azure functions', function(){
       if(err){
         console.error("err", err);
       }
+      
       expect(err).to.be.null;
-      expect(data).to.be.equal("Hello post data");
+      expect(data.Payload).to.be.equal("Hello post data");
       done();
     });
   })
