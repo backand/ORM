@@ -39,7 +39,8 @@
     "underscore": "^1.8.3",
     "underscore.string": "^3.3.4",
     "util": "^0.10.3",
-    "azure-functions": "1.0.2"
+    "azure-functions": "1.0.2",
+    "googleapis":"21.3.0"
   },
   "devDependencies": {
     "http-console": "latest"
