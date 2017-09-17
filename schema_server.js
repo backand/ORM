@@ -59,6 +59,7 @@ var invokeLambdaAndLog = require('./lambda/invoke_lambda_and_log').invokeLambdaA
 var invokeAzureFunction = require('./azure/invoke_function').invokeFunction;
 var getAzureList = require('./azure/get_functions_list').getFunctionsList;
 var invokeGCPFunction = require('./gcp/invoke_function').invokeFunction;
+var getGCPFunctions = require('./gcp/get_functions_list').getFunctionsList;
 
 var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
@@ -979,7 +980,7 @@ router.map(function () {
                 });
             break;
             case "GCP":
-                getAzureList(data.credentials.privateKey, data.credentials.clientEmail, data.credentials.projectName, function(err, results){
+                getGCPFunctions(data.credentials.privateKey, data.credentials.clientEmail, data.credentials.projectName, function(err, results){
                     if (err) {
                         logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});
