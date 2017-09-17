@@ -979,7 +979,7 @@ router.map(function () {
                     }
                 });
             break;
-            case "Google":
+            case "GCP":
                 getGCPFunctions(data.credentials.privateKey, data.credentials.clientEmail, data.credentials.projectName, function(err, results){
                     if (err) {
                         logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
@@ -1144,7 +1144,7 @@ router.map(function () {
                     }
                 });
             break;
-            case "Google":
+            case "GCP":
                 //data.isProduction - not used yet
                 invokeGCPFunction(data.function.trigger, data.method, data.payload, function(err, result){
                     if (err){
