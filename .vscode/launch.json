@@ -7,6 +7,13 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "minio",
+      "cwd": "${workspaceRoot}/list-s3",
+      "program": "${workspaceRoot}/list-s3/minio.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Azure Function List",
       "cwd": "${workspaceRoot}/azure",
       "program": "${workspaceRoot}/azure/get_functions_list.js"
