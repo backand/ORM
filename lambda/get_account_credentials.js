@@ -14,7 +14,7 @@ function getAccountCredentials(awsRegion, accessKeyId, secretAccessKey, callback
     //assume role : BackandCrossAccountRole
     AWS.config.loadFromPath('./hosting/aws-credentials.json');
     var sts = new AWS.STS();
-    if (secretAccessKey.indexOf('bknd_') != 0) {
+    if ( secretAccessKey && secretAccessKey != null && secretAccessKey.indexOf('bknd_') != 0) {
         callback(null, {
             awsRegion: awsRegion,
             accessKeyId: accessKeyId,
