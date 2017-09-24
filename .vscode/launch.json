@@ -74,7 +74,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Google Function List",
+      "name": "GCP Function List",
       "cwd": "${workspaceRoot}/gcp",
       "program": "${workspaceRoot}/gcp/get_functions_list.js"
     },
@@ -91,6 +91,28 @@
       "name": "openFaas Function List",
       "cwd": "${workspaceRoot}/openFaas",
       "program": "${workspaceRoot}/openFaas/get_functions_list.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "openFaas Invoke Function",
+      "cwd": "${workspaceRoot}/openFaas",
+      "program": "${workspaceRoot}/openFaas/invoke_function.js"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "openFaas Tests",
+        "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+        "args": [
+            "-u",
+            "tdd",
+            "--timeout",
+            "999999",
+            "--colors",
+            "${workspaceRoot}/test/openFaas_test.js"
+        ],
+        "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

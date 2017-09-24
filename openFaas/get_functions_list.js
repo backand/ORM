@@ -47,14 +47,14 @@ module.exports.getFunctionsList = getFunctionsList;
 //   "client_email": "139848664087-compute@developer.gserviceaccount.com"
 // };
 
-getFunctionsList('http://localhost:8080', 'mylocal', function(err, data){
-  if(err){
-    console.log(err);
-  } else {
-    console.log(data);
-  }
-  process.exit(1);
-});
+// getFunctionsList('http://localhost:8080', 'mylocal', function(err, data){
+//   if(err){
+//     console.log(err);
+//   } else {
+//     console.log(data);
+//   }
+//   process.exit(1);
+// });
 
 
 
