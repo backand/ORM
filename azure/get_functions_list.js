@@ -117,3 +117,13 @@ module.exports.getFunctionsList = getFunctionsList;
 //     console.log(data);
 //     process.exit(1);
 // });
+
+/*
+{
+  "appId": "7e755440-d61a-4f8f-a17f-0e411422b0bf",
+  "displayName": "azure-cli-2017-09-24-07-11-36",
+  "name": "http://azure-cli-2017-09-24-07-11-36",
+  "password": "3eeb4e3e-9fed-4797-83de-a2c361ddd226",
+  "tenant": "fca70269-df49-4f51-81a4-bdcbc7da439e"
+}
+*/

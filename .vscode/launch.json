@@ -84,6 +84,13 @@
       "name": "GCP Invoke Function",
       "cwd": "${workspaceRoot}/gcp",
       "program": "${workspaceRoot}/gcp/invoke_function.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "openFaas Function List",
+      "cwd": "${workspaceRoot}/openFaas",
+      "program": "${workspaceRoot}/openFaas/get_functions_list.js"
     }
   ]
 }
