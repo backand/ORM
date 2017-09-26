@@ -2,13 +2,6 @@ process.chdir(__dirname);
 var journey = require('journey');
 var async = require('async');
 var _ = require('underscore');
-var AWS = require('aws-sdk');
-AWS.config.loadFromPath('./hosting/aws-credentials.json');
-var s3 = new AWS.S3();
-
-var mime = require('mime-types');
-
-
 
 var validator = require('./validate_schema').validator;
 var transformer = require('./transform').transformer;
@@ -24,15 +17,11 @@ var api_url = config.api_url;
 var loggingPlanUrl = api_url + "/loggingPlan";
 var sendLambdaLogsUrl = api_url + "/sendLambdaLogs"
 var redisKeys = require('./logger-reply/sources/redis_keys');
+var bcrypt = require('bcrypt-nodejs');
 
 var Logger = require('./logging/log_with_redis');
 const util = require('util');
 var logger = new Logger(config.socketConfig.serverAddress + ":" + config.socketConfig.serverPort);
-
-var bcrypt = require('bcrypt-nodejs');
-
-
-
 var socketConfig = config.socketConfig.serverAddress + ':' + config.socketConfig.serverPort;
 
 var socket = require('socket.io-client')(socketConfig);
@@ -42,6 +31,7 @@ var getTemporaryCredentials = require('./hosting/sts').getTemporaryCredentials;
 var gcmSender = require('./push/gcm_sender').sendMessage;
 
 var s3Folders = require('./list-s3/list_folder');
+var s3File = require('./list-s3/file');
 var downloadIntoS3 = require('./list-s3/download_into_s3');
 var filterCloudwatchLogs = require('./list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
 var waitLogs = require('./list-s3/wait_for_cloudwatch_logs').waitLogs;
@@ -68,16 +58,10 @@ var getCron = require('./cron/get_cron').getCron;
 var crypto = require('crypto');
 var folder = require('./list-s3/folder');
 
-
 var RedisDataSource = require('./logger-reply/sources/redisDataSource');
 var redisDataSource = new RedisDataSource();
 
-
-
 var request = require('request');
-
-
-
 var fs = require('fs');
 var jsonfile = require('jsonfile');
 
@@ -417,94 +401,34 @@ router.map(function () {
     this.post('/uploadFile').bind(function (req, res, data) {
         logger.logFields(true, req, "regular", "schema server", "bucketCredentials", "start uploadFile");
         logger.logFields(true, req, "regular", "schema server", "uploadFile", data.fileName + ' ' + data.dir);
-        var s = data.fileName.toLowerCase();
-        var extPosition = s.lastIndexOf('.');
-        if (extPosition > -1) {
-            ext = s.substr(extPosition + 1);
-        }
-        else {
-            ext = '';
-        }
-        var contentType = data.fileType;
 
-        if (!contentType) {
-            contentType = getContentType(data.fileName);
-        }
-
-        logger.logFields(true, req, "regular", "schema server", "uploadFile", 'uploadFile contentType is ' + contentType);
-
-        var buffer = new Buffer(data.file, 'base64');
-        var params = {
-            Bucket: data.bucket,
-            Key: data.dir + "/" + data.fileName,
-            ACL: 'public-read',
-            Body: buffer,
-            // CacheControl: 'STRING_VALUE',
-            // ContentDisposition: 'STRING_VALUE',
-            // ContentEncoding: 'STRING_VALUE',
-            // ContentLanguage: 'STRING_VALUE',
-            // ContentLength: 0,
-            // ContentMD5: 'STRING_VALUE',
-            ContentType: contentType,
-            Expires: new Date// || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
-            // GrantFullControl: 'STRING_VALUE',
-            // GrantRead: 'STRING_VALUE',
-            // GrantReadACP: 'STRING_VALUE',
-            // GrantWriteACP: 'STRING_VALUE',
-            // Metadata: {
-            //   someKey: 'STRING_VALUE',
-            //   /* anotherKey: ... */
-            // },
-            // RequestPayer: 'requester',
-            // SSECustomerAlgorithm: 'STRING_VALUE',
-            // SSECustomerKey: new Buffer('...') || 'STRING_VALUE',
-            // SSECustomerKeyMD5: 'STRING_VALUE',
-            // SSEKMSKeyId: 'STRING_VALUE',
-            // ServerSideEncryption: 'AES256 | aws:kms',
-            // StorageClass: 'STANDARD | REDUCED_REDUNDANCY | STANDARD_IA',
-            // WebsiteRedirectLocation: 'STRING_VALUE'
-        };
-
-        logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile start put object to s3");
-        s3.putObject(params, function (err, awsData) {
-            // if (err) console.log(err, err.stack); // an error occurred
-            // else     console.log(data);           // successful response
-            if (err) {
+        s3File.uploadFile(data.fileName, data.fileType, data.file, data.bucket, data.dir, function(err, response) {
+            if (err){
                 logger.logFields(true, req, "execption", "schema server", "uploadFile", util.format("%s %j", "uploadFile error", err));
-                res.send(500, {error:err.message}, err);
+                res.send(500, { error: err }, {});
             }
-            else {
-                //var link = "https://s3.amazonaws.com/" + data.bucket + "/" + data.dir + "/" + data.fileName;
-                var link = config.storageConfig.serverProtocol + '://' + data.bucket + "/" + data.dir + "/" + data.fileName;
-                logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile OK " + link);
-                res.send(200, {}, {link: link});
+            else{
+                logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile OK " + response.link);
+                res.send(200, {}, {link: response.link});
             }
         });
-
-
     });
 
     // delete a content file from S3
     this.post('/deleteFile').bind(function (req, res, data) {
         logger.logFields(true, req, "regular", "schema server", "deleteFile", "start deleteFile");
         logger.logFields(true, req, "regular", "schema server", "deleteFile", data.bucket, data.fileName);
-        var params = {
-            Bucket: data.bucket, /* required */
-            Key: data.dir + "/" + data.fileName/* required */
-        };
-        s3.deleteObject(params, function (err, data) {
-            // if (err) console.log(err, err.stack); // an error occurred
-            // else     console.log(data);           // successful response
-            if (err) {
+
+        s3File.deleteFile(data.bucket, data.dir, data.fileName, function(err, response) {
+            if (err){
                 logger.logFields(true, req, "execption", "schema server", "deleteFile", util.format("%s %j", "deleteFile error", err), err.stack);
-                res.send(500, {error: err}, {});
+                res.send(500, { error: err }, {});
             }
-            else {
+            else{
                 logger.logFields(true, req, "regular", "schema server", "deleteFile", "deleteFile OK");
                 res.send(200, {}, {});
             }
         });
-
     });
 
     // dumb list of sub folder of app
@@ -1461,13 +1385,3 @@ function getToken(headers) {
     }
 }
 
-function getContentType(fileName){
-
-    var cType = mime.lookup(fileName);
-
-    if(!cType){
-        cType = "text/plain";
-    }
-
-    return cType;
-}

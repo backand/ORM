@@ -1,5 +1,3 @@
-var config = require('../configFactory').getConfig();
-var logger = require('../logging/logger').getLogger('stress_socket_' + config.env);
 var socketEmitUrl = 'http://localhost:9000/socket/emit';
 var async = require('async');
 var request = require('request');

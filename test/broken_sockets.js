@@ -225,7 +225,7 @@ describe("user with anonymous token can get messages", function(){
     })
 });
 
-describe.only("user with anonymous token can get messages by role", function(){
+describe("user with anonymous token can get messages by role", function(){
     this.timeout(300000);
     socket.connect();
     var spy1 = sinon.spy();

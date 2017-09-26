@@ -21,14 +21,14 @@ describe("valid config", function () {
     it('can fetch qa', function (done) {
             var config = getConfig("qa");
             expect(config).not.to.be.undefined;
-            expect(config.api_url).to.be.equal("http://localhost:8099");
+            expect(config.api_url).to.be.equal("https://api.backand.co");
             done();
         });
 
     it('default is dev', function (done) {
             var config = getConfig();
             expect(config).not.to.be.undefined;
-            expect(config.api_url).to.be.equal("https://api.backand.com");
+            expect(config.api_url).to.be.equal("http://localhost:4110");
             done();
         });
 });

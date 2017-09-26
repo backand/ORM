@@ -699,7 +699,7 @@ describe("transform", function () {
             {
                 "alter": [
                     "alter table `R` drop `a`",
-                    "alter table U drop foreign key U_owner_foreign",
+                    "alter table U drop foreign key r_owner_bkname_dogs",
                     "alter table `U` drop `owner`"
                 ],
 
@@ -1240,12 +1240,10 @@ describe("transform", function () {
         );
         expect(v).to.deep.equal(
             {
-
-
                 "alter": [
                     "alter table friend_request drop foreign key users_user_bkname_friend_requests",
                     "alter table `friend_request` drop `user`",
-                    "alter table friend_request modify init_user undefined null  "
+                    "alter table `friend_request` add `init_user` int unsigned\nalter table `friend_request` add constraint friend_request_init_user_foreign foreign key (`init_user`) references `users` (`id`) on update cascade on delete cascade"
                 ],
                 "valid": "never",
                 "warnings": [

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha --recursive"
+    "test": "./node_modules/mocha/bin/mocha test/test_*.js"
   },
   "dependencies": {
     "amqp": "^0.2.4",

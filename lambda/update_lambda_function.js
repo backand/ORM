@@ -1,11 +1,13 @@
 var AWS = require('aws-sdk')
-AWS.config.loadFromPath('./hosting/aws-credentials.json');
-AWS.config.update({ 'region': 'us-east-1' });
-var lambda = new AWS.Lambda();
 
 function updateLambdaFunctionFromS3(bucket, folder, fileName, functionName, callback){
   console.log("updateLambdaFunctionFromS3 started");
   console.log("zipS3Folder started");
+  
+  var path = process.env.TESTPATH || '../';
+  AWS.config.loadFromPath(path + '/hosting/aws-credentials.json');
+  AWS.config.update({ 'region': 'us-east-1' });
+  var lambda = new AWS.Lambda();
 
   var params = {
     FunctionName: functionName, /* required */

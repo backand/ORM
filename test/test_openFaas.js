@@ -5,7 +5,7 @@ var chai = require("chai");
 var expect = chai.expect;
 var assert = chai.assert;
 
-describe('Test openFaas functions', function(){
+describe.skip('Test openFaas functions', function(){
   it('Get functions list', function(done){
     this.timeout(64000);
     var config = {

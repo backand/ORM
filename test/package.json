@@ -7,10 +7,12 @@
     "async": "latest",
     "aws-sdk": "latest",
     "backand": "latest",
+    "browserify": "^14.4.0",
     "chai": "latest",
     "child_process": "latest",
     "del": "latest",
     "jsonfile": "latest",
+    "lodash": "latest",
     "mocha": "latest",
     "node-inspector": "latest",
     "pm2": "^2.2.3",
@@ -21,8 +23,7 @@
     "sinon-chai": "latest",
     "superagent": "latest",
     "underscore": "latest",
-    "uuid": "^3.0.1",
     "util": "latest",
-    "lodash": "latest"
+    "uuid": "^3.0.1"
   }
 }

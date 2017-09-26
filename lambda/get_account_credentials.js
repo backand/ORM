@@ -2,17 +2,22 @@
  * Created by Yariv on 7/17/2017.
  */
 var AWS = require('aws-sdk');
-var role_name_from_user = "BackandCrossAccountRole"; // this is the role the user creats in his own account
-
-AWS.config.loadFromPath('./hosting/aws-credentials.json');
-
-
-var sts = new AWS.STS();
+var fs = require('fs');
 
 function getAccountCredentials(awsRegion, accessKeyId, secretAccessKey, callback) {
     //target account ID :820250387915
     //assume role : BackandCrossAccountRole
-    AWS.config.loadFromPath('./hosting/aws-credentials.json');
+    var path = process.env.TESTPATH || '../';
+    AWS.config.loadFromPath(path + '/hosting/aws-credentials.json');
+    // if (fs.existsSync('./hosting/aws-credentials.json')) {
+        
+    // } else if (fs.existsSync('../hosting/aws-credentials.json')){
+    //     AWS.config.loadFromPath('../hosting/aws-credentials.json');
+    // } else {
+    //     callback('can not load aws-credentials file');
+    // }
+    
+    var role_name_from_user = "BackandCrossAccountRole"; // this is the role the user creats in his own account
     var sts = new AWS.STS();
     if ( secretAccessKey && secretAccessKey != null && secretAccessKey.indexOf('bknd_') != 0) {
         callback(null, {

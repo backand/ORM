@@ -36,7 +36,7 @@ describe('Test GCP functions', function(){
         console.error("err", err);
       }
       expect(err).to.be.null;
-      expect(data).to.deep.equal({ body: {}, query: { message: 'param1', postdata: 'just another JSON' } });
+      expect(data.Payload).to.deep.equal({ body: {}, query: { message: 'param1', postdata: 'just another JSON' } });
       done();
     });
   })
@@ -69,7 +69,7 @@ describe('Test GCP functions', function(){
 
     invokeFunction('https://us-central1-functions-179710.cloudfunctions.net/function2', 'POST', payload, function(err, data){
       
-      expect(data.Payload).to.be.undefined;
+      expect(data).to.be.undefined;
       expect(err).to.be.equal("Some error!");
       done();
     });

@@ -43,7 +43,7 @@ var message = {
 
 var redisDataSource = new RedisDataSource();
 
-describe('insert-scan-redis', function(){
+describe.skip('insert-scan-redis', function(){
     before(function(done){
 
         async.series([
@@ -100,7 +100,7 @@ describe('insert-scan-redis', function(){
 });
 
 
-describe('sorted sets', function(){
+describe.skip('sorted sets', function(){
 
     before(function(done){
 
@@ -150,7 +150,7 @@ describe('sorted sets', function(){
 
 });
 
-describe('exceptions log', function(){
+describe.skip('exceptions log', function(){
 
     before(function(done){
         // 1. Make call to the logger with type 3
