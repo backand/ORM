@@ -195,6 +195,13 @@
             "${workspaceRoot}/test/test_redis_log.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Upload file Azure",
+      "cwd": "${workspaceRoot}/azure",
+      "program": "${workspaceRoot}/azure/file.js"
     }
   ]
 }
