@@ -125,7 +125,7 @@
             "--timeout",
             "999999",
             "--colors",
-            "${workspaceRoot}/test/test_base64_file.js"
+            "${workspaceRoot}/test/test_upload_file.js"
         ],
         "internalConsoleOptions": "openOnSessionStart"
     },

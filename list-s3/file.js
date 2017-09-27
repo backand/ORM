@@ -4,7 +4,8 @@ var config = require('../configFactory').getConfig();
 
 function uploadFile(fileName, fileType, file, bucket, dir, callback) {
 
-  AWS.config.loadFromPath('./hosting/aws-credentials.json');
+  //AWS.config.loadFromPath('./hosting/aws-credentials.json');
+  AWS.config.update(config.AWSCredentials);
   var s3 = new AWS.S3();
 
   var s = fileName.toLowerCase();
