@@ -14,7 +14,7 @@ var isWin = require('os').platform() === 'win32';
 var waitLogs = require(path + 'list-s3/wait_for_cloudwatch_logs').waitLogs;
 var filterLogs = require(path + 'list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
 var invokeLambdaAndLog = require(path + 'lambda/invoke_lambda_and_log').invokeLambdaAndLog;
-
+var config = require('../configFactory').getConfig();
 var apiUrl = "https://api.backand.com";
 
 describe("lambda log", function(done){
@@ -26,8 +26,7 @@ describe("lambda log", function(done){
   var startTime = null;
   var endTime = null;
   var requestId = null;
-  var file = '../hosting/aws-credentials.json';
-  var credentials = jsonfile.readFileSync(file);
+  var credentials = config.AWSDefaultConfig.credentials;
 
   before(function(done){
     this.timeout(64000);

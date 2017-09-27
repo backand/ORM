@@ -47,3 +47,4 @@ lambda/src-*/node_modules/
 parse-migration/coverage
 parse-migration/files_download
 hosting/aws-credentials.json
+configs/aws-credentials.json

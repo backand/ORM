@@ -4,9 +4,7 @@ var config = require('../configFactory').getConfig();
 
 function uploadFile(fileName, fileType, file, bucket, dir, callback) {
 
-  //AWS.config.loadFromPath('./hosting/aws-credentials.json');
-  AWS.config.update(config.AWSCredentials);
-  var s3 = new AWS.S3();
+  var s3 = new AWS.S3({credentials:config.AWSDefaultConfig.credentials});
 
   var s = fileName.toLowerCase();
   var extPosition = s.lastIndexOf('.');
@@ -76,8 +74,8 @@ function getContentType(fileName){
 
 function deleteFile(bucket, dir, fileName, callback) {
 
-  AWS.config.loadFromPath('./hosting/aws-credentials.json');
-  var s3 = new AWS.S3();
+  
+  var s3 = new AWS.S3({credentials:config.AWSDefaultConfig.credentials});
 
   var params = {
       Bucket: bucket, /* required */

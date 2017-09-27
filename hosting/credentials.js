@@ -2,8 +2,7 @@
  * Created by itay on 11/13/15.
  */
 
-
-var credentials = require('./aws-credentials.json');
+var credentials = require('../configFactory').getConfig().AWSDefaultConfig.credentials;
 
 var iamRole = 'arn:aws:iam::328923390206:role/hosting';
 

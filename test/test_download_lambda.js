@@ -8,6 +8,7 @@ var fs = require('fs');
 var del = require('del');
 var _ = require('lodash');
 var jsonfile = require('jsonfile');
+var config = require('../configFactory').getConfig();
 
 var getLambdaFunction = require(path + 'lambda/get_lambda_function').getLambdaFunction;
 
@@ -44,7 +45,7 @@ describe("download lambda", function(done){
 
   it("get function", function(done){
   	this.timeout(64000);
-  	var credentials = jsonfile.readFileSync('../hosting/aws-credentials.json');
+  	var credentials = config.AWSDefaultConfig.credentials;
   	getLambdaFunction('us-east-1', credentials.accessKeyId, credentials.secretAccessKey, 'cli__root_testclifunction', function(err, results){
   		expect(err).to.be.null;
   		expect(results.Code.Location).to.not.be.null;

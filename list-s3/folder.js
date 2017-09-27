@@ -3,10 +3,11 @@
  */
 'strict mode'
 const AWS = require('aws-sdk');
+var config = require('../configFactory').getConfig();
 
 function rename(bucketName, oldPrefix, newPrefix, callback) {
-    AWS.config.loadFromPath('../hosting/aws-credentials.json');
-    AWS.config.update({'region': 'us-east-1'});
+    
+    AWS.config.update(config.AWSDefaultConfig);
 
     const async = require('async');
     // const bucketName = 'foo';

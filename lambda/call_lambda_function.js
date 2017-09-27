@@ -1,8 +1,7 @@
 // This module call a lambda
 var AWS = require('aws-sdk')
-AWS.config.loadFromPath('./hosting/aws-credentials.json');
-AWS.config.update({ 'region': 'us-east-1' });
-var lambda = new AWS.Lambda();
+var config = require('../configFactory').getConfig();
+var lambda = new AWS.Lambda(config.AWSDefaultConfig);
 
 function callLambdaFunctionFromS3(folder, functionName, payload, callback){
   var params = {

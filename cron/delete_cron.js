@@ -2,9 +2,8 @@
  * Created by Dell on 9/5/2016.
  */
 var AWS = require('aws-sdk');
-AWS.config.loadFromPath('./hosting/aws-credentials.json');
-AWS.config.update({ 'region': 'us-east-1' });
-var cloudwatchevents = new AWS.CloudWatchEvents();
+var config = require('../configFactory').getConfig();
+var cloudwatchevents = new AWS.CloudWatchEvents(config.AWSDefaultConfig);
 
 
 function deleteCron(name, id, callback){

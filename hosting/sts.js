@@ -4,7 +4,7 @@ var AWS = require('aws-sdk');
 var uuid = require('uuid');
 var jsonfile = require('jsonfile')
  
-//var credentialsFile = './hosting/aws-credentials.json';
+
 var credentialsFile = require('./credentials').credentials;
 var iamRole = require('./credentials').iamRole;
 

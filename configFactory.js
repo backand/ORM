@@ -1,7 +1,7 @@
 /**
  * Created by backand on 1/11/16.
  */
-var credentials = require('./hosting/aws-credentials.json');
+
 
 function getConfig(environment){
     var env = environment || process.env.ENV;
@@ -12,7 +12,15 @@ function getConfig(environment){
 
     var config = require('./configs/config.' + env + ".js");
     config.env = env;
-    config.AWSCredentials = credentials;
+    var credentials = require('./configs/aws-credentials.json');
+    
+    
+    var AWSDefaultConfig = {
+        credentials: credentials,
+        region: 'us-east-1'
+    }
+    config.AWSDefaultConfig = AWSDefaultConfig;
+    
     return config;
 }
 

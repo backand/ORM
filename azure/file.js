@@ -67,8 +67,8 @@ function getContentType(fileName){
 
 function deleteFile(bucket, dir, fileName, callback) {
 
-  AWS.config.loadFromPath('./hosting/aws-credentials.json');
-  var s3 = new AWS.S3();
+    var config = require('../configFactory').getConfig(); 
+    var s3 = new AWS.S3({credentials:config.AWSDefaultConfig.credentials});
 
   var params = {
       Bucket: bucket, /* required */

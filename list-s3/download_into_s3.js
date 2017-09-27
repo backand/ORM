@@ -1,8 +1,7 @@
 var AWS = require('aws-sdk');
 var https = require('https');
-AWS.config.loadFromPath('./hosting/aws-credentials.json');
-AWS.config.update({ 'region': 'us-east-1' });
-var s3 = new AWS.S3();
+var config = require('../configFactory').getConfig();
+var s3 = new AWS.S3(config.AWSDefaultConfig);
 
 function downloadUrlIntoS3(sourceUrl, sourceBytesSize, bucket, folder, fileName, callback){
     https.get(sourceUrl, function(stream) {

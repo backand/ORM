@@ -1138,7 +1138,7 @@ router.map(function () {
 function fillAwsData(data){
     var credentials = data;
     if (!data.awsRegion){
-        var credentials = jsonfile.readFileSync('./hosting/aws-credentials.json');
+        var credentials = config.AWSDefaultConfig.credentials;
         data = _.extend(data, credentials, { awsRegion: 'us-east-1' });
     }
     if (!data.functionArn){
