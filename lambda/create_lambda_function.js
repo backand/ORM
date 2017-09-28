@@ -1,9 +1,9 @@
 var AWS = require('aws-sdk')
 var config = require('../configFactory').getConfig();
-var lambda = new AWS.Lambda(config.AWSDefaultConfig);
+
 
 function createLambdaFunctionFromS3(bucket, folder, fileName, functionName, handlerName, callFunctionName, callback){
-
+  var lambda = new AWS.Lambda(config.AWSDefaultConfig);
   var params = {
     Code: { /* required */
       S3Bucket: bucket,

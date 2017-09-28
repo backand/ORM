@@ -1,9 +1,10 @@
 var AWS = require('aws-sdk');
 var https = require('https');
 var config = require('../configFactory').getConfig();
-var s3 = new AWS.S3(config.AWSDefaultConfig);
+
 
 function downloadUrlIntoS3(sourceUrl, sourceBytesSize, bucket, folder, fileName, callback){
+    var s3 = new AWS.S3(config.AWSDefaultConfig);
     https.get(sourceUrl, function(stream) {
         
         var params = {

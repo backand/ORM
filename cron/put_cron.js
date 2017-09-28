@@ -3,11 +3,12 @@
  */
 var AWS = require('aws-sdk');
 var config = require('../configFactory').getConfig();
-var cloudwatchevents = new AWS.CloudWatchEvents(config.AWSDefaultConfig);
+
 
 
 function putCron(name, schedule, lambdaArn, id, input, active, description, callback){
     console.log("putCron started " + name);
+    var cloudwatchevents = new AWS.CloudWatchEvents(config.AWSDefaultConfig);
     console.log(JSON.stringify(input));
     var state = active == null || active == true ? "ENABLED" : "DISABLED";
 

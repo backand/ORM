@@ -3,12 +3,12 @@
  */
 var AWS = require('aws-sdk');
 var config = require('../configFactory').getConfig();
-var cloudwatchevents = new AWS.CloudWatchEvents(config.AWSDefaultConfig);
+
 
 
 function deleteCron(name, id, callback){
     console.log("deleteCron started " + name);
-    
+    var cloudwatchevents = new AWS.CloudWatchEvents(config.AWSDefaultConfig);
     cloudwatchevents.removeTargets({
         Ids: [id],
         Rule: name

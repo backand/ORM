@@ -1,9 +1,9 @@
 var AWS = require('aws-sdk')
 var config = require('../configFactory').getConfig();
-var lambda = new AWS.Lambda(config.AWSDefaultConfig);
+
 
 function deleteLambdaFunctionFromS3(folder, functionName, callback){
-
+  var lambda = new AWS.Lambda(config.AWSDefaultConfig);
   var params = {
     FunctionName: functionName, /* required */
     // Qualifier: 'STRING_VALUE'

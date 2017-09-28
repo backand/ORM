@@ -4,12 +4,12 @@
 
 var AWS = require('aws-sdk');
 var config = require('../configFactory').getConfig();;
-var cloudwatchevents = new AWS.CloudWatchEvents(config.AWSDefaultConfig);
+
 
 
 function getCron(namePrefix, callback){
     console.log("getCron started " + namePrefix);
-
+    var cloudwatchevents = new AWS.CloudWatchEvents(config.AWSDefaultConfig);
     cloudwatchevents.listRules({
         NamePrefix: namePrefix,
         Limit : 100

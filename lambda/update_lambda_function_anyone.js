@@ -1,9 +1,9 @@
 var AWS = require('aws-sdk')
 var config = require('../configFactory').getConfig();
-var lambda = new AWS.Lambda(config.AWSDefaultConfig);
+
 
 function updateLambdaFunctionFromS3(awsRegion, accessKeyId, secretAccessKey, bucket, folder, fileName, functionName, callback){
-
+  var lambda = new AWS.Lambda(config.AWSDefaultConfig);
   var params = {
     FunctionName: functionName, /* required */
     Publish: true,

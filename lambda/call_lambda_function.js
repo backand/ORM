@@ -1,9 +1,10 @@
 // This module call a lambda
 var AWS = require('aws-sdk')
 var config = require('../configFactory').getConfig();
-var lambda = new AWS.Lambda(config.AWSDefaultConfig);
+
 
 function callLambdaFunctionFromS3(folder, functionName, payload, callback){
+  var lambda = new AWS.Lambda(config.AWSDefaultConfig);
   var params = {
     FunctionName: 'arn:aws:lambda:us-east-1:328923390206:function:' + folder + "_" + functionName, /* required */
     // ClientContext: 'STRING_VALUE',
