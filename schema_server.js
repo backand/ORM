@@ -32,6 +32,8 @@ var gcmSender = require('./push/gcm_sender').sendMessage;
 
 var s3Folders = require('./list-s3/list_folder');
 var s3File = require('./list-s3/file');
+var azureFile = require('./azure/file');
+
 var downloadIntoS3 = require('./list-s3/download_into_s3');
 var filterCloudwatchLogs = require('./list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
 var waitLogs = require('./list-s3/wait_for_cloudwatch_logs').waitLogs;
@@ -400,18 +402,42 @@ router.map(function () {
     // upload a content file to S3
     this.post('/uploadFile').bind(function (req, res, data) {
         logger.logFields(true, req, "regular", "schema server", "bucketCredentials", "start uploadFile");
-        logger.logFields(true, req, "regular", "schema server", "uploadFile", data.fileName + ' ' + data.dir);
+        logger.logFields(true, req, "regular", "schema server", "uploadFile", data.storage.fileName + ' ' + data.storage.dir);
 
-        s3File.uploadFile(data.fileName, data.fileType, data.file, data.bucket, data.dir, function(err, response) {
-            if (err){
-                logger.logFields(true, req, "execption", "schema server", "uploadFile", util.format("%s %j", "uploadFile error", err));
-                res.send(500, { error: err }, {});
-            }
-            else{
-                logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile OK " + response.link);
-                res.send(200, {}, {link: response.link});
-            }
-        });
+        switch(data.cloudProvider){
+            case "AWS":
+                s3File.uploadFile(data.credentials, data.storage.fileName, data.storage.fileType, data.file, data.storage.bucket, data.storage.dir, function(err, response) {
+                    if (err){
+                        logger.logFields(true, req, "execption", "schema server", "uploadFile", util.format("%s %j", "uploadFile error", err));
+                        res.send(500, { error: err }, {});
+                    }
+                    else{
+                        logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile OK " + response.link);
+                        res.send(200, {}, {link: response.link});
+                    }
+                });
+            break;
+            case "Azure":
+                azureFile.uploadFile(data.credentials.connectionString, data.storage.fileName, data.storage.fileType, data.file, data.storage.bucket, data.storage.dir, function(err, response) {
+                    if (err){
+                        logger.logFields(true, req, "execption", "schema server", "uploadFile", util.format("%s %j", "uploadFile error", err));
+                        res.send(500, { error: err }, {});
+                    }
+                    else{
+                        logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile OK " + response.link);
+                        res.send(200, {}, {link: response.link});
+                    }
+                });
+
+            break;
+
+            case "GCP":
+                //todo
+            break;
+        }
+
+
+        
     });
 
     // delete a content file from S3

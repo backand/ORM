@@ -20,17 +20,15 @@ function uploadFile(conectionString, fileName, fileType, file, bucket, dir, call
             if (!error) {
                 // if result = true, container was created.
                 // if result = false, container already existed.
-                var options = {
-                    contentType: getContentType(fileName),
-                    contentEncoding: 'base64'
-                };
+                var type = getContentType(fileName, fileType);
+                var buffer = new Buffer(file, 'base64');
 
-                blobService.createBlockBlobFromText(bucket, fullName, file, options, function(error, result, response) {
-                    if (!error) {
-                        // blob retrieved
-                        //var link = config.storageConfig.serverProtocol + '://' + bucket + "/" + dir + "/" + fileName;
-                        link = 'https://backandstoragetest.blob.core.windows.net/testupload/clock.mp3';
-                        callback(null, {link: link, data:data});
+                blobService.createBlockBlobFromText(bucket, fullName, buffer, {contentSettings: {contentType: type}}, function(error, result, response) {
+                    if (error) {
+                        callback(error);
+                    } else {
+                        var link = `${blobService.host.primaryHost}${bucket}/${fullName}`; //'https://backandstoragetest.blob.core.windows.net/testupload/clock.mp3';
+                        callback(null, {link: link, data: response});                    
                     }
                 });
             }
@@ -41,21 +39,11 @@ function uploadFile(conectionString, fileName, fileType, file, bucket, dir, call
     }
 }
 
-function getContentType(fileName){
+function getContentType(fileName, fileType){
 
-    var s = fileName.toLowerCase();
-    var ext = '';
-    var extPosition = s.lastIndexOf('.');
-    if (extPosition > -1) {
-        ext = s.substr(extPosition + 1);
-    }
-    else {
-        ext = '';
-    }
     var contentType = fileType;
 
     if (!contentType) {
-        contentType = getContentType(fileName);
         contentType = mime.lookup(fileName);
         if(!contentType){
             contentType = "text/plain";
@@ -65,41 +53,49 @@ function getContentType(fileName){
     return contentType;
 }
 
-function deleteFile(bucket, dir, fileName, callback) {
+function deleteFile(conectionString, bucket, dir, fileName, callback) {
+    
+    var blobService = azure.createBlobService(conectionString);
 
-    var config = require('../configFactory').getConfig(); 
-    var s3 = new AWS.S3({credentials:config.AWSDefaultConfig.credentials});
-
-  var params = {
-      Bucket: bucket, /* required */
-      Key: dir + "/" + fileName/* required */
-  };
-  s3.deleteObject(params, function (err, data) {
-      if (err) {
+    var fullName = fileName;
+        if(dir && dir != ''){
+            fullName = dir + "/" + fileName;
+        }
+    blobService.deleteBlob(bucket, fullName, function(error, response){
+        if (error) {
           callback(err)
-      }
-      else {
-        callback(null, data);
-      }
-  });
+        }
+        else {
+            callback(null, data);
+        }
+    });
 }
 
 module.exports.uploadFile = uploadFile;
 module.exports.deleteFile = deleteFile;
 
 //test data
-var cs = 'DefaultEndpointsProtocol=https;AccountName=backandstoragetest;AccountKey=svyIYkPAq7wMVvJSyoIbnT3vNNeG5wEVDzYjU6zXprZg1bNjBZ3CIQL4441giiYu02nApvq2GeZ+ADligaBhiA==;EndpointSuffix=core.windows.net';
-var data = {
-    file: "V2UgbG92ZSB5b3JhbQ==",
-    fileName: "clock.mp3",
-    bucket: "testupload",
-    dir: ""
-};
-uploadFile(cs, data.fileName, "", data.file, data.bucket, data.dir, function(err, data){
-  if(err){
-    console.log(err);
-  } else {
-    console.log(data);
-  }
-  process.exit(1);
-})
+// var cs = 'DefaultEndpointsProtocol=https;AccountName=backandstoragetest;AccountKey=svyIYkPAq7wMVvJSyoIbnT3vNNeG5wEVDzYjU6zXprZg1bNjBZ3CIQL4441giiYu02nApvq2GeZ+ADligaBhiA==;EndpointSuffix=core.windows.net';
+// var data = {
+//     file: "V2UgbG92ZSB5b3JhbQ==",
+//     fileName: "clock.mp3",
+//     bucket: "testupload",
+//     dir: "dir1"
+// };
+// uploadFile(cs, data.fileName, null, data.file, data.bucket, data.dir, function(err, data){
+//     if(err){
+//         console.log(err);
+//     } else {
+//         console.log(data);
+//     }
+//     process.exit(1);
+// })
+
+// deleteFile(cs, data.bucket, data.dir, data.fileName, function (err, data){
+//     if(err){
+//         console.log(err);
+//     } else {
+//         console.log(data);
+//     }
+//     process.exit(1);
+// })

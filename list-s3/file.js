@@ -2,18 +2,15 @@ var AWS = require('aws-sdk');
 var mime = require('mime-types');
 var config = require('../configFactory').getConfig();
 
-function uploadFile(fileName, fileType, file, bucket, dir, callback) {
+function uploadFile(credentials, fileName, fileType, file, bucket, dir, callback) {
 
-  var s3 = new AWS.S3({credentials:config.AWSDefaultConfig.credentials});
+	
+	if(!credentials){
+		credentials = config.AWSDefaultConfig.credentials;
+	}
 
-  var s = fileName.toLowerCase();
-  var extPosition = s.lastIndexOf('.');
-  if (extPosition > -1) {
-      ext = s.substr(extPosition + 1);
-  }
-  else {
-      ext = '';
-  }
+	var s3 = new AWS.S3({credentials: credentials});
+
   var contentType = fileType;
 
   if (!contentType) {
@@ -58,7 +55,7 @@ function uploadFile(fileName, fileType, file, bucket, dir, callback) {
       }
       else {
         //var link = "https://s3.amazonaws.com/" + bucket + "/" + dir + "/" + fileName;
-        var link = config.storageConfig.serverProtocol + '://' + bucket + "/" + dir + "/" + fileName;
+        var link = `${config.storageConfig.serverProtocol}://${bucket}/${dir}/${fileName}`;
         callback(null, {link: link, data:data});
       }
   });
