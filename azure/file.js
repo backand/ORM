@@ -58,15 +58,15 @@ function deleteFile(conectionString, bucket, dir, fileName, callback) {
     var blobService = azure.createBlobService(conectionString);
 
     var fullName = fileName;
-        if(dir && dir != ''){
-            fullName = dir + "/" + fileName;
-        }
+    if(dir && dir != ''){
+        fullName = dir + "/" + fileName;
+    }
     blobService.deleteBlob(bucket, fullName, function(error, response){
         if (error) {
           callback(err)
         }
         else {
-            callback(null, data);
+            callback(null, response);
         }
     });
 }

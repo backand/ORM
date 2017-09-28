@@ -69,10 +69,12 @@ function getContentType(fileName){
   return cType;
 }
 
-function deleteFile(bucket, dir, fileName, callback) {
+function deleteFile(credentials, bucket, dir, fileName, callback) {
 
-  
-  var s3 = new AWS.S3({credentials:config.AWSDefaultConfig.credentials});
+  if(!credentials){
+		credentials = config.AWSDefaultConfig.credentials;
+	}
+  var s3 = new AWS.S3({credentials: credentials});
 
   var params = {
       Bucket: bucket, /* required */

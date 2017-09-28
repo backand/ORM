@@ -445,16 +445,37 @@ router.map(function () {
         logger.logFields(true, req, "regular", "schema server", "deleteFile", "start deleteFile");
         logger.logFields(true, req, "regular", "schema server", "deleteFile", data.bucket, data.fileName);
 
-        s3File.deleteFile(data.bucket, data.dir, data.fileName, function(err, response) {
-            if (err){
-                logger.logFields(true, req, "execption", "schema server", "deleteFile", util.format("%s %j", "deleteFile error", err), err.stack);
-                res.send(500, { error: err }, {});
-            }
-            else{
-                logger.logFields(true, req, "regular", "schema server", "deleteFile", "deleteFile OK");
-                res.send(200, {}, {});
-            }
-        });
+        switch(data.cloudProvider){
+            case "AWS":
+                s3File.deleteFile(data.credentials, data.storage.bucket, data.storage.dir, data.storage.fileName, function(err, response) {
+                    if (err){
+                        logger.logFields(true, req, "execption", "schema server", "deleteFile", util.format("%s %j", "deleteFile error", err), err.stack);
+                        res.send(500, { error: err }, {});
+                    }
+                    else{
+                        logger.logFields(true, req, "regular", "schema server", "deleteFile", "deleteFile OK");
+                        res.send(200, {}, {});
+                    }
+                });
+            break;
+            case "Azure":
+                azureFile.deleteFile(data.credentials.connectionString, data.storage.bucket, data.storage.dir, data.storage.fileName, function(err, response) {
+                    if (err){
+                        logger.logFields(true, req, "execption", "schema server", "deleteFile", util.format("%s %j", "deleteFile error", err));
+                        res.send(500, { error: err }, {});
+                    }
+                    else{
+                        logger.logFields(true, req, "regular", "schema server", "deleteFile", "deleteFile OK " + response.link);
+                        res.send(200, {}, {link: response.link});
+                    }
+                });
+            break;
+
+            case "GCP":
+                //todo
+            break;
+        }
+        
     });
 
     // dumb list of sub folder of app
