@@ -202,6 +202,13 @@
       "name": "Upload file Azure",
       "cwd": "${workspaceRoot}/azure",
       "program": "${workspaceRoot}/azure/file.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Upload file GCP",
+      "cwd": "${workspaceRoot}/gcp",
+      "program": "${workspaceRoot}/gcp/file.js"
     }
   ]
 }
