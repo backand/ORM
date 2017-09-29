@@ -33,6 +33,8 @@ var gcmSender = require('./push/gcm_sender').sendMessage;
 var s3Folders = require('./list-s3/list_folder');
 var s3File = require('./list-s3/file');
 var azureFile = require('./azure/file');
+var gcpFile = require('./gcp/file');
+
 
 var downloadIntoS3 = require('./list-s3/download_into_s3');
 var filterCloudwatchLogs = require('./list-s3/filter_cloudwatch_logs').filterCloudwatchLogs;
@@ -428,14 +430,20 @@ router.map(function () {
                         res.send(200, {}, {link: response.link});
                     }
                 });
-
             break;
-
             case "GCP":
-                //todo
+                gcpFile.uploadFile(data.credentials.privateKey, data.credentials.clientEmail, data.storage.fileName, data.storage.fileType, data.file, data.storage.bucket, data.storage.dir, function(err, response) {
+                    if (err){
+                        logger.logFields(true, req, "execption", "schema server", "uploadFile", util.format("%s %j", "uploadFile error", err));
+                        res.send(500, { error: err }, {});
+                    }
+                    else{
+                        logger.logFields(true, req, "regular", "schema server", "uploadFile", "uploadFile OK " + response.link);
+                        res.send(200, {}, {link: response.link});
+                    }
+                });
             break;
         }
-
 
         
     });
@@ -470,9 +478,17 @@ router.map(function () {
                     }
                 });
             break;
-
             case "GCP":
-                //todo
+                gcpFile.deleteFile(data.credentials.privateKey, data.credentials.clientEmail, data.storage.bucket, data.storage.dir, data.storage.fileName, function(err, response) {
+                    if (err){
+                        logger.logFields(true, req, "execption", "schema server", "deleteFile", util.format("%s %j", "deleteFile error", err));
+                        res.send(500, { error: err }, {});
+                    }
+                    else{
+                        logger.logFields(true, req, "regular", "schema server", "deleteFile", "deleteFile OK " + response.link);
+                        res.send(200, {}, {link: response.link});
+                    }
+                });
             break;
         }
         
