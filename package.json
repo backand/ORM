@@ -10,9 +10,12 @@
     "amqp-coffee": "^0.1.27",
     "async": "latest",
     "aws-sdk": "latest",
+    "azure-functions": "1.0.2",
+    "azure-storage": "^2.5.0",
     "base-64": "^0.1.0",
     "bcrypt-nodejs": "0.0.3",
     "chai": "latest",
+    "googleapis": "21.3.0",
     "journey": "^0.4.0-pre-3",
     "jsonfile": "latest",
     "knex": "latest",
@@ -38,9 +41,7 @@
     "taffy": "^2.6.2",
     "underscore": "^1.8.3",
     "underscore.string": "^3.3.4",
-    "util": "^0.10.3",
-    "azure-functions": "1.0.2",
-    "googleapis":"21.3.0"
+    "util": "^0.10.3"
   },
   "devDependencies": {
     "http-console": "latest"
