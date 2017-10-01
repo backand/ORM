@@ -12,9 +12,8 @@ function getConfig(environment){
 
     var config = require('./configs/config.' + env + ".js");
     config.env = env;
+    
     var credentials = require('./configs/aws-credentials.json');
-    
-    
     var AWSDefaultConfig = {
         credentials: credentials,
         region: 'us-east-1'
