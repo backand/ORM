@@ -2,9 +2,11 @@
  * Created by itay on 11/13/15.
  */
 
-var credentials = require('../configFactory').getConfig().AWSDefaultConfig.credentials;
+var config = require('../configFactory').getConfig().AWSDefaultConfig;
 
-var iamRole = 'arn:aws:iam::328923390206:role/hosting';
+var credentials = config.AWSDefaultConfig.credentials;
+
+var iamRole = confing.HostingIAMRole;
 
 module.exports.credentials = credentials;
 module.exports.iamRole = iamRole;

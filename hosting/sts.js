@@ -2,17 +2,18 @@ module.exports.getTemporaryCredentials = getTemporaryCredentials;
 
 var AWS = require('aws-sdk');
 var uuid = require('uuid');
-var jsonfile = require('jsonfile')
+var jsonfile = require('jsonfile');
+var config = require('../configFactory').getConfig();
  
 
-var credentialsFile = require('./credentials').credentials;
-var iamRole = require('./credentials').iamRole;
+//var credentialsFile = require('./credentials').credentials;
+var iamRole = config.HostingIAMRole;
 
 function getTemporaryCredentials(bucket, dir, callback){
 
 	// get iam credentials
 	//AWS.config.loadFromPath(credentialsFile);
-  AWS.config.set('credentials',credentialsFile,null);
+  //AWS.config.set('credentials',credentialsFile,null);
 	AWS.config.update({ logger: process.stdout });
     var params = {
 	  RoleArn: iamRole,
@@ -67,7 +68,7 @@ function getTemporaryCredentials(bucket, dir, callback){
 	  // SerialNumber: 'STRING_VALUE',
 	  // TokenCode: 'STRING_VALUE'
 	};
-	var sts = new AWS.STS();
+	var sts = new AWS.STS({credentials:config.AWSDefaultConfig.credentials});
 	sts.assumeRole(params, function (err, data) {
 	  callback(err, data);
 	});

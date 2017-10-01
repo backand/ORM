@@ -20,7 +20,7 @@ function getConfig(environment){
         region: 'us-east-1'
     }
     config.AWSDefaultConfig = AWSDefaultConfig;
-    
+    config.HostingIAMRole = 'arn:aws:iam::328923390206:role/hosting';
     return config;
 }
 
