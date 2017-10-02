@@ -111,15 +111,17 @@ describe('upload files to AWS with credentials', function(){
             storage:{
                 fileType: "image/jpg",
                 fileName: "clock.jpg",
-                bucket: "hosting.backand.net",
+                bucket: "backandtestuploadwest1",
                 dir: "upload"
             },
-            credentials: config.AWSDefaultConfig.credentials
+            credentials: {
+            "accessKeyId": "AKIAIYBZ6WYVNGLTZUCQ",
+            "secretAccessKey": "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"
+            }
         };
         client.post('uploadFile', data, function(err, res, body) {
             assert.isTrue(res.statusCode === 200);
-
-            assert.isTrue(body.link === 'http://hosting.backand.net/upload/clock.jpg');
+            assert.isTrue(body.link === 'https://s3-us-west-2.amazonaws.com/backandtestuploadwest1/upload/clock.jpg');
             done();
         });
     })
@@ -128,8 +130,11 @@ describe('upload files to AWS with credentials', function(){
         var fileName = "clock.mp3";
         var expectedContentType = "audio/mpeg";
         var cloudProvider = "AWS";
-        var bucket = "hosting.backand.net";
-        sendFileAndCheckContentType(cloudProvider, bucket, fileName, expectedContentType, done, config.AWSDefaultConfig.credentials);
+        var bucket = "backandtestupload1";
+        sendFileAndCheckContentType(cloudProvider, bucket, fileName, expectedContentType, done, {
+            "accessKeyId": "AKIAIYBZ6WYVNGLTZUCQ",
+            "secretAccessKey": "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"}
+        );
     })
 })
 describe('upload files to Azure with credentials', function(){
