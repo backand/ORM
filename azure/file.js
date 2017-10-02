@@ -63,7 +63,7 @@ function deleteFile(conectionString, bucket, dir, fileName, callback) {
     }
     blobService.deleteBlob(bucket, fullName, function(error, response){
         if (error) {
-          callback(err)
+          callback(error)
         }
         else {
             callback(null, response);
