@@ -209,6 +209,35 @@
       "name": "Upload file GCP",
       "cwd": "${workspaceRoot}/gcp",
       "program": "${workspaceRoot}/gcp/file.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "fnproject Function List",
+      "cwd": "${workspaceRoot}/fnproject",
+      "program": "${workspaceRoot}/fnproject/get_functions_list.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "fnproject Invoke Function",
+      "cwd": "${workspaceRoot}/fnproject",
+      "program": "${workspaceRoot}/fnproject/invoke_function.js"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "fnproject Tests",
+        "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+        "args": [
+            "-u",
+            "tdd",
+            "--timeout",
+            "999999",
+            "--colors",
+            "${workspaceRoot}/test/test_fnproject.js"
+        ],
+        "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }
