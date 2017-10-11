@@ -1,7 +1,7 @@
 const request = require('request');
 
 
-function getFunctionsList(gateway, projectName, callback){
+function getFunctionsList(gateway, connectionString, projectName, callback){
 
     try{
 
@@ -43,11 +43,10 @@ function getFunctionsList(gateway, projectName, callback){
 module.exports.getFunctionsList = getFunctionsList;
 
 // var config = {
-//   "private_key": "",
-//   "client_email": "139848664087-compute@developer.gserviceaccount.com"
+//   "connectionString": "",
 // };
 
-// getFunctionsList('http://localhost:8080', 'mylocal', function(err, data){
+// getFunctionsList('http://localhost:8080', config.connectionString, 'mylocal', function(err, data){
 //   if(err){
 //     console.log(err);
 //   } else {

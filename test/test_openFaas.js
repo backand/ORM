@@ -12,7 +12,7 @@ describe.skip('Test openFaas functions', function(){
       "gateway": "http://localhost:8080"
     };
         
-    getFunctionsList(config.gateway, 'local-test', function(err, data){
+    getFunctionsList(config.gateway, '', 'local-test', function(err, data){
       if(err){
         console.error("err", err);
       }

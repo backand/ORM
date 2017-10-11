@@ -53,7 +53,11 @@ var invokeLambdaAndLog = require('./lambda/invoke_lambda_and_log').invokeLambdaA
 var invokeAzureFunction = require('./azure/invoke_function').invokeFunction;
 var getAzureList = require('./azure/get_functions_list').getFunctionsList;
 var invokeGCPFunction = require('./gcp/invoke_function').invokeFunction;
+var invokeFnProjectFunction = require('./fnproject/invoke_function').invokeFunction;
+var invokeOpenFaasFunction = require('./openfaas/invoke_function').invokeFunction;
 var getGCPFunctions = require('./gcp/get_functions_list').getFunctionsList;
+var getFnProjectFunctions = require('./fnproject/get_functions_list').getFunctionsList;
+var getOpenFaasFunctions = require('./openfaas/get_functions_list').getFunctionsList;
 
 var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
@@ -978,6 +982,30 @@ router.map(function () {
                     }
                 });
             break;
+            case "fnproject":
+                getFnProjectFunctions(data.credentials.gateway, data.credentials.connectionString, function(err, results){
+                    if (err) {
+                        logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
+                        res.send(500, { error: err }, {});
+                    } 
+                    else {
+                        logger.logFields(true, req, "regular", "schema server", "getFunctionsList", "getFunctionsList OK");
+                        res.send(200, {}, results);
+                    }
+                });
+            break;
+            case "openfaas":
+                getOpenFaasFunctions(data.credentials.gateway, data.credentials.connectionString, data.credentials.projectName, function(err, results){
+                    if (err) {
+                        logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
+                        res.send(500, { error: err }, {});
+                    } 
+                    else {
+                        logger.logFields(true, req, "regular", "schema server", "getFunctionsList", "getFunctionsList OK");
+                        res.send(200, {}, results);
+                    }
+                });
+            break;
         }
     });
 
@@ -1134,6 +1162,32 @@ router.map(function () {
             case "GCP":
                 //data.isProduction - not used yet
                 invokeGCPFunction(data.function.trigger, data.method, data.payload, function(err, result){
+                    if (err){
+                        logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
+                        res.send(500, { error: err }, {});
+                    }
+                    else {
+                        logger.logFields(true, req, "regular", "schema server", "invokeFunction", "invokeFunction OK"); 
+                        res.send(200, {}, result);                
+                    }
+                });
+            break;
+            case "fnproject":
+                //data.isProduction - not used yet
+                invokeFnProjectFunction(data.function.trigger, data.method, data.payload, function(err, result){
+                    if (err){
+                        logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
+                        res.send(500, { error: err }, {});
+                    }
+                    else {
+                        logger.logFields(true, req, "regular", "schema server", "invokeFunction", "invokeFunction OK"); 
+                        res.send(200, {}, result);                
+                    }
+                });
+            break;
+            case "openfaas":
+                //data.isProduction - not used yet
+                invokeOpenFaasFunction(data.function.trigger, data.method, data.payload, function(err, result){
                     if (err){
                         logger.logFields(true, req, "exception", "schema server", "invokeFunction", util.format("%s %j", "error", err), null);
                         res.send(500, { error: err }, {});
