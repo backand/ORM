@@ -5,11 +5,11 @@ var chai = require("chai");
 var expect = chai.expect;
 var assert = chai.assert;
 
-describe.skip('Test fnproject functions', function(){
+describe('Test fnproject functions', function(){
   it('Get functions list', function(done){
     this.timeout(64000);
     var config = {
-      "gateway": "http://localhost:8080"
+      "gateway": "http://functions.backand.com:8080"
     };
         
     getFunctionsList(config.gateway, '', function(err, data){
@@ -30,7 +30,7 @@ describe.skip('Test fnproject functions', function(){
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
-    invokeFunction('http://localhost:8080/r/helloapp', 'GET', payload, function(err, data){
+    invokeFunction('http://functions.backand.com:8080/r/helloapp', 'GET', payload, function(err, data){
       expect(err).to.be.null;
       expect(data).to.be.contains('html')
       done();
@@ -40,17 +40,17 @@ describe.skip('Test fnproject functions', function(){
   it('Invoke POST function', function(done){
     this.timeout(64000);
     var payload = {
-      "url":"www.amazon.com",
+      "url":"www.google.com",
       "postdata":"just another JSON",
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
-    invokeFunction('http://localhost:8080/r/myapp/get_rank', 'POST', payload, function(err, data){
+    invokeFunction('http://functions.backand.com:8080/r/myapp/get_rank', 'POST', payload, function(err, data){
       if(err){
         console.error("err", err);
       }
       expect(err).to.be.null;
-      expect(data.rank).to.be.equal('10');
+      expect(data.rank).to.be.equal('1');
       done();
     });
   })
@@ -63,7 +63,7 @@ describe.skip('Test fnproject functions', function(){
       userProfile: {"username":"itay@backand.io","role":"Admin"}
     }
 
-    invokeFunction('http://localhost:8080/r/myapp/get_rank', 'GET', payload, function(err, data){
+    invokeFunction('http://functions.backand.com:8080/r/myapp/get_rank', 'GET', payload, function(err, data){
       
       expect(data).to.be.undefined;
       expect(err).to.be.contains('container exit code 1');
