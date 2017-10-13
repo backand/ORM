@@ -982,7 +982,7 @@ router.map(function () {
                     }
                 });
             break;
-            case "fnproject":
+            case "FnProject":
                 getFnProjectFunctions(data.credentials.gateway, data.credentials.connectionString, function(err, results){
                     if (err) {
                         logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
@@ -994,7 +994,7 @@ router.map(function () {
                     }
                 });
             break;
-            case "openfaas":
+            case "OpenFaas":
                 getOpenFaasFunctions(data.credentials.gateway, data.credentials.connectionString, data.credentials.projectName, function(err, results){
                     if (err) {
                         logger.logFields(true, req, "exception", "schema server", "getFunctionsList", util.format("%s %j", "error", err), null);
@@ -1172,7 +1172,7 @@ router.map(function () {
                     }
                 });
             break;
-            case "fnproject":
+            case "FnProject":
                 //data.isProduction - not used yet
                 invokeFnProjectFunction(data.function.trigger, data.method, data.payload, function(err, result){
                     if (err){
@@ -1185,7 +1185,7 @@ router.map(function () {
                     }
                 });
             break;
-            case "openfaas":
+            case "OpenFaas":
                 //data.isProduction - not used yet
                 invokeOpenFaasFunction(data.function.trigger, data.method, data.payload, function(err, result){
                     if (err){
