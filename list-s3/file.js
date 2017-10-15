@@ -21,7 +21,7 @@ function uploadFile(credentials, fileName, fileType, file, bucket, dir, callback
 		}
 
 		var buffer = new Buffer(file, 'base64');
-		var key = dir + "/" + fileName;
+		var key = (dir) ? dir + "/" + fileName : fileName;
 		var params = {
 				Bucket: bucket,
 				Key: key,
@@ -113,11 +113,12 @@ function deleteFile(credentials, bucket, dir, fileName, callback) {
 		credentials = config.AWSDefaultConfig.credentials;
 	}
   var s3 = new AWS.S3({credentials: credentials});
-
+	var key = (dir) ? dir + "/" + fileName : fileName;
   var params = {
       Bucket: bucket, /* required */
-      Key: dir + "/" + fileName/* required */
+      Key: key/* required */
   };
+	
   s3.deleteObject(params, function (err, data) {
       if (err) {
           callback(err)
