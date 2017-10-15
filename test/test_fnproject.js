@@ -32,7 +32,7 @@ describe('Test fnproject functions', function(){
 
     invokeFunction('http://functions.backand.com:8080/r/helloapp', 'GET', payload, function(err, data){
       expect(err).to.be.null;
-      expect(data).to.be.contains('html')
+      expect(data.Payload).to.be.contains('html')
       done();
     });
   })
@@ -50,7 +50,7 @@ describe('Test fnproject functions', function(){
         console.error("err", err);
       }
       expect(err).to.be.null;
-      expect(data.rank).to.be.equal('1');
+      expect(data.Payload.rank).to.be.equal('1');
       done();
     });
   })

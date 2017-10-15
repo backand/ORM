@@ -46,7 +46,12 @@ function invokeFunction(triggerUrl, method, payload, callback){
           if (err) return callback(err);
           if (response.statusCode !== 200) return callback(body || response.statusMessage);
 
-          callback(null, body);
+          var resObject = {
+            StatusCode: response.statusCode,
+            Payload: body
+          }
+
+          callback(null, resObject);
         });
       });
     } else {
