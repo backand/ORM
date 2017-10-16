@@ -1,6 +1,7 @@
 var expect = require("chai").expect;
 
 var request = require('request');
+var request_json = require('request-json');
 var _ = require('underscore');
 
 var validator = require("../validate_schema.js").validator;
@@ -10,6 +11,9 @@ var fetchTables = require("../backand_to_object").fetchTables;
 
 var api_url = require('../configFactory').getConfig().api_url;
 var tokenUrl = api_url + "/token";
+
+var client = request_json.createClient('http://localhost:9000/');
+
 
 describe("validate", function () {
     it("disallow columns with dashes", function (done) {
@@ -1677,3 +1681,31 @@ describe("backand to object", function () {
     });
 
 });
+
+describe("test smartListFolder call", function() {
+    before(function (done) {
+       var data = {
+            bucket: "files.backand.net",
+            folder: "qa13101"
+        };
+    
+        client.post('deleteFolder', data, function(err, res, body) {
+            expect(res.statusCode).to.be.equal(200);
+            done();
+        });
+    })
+    it("catch files returned", function (done) {
+
+        this.timeout(20000);
+        var data = {
+            bucket: "files.backand.net",
+            folder: "qa13101"
+        };
+        client.post('smartListFolder', data, function(err, res, body) {
+            expect(err).to.be.null;
+            expect(res.statusCode).to.be.equal(200);
+            expect(body.length).to.be.above(1);
+            done();
+        });
+    })
+})

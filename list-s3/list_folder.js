@@ -3,25 +3,9 @@ var fs = require('fs');
 var _ = require('lodash');
 var redis = require('redis');
 var config = require('../configFactory').getConfig();
-redisClient = redis.createClient(config.redis.port, config.redis.hostname, config.redis.option);
+var redisClient = redis.createClient(config.redis.port, config.redis.hostname, config.redis.option);
 
-//var credentials = JSON.parse(fs.readFileSync('../hosting/kornatzky-credentials.json', 'utf8'));
 var credentials = config.AWSDefaultConfig.credentials;
-
-var client = s3.createClient({
-  maxAsyncS3: 20,     // this is the default
-  s3RetryCount: 3,    // this is the default
-  s3RetryDelay: 1000, // this is the default
-  multipartUploadThreshold: 20971520, // this is the default (20 MB)
-  multipartUploadSize: 15728640, // this is the default (15 MB)
-  s3Options: {
-    accessKeyId: credentials.accessKeyId,
-    secretAccessKey: credentials.secretAccessKey,
-    region: "us-east-1"
-    // any other options are passed to new AWS.S3()
-    // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property
-  },
-});
 
 /**
  * limit information on file to particular fields
@@ -63,6 +47,22 @@ function listFolder(bucket, folder, pathInFolder, callback){
 		}, 
 		recursive: true 
 	};
+
+	var client = s3.createClient({
+		maxAsyncS3: 20,     // this is the default
+		s3RetryCount: 3,    // this is the default
+		s3RetryDelay: 1000, // this is the default
+		multipartUploadThreshold: 20971520, // this is the default (20 MB)
+		multipartUploadSize: 15728640, // this is the default (15 MB)
+		s3Options: {
+			accessKeyId: credentials.accessKeyId,
+			secretAccessKey: credentials.secretAccessKey,
+			region: "us-east-1"
+			// any other options are passed to new AWS.S3()
+			// See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property
+		},
+	});
+	
 	var emitter = client.listObjects(params)
 	.on('end', function(){
 		// console.log('end');
@@ -116,6 +116,20 @@ function storeFolder(bucket, folder, callback){
 		}, 
 		recursive: true
 	};
+	var client = s3.createClient({
+		maxAsyncS3: 20,     // this is the default
+		s3RetryCount: 3,    // this is the default
+		s3RetryDelay: 1000, // this is the default
+		multipartUploadThreshold: 20971520, // this is the default (20 MB)
+		multipartUploadSize: 15728640, // this is the default (15 MB)
+		s3Options: {
+			accessKeyId: credentials.accessKeyId,
+			secretAccessKey: credentials.secretAccessKey,
+			region: "us-east-1"
+			// any other options are passed to new AWS.S3()
+			// See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property
+		},
+	});
 	var emitter = client.listObjects(params)
 	.on('end', function(){
 		// console.log('end');
@@ -164,7 +178,7 @@ function filterFiles(bucket, folder, pathInFolder, callback){
 		}
 		else if (reply){ // we visited this path before
 			var data = JSON.parse(reply);
-			var prefix = folder + "/" + pathInFolder;
+			var prefix = (pathInFolder) ? folder + "/" + pathInFolder : folder;
 			var prefixLength = prefix.length + 1;
 			var rawData = [];
 			_.each(data, function(file){

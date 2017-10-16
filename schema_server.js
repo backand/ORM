@@ -520,7 +520,7 @@ router.map(function () {
                 res.send(500, { error: err }, {});
             }
             else{
-                res.send(200, {}, files);
+                res.send(200, {}, {});
             }
         });
     });
