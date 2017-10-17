@@ -16,8 +16,7 @@ describe('Test delete files with AWS Backand credencials', function(){
                 fileName: "clock.jpg",
                 bucket: "hosting.backand.net",
                 dir: "upload"
-            },
-            credentials: config.AWSDefaultConfig.credentials
+            }
         };
         client.post('uploadFile', data, function(err, res, body) {
             assert.isTrue(res.statusCode === 200);
@@ -60,7 +59,7 @@ describe('Test delete files with AWS credencials', function(){
         client.post('uploadFile', data, function(err, res, body) {
             assert.isTrue(res.statusCode === 200);
 
-            assert.isTrue(body.link === 'http://hosting.backand.net/upload/clock.jpg');
+            assert.isTrue(body.link === 'https://s3.amazonaws.com/hosting.backand.net/upload/clock.jpg');
             done();
         });
     })
@@ -140,7 +139,7 @@ describe('Test delete files with GCP credencials', function(){
         client.post('uploadFile', data, function(err, res, body) {
             assert.isTrue(res.statusCode === 200);
 
-            assert.isTrue(body.link === 'https://storage.cloud.google.com/backandtestupload/delete1/sub1%2Fclock.jpg');
+            assert.isTrue(body.link === 'https://storage.cloud.google.com/backandtestupload/delete1/sub1/clock.jpg');
             done();
         });
     })
