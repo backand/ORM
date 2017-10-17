@@ -237,7 +237,7 @@ describe('upload files to GCP with credentials', function(){
         client.post('uploadFile', data, function(err, res, body) {
             assert.isTrue(res.statusCode === 200);
 
-            assert.isTrue(body.link === 'https://storage.cloud.google.com/backandtestupload/dir2%2Fclock.jpg');
+            assert.isTrue(body.link === 'https://storage.cloud.google.com/backandtestupload/dir2/clock.jpg');
             simpleREquest
                 .get(body.link)
                 .on('response', function (response) {
