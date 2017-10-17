@@ -1467,7 +1467,12 @@ async.series(
                     // Dispatch the request to the router
                     //
                     router.handle(request, body, function (result) {
-                        response.writeHead(result.status, result.headers);
+                        try{
+                            response.writeHead(result.status, result.headers);
+                        }
+                        catch (err){
+                            response.writeHead(result.status);
+                        }
                         response.end(result.body);
                     });
                 });
