@@ -1471,7 +1471,26 @@ async.series(
                             response.writeHead(result.status, result.headers);
                         }
                         catch (err){
-                            response.writeHead(result.status);
+                            try {
+                                if (result.headers && result.headers.error){
+                                    if (!_.isString(result.headers.error)){
+                                        try{
+                                            result.headers.error = JSON.stringify(result.headers.error);
+                                        }
+                                        catch(err){
+                                            result.headers.error = '';
+                                        }
+                                    }
+                                    result.headers.error = result.headers.error.replace(/(\r\n|\n|\r)/gm,"");
+                                    response.writeHead(result.status, result.headers);
+                                }
+                                else {
+                                    response.writeHead(result.status);    
+                                }
+                            }
+                            catch (err2){
+                                response.writeHead(result.status);
+                            }
                         }
                         response.end(result.body);
                     });
