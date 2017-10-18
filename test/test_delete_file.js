@@ -107,7 +107,7 @@ describe('Test delete files with Azure credencials', function(){
       var data = {
           cloudProvider: "Azure",
           storage:{
-            fileName: "clock123.jpg",
+            fileName: "clock.jpg",
             bucket: "testdelete",
             dir: "upload"
           },
