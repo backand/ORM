@@ -54,10 +54,10 @@ var invokeAzureFunction = require('./azure/invoke_function').invokeFunction;
 var getAzureList = require('./azure/get_functions_list').getFunctionsList;
 var invokeGCPFunction = require('./gcp/invoke_function').invokeFunction;
 var invokeFnProjectFunction = require('./fnproject/invoke_function').invokeFunction;
-var invokeOpenFaasFunction = require('./openfaas/invoke_function').invokeFunction;
+var invokeOpenFaasFunction = require('./openFaas/invoke_function').invokeFunction;
 var getGCPFunctions = require('./gcp/get_functions_list').getFunctionsList;
 var getFnProjectFunctions = require('./fnproject/get_functions_list').getFunctionsList;
-var getOpenFaasFunctions = require('./openfaas/get_functions_list').getFunctionsList;
+var getOpenFaasFunctions = require('./openFaas/get_functions_list').getFunctionsList;
 
 var putCron = require('./cron/put_cron').putCron;
 var deleteCron = require('./cron/delete_cron').deleteCron;
