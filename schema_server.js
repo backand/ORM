@@ -317,7 +317,7 @@ router.map(function () {
 
         fetcher(tokenStructure[1], tokenStructure[0], data.appName, true, true, function (err, sqlSchema) {
             if (err) {
-                logger.logFields(true, req, "exception", "schema server", "transformJson", util.formaet("%s %j", "transformJson error", err));
+                logger.logFields(true, req, "exception", "schema server", "transformJson", util.format("%s %j", "transformJson error", err));
                 res.send(500, {error: err}, null);
             }
             else {
