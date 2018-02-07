@@ -1,12 +1,15 @@
 version: 2
 jobs:
-  ORM:
+  build:
+    branches:
+        only:
+          - linux
     docker:
       - image: circleci/node:8.9.0
     steps:
       - checkout
       - run: echo "A first hello"
-      - run: echo "Trying out workspaces" > node/ORMORM/echo-outpu
-      - run: docker build -t dev ./
+      - run: echo "Trying out workspaces" > node/ORM/echo-outpu
+      - run: docker build -t orm:dev .
       - run: docker run -p 9000:9000 --name testing_circle -d
 
